@@ -18,7 +18,9 @@ set(LINUX_MAINTAINER_EMAIL "email@ashmanix.com")
 
 # Add your custom source files here - header files are optional and only required for visibility
 # e.g. in Xcode or Visual Studio
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/plugin-main.c)
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/plugin-main.cpp
+                src/countdown-widget.hpp
+                src/countdown-widget.cpp)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)

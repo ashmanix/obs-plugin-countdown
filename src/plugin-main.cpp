@@ -18,11 +18,23 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 
 #include <obs-module.h>
 #include <obs-frontend-api.h>
+#include <QDockWidget>
+#include <countdown-widget.hpp>
 
 #include "plugin-macros.generated.h"
 
-void callback_function() {
+
+
+
+void callback_function(void *private_data) {
+	QWidget *main_window = (QWidget *)obs_frontend_get_main_window();
+	// QDockWidget *counter_dock = new QDockWidget("Counter Dock", main_window);
+	CountdownDockWidget *countdown_dock_widget = new CountdownDockWidget(main_window);
+
+	countdown_dock_widget->setFloating(true);
+	UNUSED_PARAMETER(private_data);
 	blog(LOG_INFO, "Callback function called!");
+	obs_frontend_add_dock(countdown_dock_widget);
 }
 
 void load_menu_option() {

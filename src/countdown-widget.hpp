@@ -5,12 +5,11 @@
 #include <QDockWidget>
 #include <QEvent>
 
-class CountdownDockWidget : public QDockWidget
-{
-    Q_OBJECT
+class CountdownDockWidget : public QDockWidget {
+	Q_OBJECT
 public:
-    explicit CountdownDockWidget(QWidget *parent);
-    virtual void changeEvent(QEvent *event);
+	explicit CountdownDockWidget(QWidget *parent);
+	virtual void changeEvent(QEvent *event);
 };
 
 #endif // COUNTDOWNWIDGET_H

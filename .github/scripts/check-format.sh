@@ -32,8 +32,8 @@ elif type clang-format 2> /dev/null ; then
     # Clang format found, but need to check version
     CLANG_FORMAT=clang-format
     V=$(clang-format --version)
-    if [[ $V != *"version 13.0"* ]]; then
-        echo "clang-format is not 13.0 (returned ${V})"
+    if [[ $V != *"version 14.0"* ]]; then
+        echo "clang-format is not 14.0 (returned ${V})"
         exit 1
     fi
 else

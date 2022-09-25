@@ -23,13 +23,12 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 
 #include "plugin-macros.generated.h"
 
-
-
-
-void callback_function(void *private_data) {
+void callback_function(void *private_data)
+{
 	QWidget *main_window = (QWidget *)obs_frontend_get_main_window();
 	// QDockWidget *counter_dock = new QDockWidget("Counter Dock", main_window);
-	CountdownDockWidget *countdown_dock_widget = new CountdownDockWidget(main_window);
+	CountdownDockWidget *countdown_dock_widget =
+		new CountdownDockWidget(main_window);
 
 	// countdown_dock_widget->setFloating(true);
 	UNUSED_PARAMETER(private_data);
@@ -38,17 +37,21 @@ void callback_function(void *private_data) {
 }
 
 // Callback without using tool menu
-void callback_function() {
+void callback_function()
+{
 	QWidget *main_window = (QWidget *)obs_frontend_get_main_window();
-	CountdownDockWidget *countdown_dock_widget = new CountdownDockWidget(main_window);
+	CountdownDockWidget *countdown_dock_widget =
+		new CountdownDockWidget(main_window);
 
 	blog(LOG_INFO, "Callback function called!");
 	countdown_dock_widget->setFloating(true);
 	obs_frontend_add_dock(countdown_dock_widget);
 }
 
-void load_menu_option() {
-	 obs_frontend_add_tools_menu_item("Add Countdown Timer", callback_function, NULL);
+void load_menu_option()
+{
+	obs_frontend_add_tools_menu_item("Add Countdown Timer",
+					 callback_function, NULL);
 }
 
 OBS_DECLARE_MODULE()

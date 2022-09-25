@@ -14,7 +14,7 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 {
 	QWidget *countdown_timer_widget = new QWidget();
 	// setStyleSheet(
-		// "QWidget{ background-color : rgba( 160, 160, 160, 255); border-radius : 7px;  }");
+	// "QWidget{ background-color : rgba( 160, 160, 160, 255); border-radius : 7px;  }");
 
 	QLabel *label = new QLabel(this);
 	QPushButton *button1 = new QPushButton("Press Me!", this);
@@ -26,14 +26,15 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	countdown_timer_widget->setLayout(layout);
 	// countdown_timer_widget->setBaseSize(200, 200);
 	countdown_timer_widget->setMinimumSize(200, 200);
-    countdown_timer_widget->setVisible(true);
+	countdown_timer_widget->setVisible(true);
 
-    setWidget(countdown_timer_widget);
+	setWidget(countdown_timer_widget);
 
-    // this->dockLocationChanged();
+	// this->dockLocationChanged();
 }
 
-void CountdownDockWidget::changeEvent(QEvent *event){
-    std::cout << event << "Event Happened!" << std::endl;
-    blog("LOG_INFO", "Callback function called!");
+void CountdownDockWidget::changeEvent(QEvent *event)
+{
+	std::cout << event << "Event Happened!" << std::endl;
+	blog("LOG_INFO", "Callback function called!");
 }

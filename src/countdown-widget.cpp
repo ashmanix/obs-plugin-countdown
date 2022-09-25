@@ -1,4 +1,7 @@
 #include "countdown-widget.hpp"
+#include "plugin-macros.generated.h"
+#include <string>
+#include <iostream>
 
 #include <QDockWidget>
 #include <QWidget>
@@ -21,7 +24,16 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 
 	layout->addWidget(button1);
 	countdown_timer_widget->setLayout(layout);
-	countdown_timer_widget->setBaseSize(200, 200);
+	// countdown_timer_widget->setBaseSize(200, 200);
+	countdown_timer_widget->setMinimumSize(200, 200);
+    countdown_timer_widget->setVisible(true);
 
     setWidget(countdown_timer_widget);
+
+    // this->dockLocationChanged();
+}
+
+void CountdownDockWidget::changeEvent(QEvent *event){
+    std::cout << event << "Event Happened!" << std::endl;
+    blog("LOG_INFO", "Callback function called!");
 }

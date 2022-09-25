@@ -31,9 +31,19 @@ void callback_function(void *private_data) {
 	// QDockWidget *counter_dock = new QDockWidget("Counter Dock", main_window);
 	CountdownDockWidget *countdown_dock_widget = new CountdownDockWidget(main_window);
 
-	countdown_dock_widget->setFloating(true);
+	// countdown_dock_widget->setFloating(true);
 	UNUSED_PARAMETER(private_data);
 	blog(LOG_INFO, "Callback function called!");
+	obs_frontend_add_dock(countdown_dock_widget);
+}
+
+// Callback without using tool menu
+void callback_function() {
+	QWidget *main_window = (QWidget *)obs_frontend_get_main_window();
+	CountdownDockWidget *countdown_dock_widget = new CountdownDockWidget(main_window);
+
+	blog(LOG_INFO, "Callback function called!");
+	countdown_dock_widget->setFloating(true);
 	obs_frontend_add_dock(countdown_dock_widget);
 }
 
@@ -48,7 +58,8 @@ bool obs_module_load(void)
 {
 	blog(LOG_INFO, "plugin loaded successfully (version %s)",
 	     PLUGIN_VERSION);
-	load_menu_option();
+	// load_menu_option();
+	callback_function();
 	return true;
 }
 

@@ -81,6 +81,6 @@
             "qtVersion": 6
         }
     },
-    "name": "obs-plugintemplate",
-    "version": "1.0.0"
+    "name": "obs-plugin-countdown",
+    "version": "0.0.1"
 }

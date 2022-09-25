@@ -1,6 +1,6 @@
 /*
-Plugin Name
-Copyright (C) <Year> <Developer> <Email Address>
+@CMAKE_PROJECT_NAME@
+Copyright (C) 2022 @PLUGIN_AUTHOR@ @LINUX_MAINTAINER_EMAIL@
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

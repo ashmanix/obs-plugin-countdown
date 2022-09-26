@@ -10,6 +10,11 @@
 #include <QObject>
 #include <QWidget>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QComboBox>
+#include <QLineEdit>
+#include <QLCDNumber>
+#include <QIcon>
 
 #include <string>
 #include <iostream>
@@ -23,10 +28,21 @@ public:
 
 private:
 	bool isPlaying;
+	QLCDNumber *timeDisplay;
+	QLineEdit *timerHours;
+	QLineEdit *timerMinutes;
+	QLineEdit *timerSeconds;
+
 	QPushButton *playButton;
+	QPushButton *pauseButton;
+	QPushButton *resetButton;
+
+	QComboBox *textSourceDropdownList;
 
 public slots:
-	void clicked();
+	void playButtonClicked();
+	void pauseButtonClicked();
+	void resetButtonClicked();
 };
 
 

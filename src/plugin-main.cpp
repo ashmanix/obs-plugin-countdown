@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>
 */
-
+#include <iostream>
 #include <obs-module.h>
 #include <obs-frontend-api.h>
 #include <QDockWidget>
@@ -61,6 +61,7 @@ bool obs_module_load(void)
 {
 	blog(LOG_INFO, "plugin loaded successfully (version %s)",
 	     PLUGIN_VERSION);
+	std::cout << "Test Text!" << std::endl;
 	// load_menu_option();
 	callback_function();
 	return true;

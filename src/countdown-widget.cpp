@@ -1,61 +1,93 @@
 #include "countdown-widget.hpp"
 
-
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	: QDockWidget("Countdown Timer", parent)
 {
-	QWidget *countdown_timer_widget = new QWidget();
+	countdownTimerUI = new QWidget();
 
-	this->timeDisplay = new QLCDNumber(6);
-	timeDisplay->display("00:00:00");
+	QVBoxLayout* layout = setupCountdownWidgetUI();
+	countdownTimerUI->setLayout(layout);
+
+	// countdownTimerUI->setBaseSize(200, 200);
+	countdownTimerUI->setMinimumSize(200, 200);
+	countdownTimerUI->setVisible(true);
+
+	setWidget(countdownTimerUI);
+	
+	layout = nullptr;
+	// this->dockLocationChanged();
+}
+
+CountdownDockWidget::~CountdownDockWidget()
+{
+	delete (timerDisplay);
+	delete (timerHours);
+	delete (timerMinutes);
+	delete (timerSeconds);
+
+	delete (playButton);
+	delete (pauseButton);
+	delete (resetButton);
+
+	delete (textSourceDropdownList);
+	delete (countdownTimerUI);
+
+}
+
+QVBoxLayout* CountdownDockWidget::setupCountdownWidgetUI() {
+	
+	timerDisplay = new QLCDNumber(9);
+	timerDisplay->display("00:00");
+
+	QRegularExpression rx("[0-9]{1,2}");
+	QValidator *timerValidator = new QRegularExpressionValidator(rx, this);
 
 	QLabel *timerHoursLabel = new QLabel("h");
-	this->timerHours = new QLineEdit("");
+	timerHours = new QLineEdit("0");
 	timerHours->setAlignment(Qt::AlignVCenter);
 	timerHours->setMaxLength(2);
-	// timerHours->setPlaceholderText("H");
-	timerHours->setInputMask("00");
+	timerHours->setValidator(timerValidator);
 
 	QLabel *timerMinutesLabel = new QLabel("m");
-	this->timerMinutes = new QLineEdit("");
+	timerMinutes = new QLineEdit("0");
 	timerMinutes->setAlignment(Qt::AlignVCenter);
 	timerMinutes->setMaxLength(2);
-	// timerMinutes->setPlaceholderText("M");
-	timerMinutes->setInputMask("00");
+	timerMinutes->setValidator(timerValidator);
 
 	QLabel *timerSecondsLabel = new QLabel("s");
-	this->timerSeconds = new QLineEdit("");
+	timerSeconds = new QLineEdit("0");
 	timerSeconds->setAlignment(Qt::AlignVCenter);
 	timerSeconds->setMaxLength(2);
-	// timerSeconds->setPlaceholderText("S");
-	timerSeconds->setInputMask("00");
+	timerSeconds->setValidator(timerValidator);
 
-	
 	QLabel *sourceDropdownLabel = new QLabel();
 	sourceDropdownLabel->setText("Text Source: ");
 
-	this->textSourceDropdownList= new QComboBox();
+	textSourceDropdownList = new QComboBox();
 	textSourceDropdownList->addItem("Text 1");
 	textSourceDropdownList->addItem("Text 2");
 	textSourceDropdownList->addItem("Text 3");
 	textSourceDropdownList->addItem("Text 4");
 
 	// playButton = new QPushButton(QIcon("../data/images/media_play.svg"),"Start", this);
-	this->playButton = new QPushButton(this);
-	this->playButton->setProperty("themeID", "playIcon");
-	this->playButton->setEnabled(true);
-	QObject::connect(playButton, SIGNAL(clicked()), SLOT(playButtonClicked()));
+	playButton = new QPushButton(this);
+	playButton->setProperty("themeID", "playIcon");
+	playButton->setEnabled(true);
+	QObject::connect(playButton, SIGNAL(clicked()),
+			 SLOT(playButtonClicked()));
 
-	this->pauseButton = new QPushButton(this);
-	this->pauseButton->setProperty("themeID", "pauseIcon");
-	this->pauseButton->setEnabled(false);
-	QObject::connect(pauseButton, SIGNAL(clicked()), SLOT(pauseButtonClicked()));
+	pauseButton = new QPushButton(this);
+	pauseButton->setProperty("themeID", "pauseIcon");
+	pauseButton->setEnabled(false);
+	QObject::connect(pauseButton, SIGNAL(clicked()),
+			 SLOT(pauseButtonClicked()));
 
-	this->resetButton = new QPushButton(this);
-	this->resetButton->setProperty("themeID", "restartIcon");
-	QObject::connect(resetButton, SIGNAL(clicked()), SLOT(resetButtonClicked()));
+	resetButton = new QPushButton(this);
+	resetButton->setProperty("themeID", "restartIcon");
+	QObject::connect(resetButton, SIGNAL(clicked()),
+			 SLOT(resetButtonClicked()));
 
-	this ->isPlaying = false;	
+	isPlaying = false;
 
 	QHBoxLayout *timerLayout = new QHBoxLayout();
 
@@ -77,20 +109,12 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	dropDownLayout->addWidget(textSourceDropdownList);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout();
-	
-	mainLayout->addWidget(timeDisplay);
+
+	mainLayout->addWidget(timerDisplay);
 	mainLayout->addLayout(timerLayout);
 	mainLayout->addLayout(dropDownLayout);
 	mainLayout->addLayout(buttonLayout);
-
-	countdown_timer_widget->setLayout(mainLayout);
-	// countdown_timer_widget->setBaseSize(200, 200);
-	countdown_timer_widget->setMinimumSize(200, 200);
-	countdown_timer_widget->setVisible(true);
-
-	setWidget(countdown_timer_widget);
-
-	// this->dockLocationChanged();
+	return mainLayout;
 }
 
 void CountdownDockWidget::changeEvent(QEvent *event)
@@ -99,33 +123,50 @@ void CountdownDockWidget::changeEvent(QEvent *event)
 	// blog(LOG_INFO, "Callback function called!");
 }
 
-void CountdownDockWidget::playButtonClicked() {
-	this->isPlaying = false;
-	this->playButton->setEnabled(false);
-	this->pauseButton->setEnabled(true);
-	// this->playButton->setIcon(SP_MediaPlay);
-	
-	blog(LOG_INFO, this->isPlaying ? "true" : "false");
+void CountdownDockWidget::playButtonClicked()
+{
+	setTimerIsCounting();
+	QString hours = timerHours->text();
+	QString minutes = timerMinutes->text();
+	QString seconds = timerSeconds->text();
+
+	QString displayTime = QString("%1:%2:%3").arg(hours, minutes, seconds);
+	// std::ostringstream timerTime;
+	// timerTime << hours<< ":" << minutes << ":" << seconds;
+	// std::string displayTime = timerTime.str();
+	timerDisplay->display(displayTime);
+	blog(LOG_INFO, isPlaying ? "true" : "false");
 	blog(LOG_INFO, "Play Button Clicked");
 }
 
-void CountdownDockWidget::pauseButtonClicked() {
-	this->isPlaying = true;
-	// Play button should be enabled
-	this->playButton->setEnabled(true);
-	this->pauseButton->setEnabled(false);
+void CountdownDockWidget::pauseButtonClicked()
+{
+	setTimerNotCounting();
 
-	blog(LOG_INFO, this->isPlaying ? "true" : "false");
+	blog(LOG_INFO, isPlaying ? "true" : "false");
 	blog(LOG_INFO, "Pause Button Clicked");
 }
 
-void CountdownDockWidget::resetButtonClicked() {
-	this->isPlaying = false;
+void CountdownDockWidget::resetButtonClicked()
+{
+	setTimerNotCounting();
 
-	this->playButton->setEnabled(true);
-	this->pauseButton->setEnabled(false);
-
+	blog(LOG_INFO, isPlaying ? "true" : "false");
 	blog(LOG_INFO, "Reset Button Clicked");
 }
 
+void CountdownDockWidget::setTimerIsCounting()
+{
+	isPlaying = true;
+	playButton->setEnabled(false);
+	pauseButton->setEnabled(true);
+	blog(LOG_INFO, "Timer STARTED counting!");
+}
 
+void CountdownDockWidget::setTimerNotCounting()
+{
+	isPlaying = false;
+	playButton->setEnabled(true);
+	pauseButton->setEnabled(false);
+	blog(LOG_INFO, "Timer STOPPED counting!");
+}

@@ -14,36 +14,45 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QLCDNumber>
+#include <QRegularExpression>
+#include <QValidator>
 #include <QIcon>
 
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <util/base.h>
 
 class CountdownDockWidget : public QDockWidget {
 	Q_OBJECT
 public:
 	explicit CountdownDockWidget(QWidget *parent);
+	~CountdownDockWidget();
+
 	virtual void changeEvent(QEvent *event);
 
 private:
 	bool isPlaying;
-	QLCDNumber *timeDisplay;
-	QLineEdit *timerHours;
-	QLineEdit *timerMinutes;
-	QLineEdit *timerSeconds;
+	QWidget* countdownTimerUI = nullptr;
+	QLCDNumber* timerDisplay = nullptr;
+	QLineEdit* timerHours = nullptr;
+	QLineEdit* timerMinutes = nullptr;
+	QLineEdit* timerSeconds = nullptr;
 
-	QPushButton *playButton;
-	QPushButton *pauseButton;
-	QPushButton *resetButton;
+	QPushButton* playButton = nullptr;
+	QPushButton* pauseButton = nullptr;
+	QPushButton* resetButton = nullptr;
 
-	QComboBox *textSourceDropdownList;
+	QComboBox *textSourceDropdownList = nullptr;
+
+	QVBoxLayout* setupCountdownWidgetUI();
+	void setTimerIsCounting();
+	void setTimerNotCounting();
 
 public slots:
 	void playButtonClicked();
 	void pauseButtonClicked();
 	void resetButtonClicked();
 };
-
 
 #endif // COUNTDOWNWIDGET_H

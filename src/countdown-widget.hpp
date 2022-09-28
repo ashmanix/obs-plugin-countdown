@@ -35,36 +35,43 @@ public:
 	virtual void changeEvent(QEvent *event);
 
 private:
-	bool isPlaying;
-
+	enum MediaButtonType { play, pause, restart };
 	static const int COUNTDOWNPERIOD = 1000;
+	struct CountdownWidgetStruct {
+		bool isPlaying;
 
-	QWidget* countdownTimerUI = nullptr;
-	QTimer* timer = nullptr;
-	QTime* time = nullptr;
-	QLCDNumber* timerDisplay = nullptr;
-	QLineEdit* timerHours = nullptr;
-	QLineEdit* timerMinutes = nullptr;
-	QLineEdit* timerSeconds = nullptr;
+		QWidget *countdownTimerUI;
+		QTimer *timer;
+		QTime *time;
+		QLCDNumber *timerDisplay;
+		QLineEdit *timerHours;
+		QLineEdit *timerMinutes;
+		QLineEdit *timerSeconds;
 
-	QPushButton* playButton = nullptr;
-	QPushButton* pauseButton = nullptr;
-	QPushButton* resetButton = nullptr;
+		QPushButton *playButton;
+		QPushButton *pauseButton;
+		QPushButton *resetButton;
 
-	QComboBox *textSourceDropdownList = nullptr;
+		QComboBox *textSourceDropdownList;
+	};
 
-	QVBoxLayout* setupCountdownWidgetUI();
-	void startTimerCounting();
-	void stopTimerCounting();
-	void initialiseTimerTime();
+	CountdownWidgetStruct* countdownTimerData;
+	
+
+	QVBoxLayout* setupCountdownWidgetUI(CountdownWidgetStruct *context);
+	void startTimerCounting(CountdownWidgetStruct* context);
+	void stopTimerCounting(CountdownWidgetStruct* context);
+	void initialiseTimerTime(CountdownWidgetStruct* context);
 	QString convertTimeToDisplayString(QTime* timeToConvert);
+	bool isSetTimeZero(CountdownWidgetStruct* context);
 
 public slots:
+	// void mediaButtonClicked();
 	void playButtonClicked();
 	void pauseButtonClicked();
 	void resetButtonClicked();
 	void timerDecrement();
-	void updateTimer();
+	void updateTimer(CountdownWidgetStruct* context);
 };
 
 #endif // COUNTDOWNWIDGET_H

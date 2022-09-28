@@ -3,18 +3,18 @@
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	: QDockWidget("Countdown Timer", parent)
 {
-	countdownTimerUI = new QWidget();
-	countdownTimerUI->setLayout(setupCountdownWidgetUI());
+	countdownTimerData = new CountdownWidgetStruct;
+	countdownTimerData->countdownTimerUI = new QWidget();
+	countdownTimerData->countdownTimerUI->setLayout(setupCountdownWidgetUI(countdownTimerData));
 
 	// countdownTimerUI->setBaseSize(200, 200);
-	countdownTimerUI->setMinimumSize(200, 200);
-	countdownTimerUI->setVisible(true);
+	countdownTimerData->countdownTimerUI->setMinimumSize(200, 200);
+	countdownTimerData->countdownTimerUI->setVisible(true);
 
-	setWidget(countdownTimerUI);
-	countdownTimerUI = nullptr;
+	setWidget(countdownTimerData->countdownTimerUI);
 	// layout = nullptr;
 
-	initialiseTimerTime();
+	initialiseTimerTime(countdownTimerData);
 	// this->dockLocationChanged();
 }
 
@@ -23,81 +23,87 @@ CountdownDockWidget::~CountdownDockWidget()
 	this->destroy();
 }
 
-QVBoxLayout* CountdownDockWidget::setupCountdownWidgetUI() {
-	
-	timerDisplay = new QLCDNumber(9);
-	timerDisplay->display("00:00:00");
+QVBoxLayout* CountdownDockWidget::setupCountdownWidgetUI(CountdownWidgetStruct* countdownStruct) {
 
-	timerHours = new QLineEdit("0");
-	timerHours->setAlignment(Qt::AlignCenter);
-	timerHours->setMaxLength(2);
-	timerHours->setValidator(new QRegularExpressionValidator(QRegularExpression("[0-9]{1,2}"), this));
-	QObject::connect(timerHours, SIGNAL(changeEvent()), SLOT(updateTimer()));
+	CountdownWidgetStruct* context = countdownStruct;
+	context->timerDisplay = new QLCDNumber(8);
+	context->timerDisplay->display("00:00:00");
 
-	timerMinutes = new QLineEdit("0");
-	timerMinutes->setAlignment(Qt::AlignCenter);
-	timerMinutes->setMaxLength(2);
-	timerMinutes->setValidator(new QRegularExpressionValidator(QRegularExpression("^[1-5]?[0-9]"), this));
-	QObject::connect(timerMinutes, SIGNAL(changeEvent()), SLOT(updateTimer()));
+	context->timerHours = new QLineEdit("0");
+	context->timerHours->setAlignment(Qt::AlignCenter);
+	context->timerHours->setMaxLength(2);
+	context->timerHours->setValidator(new QRegularExpressionValidator(QRegularExpression("[0-9]{1,2}"), this));
+	QObject::connect(context->timerHours, SIGNAL(textEdited(QString text)), SLOT(updateHours()));
 
-	timerSeconds = new QLineEdit("0");
-	timerSeconds->setAlignment(Qt::AlignCenter);
-	timerSeconds->setMaxLength(2);
-	timerSeconds->setValidator(new QRegularExpressionValidator(QRegularExpression("^[1-5]?[0-9]"), this));
-	QObject::connect(timerSeconds, SIGNAL(changeEvent()), SLOT(updateTimer()));
+	context->timerMinutes = new QLineEdit("0");
+	context->timerMinutes->setAlignment(Qt::AlignCenter);
+	context->timerMinutes->setMaxLength(2);
+	context->timerMinutes->setValidator(new QRegularExpressionValidator(QRegularExpression("^[1-5]?[0-9]"), this));
+	QObject::connect(context->timerMinutes, SIGNAL(textEdited(QString text)), SLOT(updateMinutes()));
 
-	textSourceDropdownList = new QComboBox();
-	textSourceDropdownList->addItem("Text 1");
-	textSourceDropdownList->addItem("Text 2");
-	textSourceDropdownList->addItem("Text 3");
-	textSourceDropdownList->addItem("Text 4");
+	context->timerSeconds = new QLineEdit("0");
+	context->timerSeconds->setAlignment(Qt::AlignCenter);
+	context->timerSeconds->setMaxLength(2);
+	context->timerSeconds->setValidator(new QRegularExpressionValidator(QRegularExpression("^[1-5]?[0-9]"), this));
+	QObject::connect(context->timerSeconds, SIGNAL(textEdited(QString text)), SLOT(updateTimer()));
 
-	playButton = new QPushButton(this);
-	playButton->setProperty("themeID", "playIcon");
-	playButton->setEnabled(true);
-	QObject::connect(playButton, SIGNAL(clicked()),
+	context->textSourceDropdownList = new QComboBox();
+	context->textSourceDropdownList->addItem("Text 1");
+	context->textSourceDropdownList->addItem("Text 2");
+	context->textSourceDropdownList->addItem("Text 3");
+	context->textSourceDropdownList->addItem("Text 4");
+
+	context->playButton = new QPushButton(this);
+	context->playButton->setProperty("themeID", "playIcon");
+	context->playButton->setEnabled(true);
+	QObject::connect(context->playButton, SIGNAL(clicked()),
 			 SLOT(playButtonClicked()));
 
-	pauseButton = new QPushButton(this);
-	pauseButton->setProperty("themeID", "pauseIcon");
-	pauseButton->setEnabled(false);
-	QObject::connect(pauseButton, SIGNAL(clicked()),
+	context->pauseButton = new QPushButton(this);
+	context->pauseButton->setProperty("themeID", "pauseIcon");
+	context->pauseButton->setEnabled(false);
+	QObject::connect(context->pauseButton, SIGNAL(clicked()),
 			 SLOT(pauseButtonClicked()));
 
-	resetButton = new QPushButton(this);
-	resetButton->setProperty("themeID", "restartIcon");
-	QObject::connect(resetButton, SIGNAL(clicked()),
+	context->resetButton = new QPushButton(this);
+	context->resetButton->setProperty("themeID", "restartIcon");
+	QObject::connect(context->resetButton, SIGNAL(clicked()),
 			 SLOT(resetButtonClicked()));
 
-	isPlaying = false;
+	context->isPlaying = false;
 
 	QHBoxLayout *timerLayout = new QHBoxLayout();
 
-	timerLayout->addWidget(timerHours);
+	timerLayout->addWidget(context->timerHours);
 	timerLayout->addWidget(new QLabel("h"));
 
-	timerLayout->addWidget(timerMinutes);
+	timerLayout->addWidget(context->timerMinutes);
 	timerLayout->addWidget(new QLabel("m"));
 	
-	timerLayout->addWidget(timerSeconds);
+	timerLayout->addWidget(context->timerSeconds);
 	timerLayout->addWidget(new QLabel("s"));
 
 	QHBoxLayout *buttonLayout = new QHBoxLayout();
 
-	buttonLayout->addWidget(resetButton);
-	buttonLayout->addWidget(pauseButton);
-	buttonLayout->addWidget(playButton);
+	buttonLayout->addWidget(context->resetButton);
+	buttonLayout->addWidget(context->pauseButton);
+	buttonLayout->addWidget(context->playButton);
 
 	QHBoxLayout *dropDownLayout = new QHBoxLayout();
 	dropDownLayout->addWidget(new QLabel("Text Source: "));
-	dropDownLayout->addWidget(textSourceDropdownList);
+	dropDownLayout->addWidget(context->textSourceDropdownList);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout();
 
-	mainLayout->addWidget(timerDisplay);
+	mainLayout->addWidget(context->timerDisplay);
 	mainLayout->addLayout(timerLayout);
 	mainLayout->addLayout(dropDownLayout);
 	mainLayout->addLayout(buttonLayout);
+
+	timerLayout = nullptr;
+	dropDownLayout = nullptr;
+	buttonLayout = nullptr;
+	context = nullptr;
 
 	return mainLayout;
 }
@@ -108,95 +114,128 @@ void CountdownDockWidget::changeEvent(QEvent *event)
 	// blog(LOG_INFO, "Callback function called!");
 }
 
+
 void CountdownDockWidget::playButtonClicked()
-{
-	if(timer)
-	startTimerCounting();
-	// QString hours = timerHours->text().rightJustified(2, '0');
-	// QString minutes = timerMinutes->text().rightJustified(2, '0');
-	// QString seconds = timerSeconds->text().rightJustified(2, '0');
-	// std::ostringstream timerTime;
-	// timerTime << hours<< ":" << minutes << ":" << seconds;
-	// std::string displayTime = timerTime.str();
-	// timerDisplay->display(QString("%1:%2:%3").arg(hours).arg(minutes).arg(seconds));
-	blog(LOG_INFO, isPlaying ? "true" : "false");
+{	
+	CountdownWidgetStruct* context = countdownTimerData;
+
+	if(isSetTimeZero(context)) return;
+
+	context->timerDisplay->display(convertTimeToDisplayString(context->time));
+	startTimerCounting(context);
+
 	blog(LOG_INFO, "Play Button Clicked");
+	context = nullptr;
 }
 
 void CountdownDockWidget::pauseButtonClicked()
 {
-	stopTimerCounting();
-
-	blog(LOG_INFO, isPlaying ? "true" : "false");
+	CountdownWidgetStruct* context = countdownTimerData;
+	stopTimerCounting(context);
 	blog(LOG_INFO, "Pause Button Clicked");
+
+	context = nullptr;
 }
 
 void CountdownDockWidget::resetButtonClicked()
 {
-	stopTimerCounting();
-	time->setHMS(timerHours->text().toInt(), timerMinutes->text().toInt(), timerSeconds->text().toInt(),0);
-	timerDisplay->display(convertTimeToDisplayString(time));
+	CountdownWidgetStruct* context = countdownTimerData;
 
-	blog(LOG_INFO, isPlaying ? "true" : "false");
+	QTime *time = context->time;
+	int hours = context->timerHours->text().toInt();
+	int minutes = context->timerMinutes->text().toInt();
+	int seconds = context->timerSeconds->text().toInt();
+	
+	stopTimerCounting(context);
+
+	context->time->setHMS(hours, minutes, seconds,0);
+	context->timerDisplay->display(convertTimeToDisplayString(time));
+
 	blog(LOG_INFO, "Reset Button Clicked");
+	context = nullptr;
 }
 
-void CountdownDockWidget::startTimerCounting()
+void CountdownDockWidget::startTimerCounting(CountdownWidgetStruct* context)
 {
-	isPlaying = true;
-	timer->start(COUNTDOWNPERIOD);
-	playButton->setEnabled(false);
-	pauseButton->setEnabled(true);
-	resetButton->setEnabled(false);
+	context->isPlaying = true;
+	context->timer->start(COUNTDOWNPERIOD);
+	context->playButton->setEnabled(false);
+	context->pauseButton->setEnabled(true);
+	context->resetButton->setEnabled(false);
 
-	timerHours->setEnabled(false);
-	timerMinutes->setEnabled(false);
-	timerSeconds->setEnabled(false);
+	context->timerHours->setEnabled(false);
+	context->timerMinutes->setEnabled(false);
+	context->timerSeconds->setEnabled(false);
 
 	blog(LOG_INFO, "Timer STARTED counting!");
 }
 
-void CountdownDockWidget::stopTimerCounting()
+void CountdownDockWidget::stopTimerCounting(CountdownWidgetStruct* context)
 {
-	isPlaying = false;
-	timer->stop();
-	playButton->setEnabled(true);
-	pauseButton->setEnabled(false);
-	resetButton->setEnabled(true);
+	context->isPlaying = false;
+	context->timer->stop();
+	context->playButton->setEnabled(true);
+	context->pauseButton->setEnabled(false);
+	context->resetButton->setEnabled(true);
 
-	timerHours->setEnabled(true);
-	timerMinutes->setEnabled(true);
-	timerSeconds->setEnabled(true);
+	context->timerHours->setEnabled(true);
+	context->timerMinutes->setEnabled(true);
+	context->timerSeconds->setEnabled(true);
 
 	blog(LOG_INFO, "Timer STOPPED counting!");
 }
 
-void CountdownDockWidget::initialiseTimerTime() {
-	timer = new QTimer();
-	QObject::connect(timer, SIGNAL(timeout()), SLOT(timerDecrement()));
-	time = new QTime(timerHours->text().toInt(), timerMinutes->text().toInt(), timerSeconds->text().toInt());
+void CountdownDockWidget::initialiseTimerTime(CountdownWidgetStruct* context) {
+	context->timer = new QTimer();
+	QObject::connect(context->timer, SIGNAL(timeout()), SLOT(timerDecrement()));
+	context->time = new QTime(context->timerHours->text().toInt(), context->timerMinutes->text().toInt(), context->timerSeconds->text().toInt());
 
 }
 
 void CountdownDockWidget::timerDecrement() {
+	CountdownWidgetStruct* context = countdownTimerData;
 
-	if(time->hour() == 0 && time->minute() == 0 && time->second() == 0) {
-		timerDisplay->display("00:00:00");
-		time->setHMS(0,0,0,0);
-		stopTimerCounting();
-		blog(LOG_INFO, "Timer reached zero");
-		return;
-	}
-	
-	blog(LOG_INFO, "One second down!");
+	QTime* time = context->time;
+	QLCDNumber* timerDisplay = context->timerDisplay;
 
 	time->setHMS(time->addMSecs(-COUNTDOWNPERIOD).hour(), time->addMSecs(-COUNTDOWNPERIOD).minute(), 
 	time->addMSecs(-COUNTDOWNPERIOD).second());
 
-	blog(LOG_INFO, "%s", qPrintable(time->toString()));
 	timerDisplay->display(convertTimeToDisplayString(time));
+
+	if(time->hour() == 0 && time->minute() == 0 && time->second() == 0) {
+		timerDisplay->display("00:00:00");
+		time->setHMS(0,0,0,0);
+		stopTimerCounting(context);
+		blog(LOG_INFO, "Timer reached zero");
+		return;
+	}
+
+	blog(LOG_INFO, "One second down!");
+
+	blog(LOG_INFO, "%s", qPrintable(time->toString()));
+
+	time = nullptr;
+	timerDisplay = nullptr;
+	context = nullptr;
 }
 
 QString CountdownDockWidget::convertTimeToDisplayString(QTime* timeToConvert) {
 	return timeToConvert->toString("hh:mm:ss");
+}
+
+void CountdownDockWidget::updateTimer(CountdownWidgetStruct* context) {
+	UNUSED_PARAMETER(context);
+}
+
+bool CountdownDockWidget::isSetTimeZero(CountdownWidgetStruct* context) {
+	bool isZero = false;
+
+	if(context->time->hour() == 0 && context->time->minute() == 0 && context->time->second() == 0) {
+		isZero = true;
+	} else if(context->timerHours->text().toInt() == 0 && context->timerMinutes->text().toInt() == 0 && context->timerSeconds->text().toInt() == 0) {
+		isZero = true;
+	}
+
+	return isZero;
 }

@@ -3,6 +3,7 @@
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	: QDockWidget("Countdown Timer", parent)
 {
+	blog(LOG_INFO, "Starting Loading of widget!");
 	countdownTimerData = new CountdownWidgetStruct;
 	countdownTimerData->countdownTimerUI = new QWidget();
 	countdownTimerData->countdownTimerUI->setLayout(setupCountdownWidgetUI(countdownTimerData));
@@ -13,6 +14,8 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 
 	setWidget(countdownTimerData->countdownTimerUI);
 	// layout = nullptr;
+
+	obs_frontend_add_event_callback(obsEventCallback, countdownTimerData);
 
 	initialiseTimerTime(countdownTimerData);
 	// this->dockLocationChanged();
@@ -48,10 +51,10 @@ QVBoxLayout* CountdownDockWidget::setupCountdownWidgetUI(CountdownWidgetStruct* 
 	QObject::connect(context->timerSeconds, SIGNAL(textEdited(QString text)), SLOT(updateTimer()));
 
 	context->textSourceDropdownList = new QComboBox();
-	context->textSourceDropdownList->addItem("Text 1");
-	context->textSourceDropdownList->addItem("Text 2");
-	context->textSourceDropdownList->addItem("Text 3");
-	context->textSourceDropdownList->addItem("Text 4");
+	// context->textSourceDropdownList->addItem("Text 1");
+	// context->textSourceDropdownList->addItem("Text 2");
+	// context->textSourceDropdownList->addItem("Text 3");
+	// context->textSourceDropdownList->addItem("Text 4");
 
 	context->playButton = new QPushButton(this);
 	context->playButton->setProperty("themeID", "playIcon");
@@ -238,4 +241,50 @@ bool CountdownDockWidget::isSetTimeZero(CountdownWidgetStruct* context) {
 	}
 
 	return isZero;
+}
+
+void CountdownDockWidget::getSourceList() {
+	// void *sourceList;
+	blog(LOG_INFO, "Getting Source List");
+	obs_enum_sources(enumSources, nullptr);
+	blog(LOG_INFO, "Source checking finished!");
+}
+
+bool CountdownDockWidget::enumSources(void *data, obs_source_t *source)
+{
+	CountdownWidgetStruct* context = (CountdownWidgetStruct*) data;
+
+	// enum obs_source_type type  = obs_source_get_type(source);
+
+	const char* source_id = obs_source_get_unversioned_id(source);
+
+	if(strcmp(source_id, "text_ft2_source") == 0 || strcmp(source_id, "text_gdiplus") == 0) {
+
+		const char *name = obs_source_get_name(source);
+		const char *id   = obs_source_get_id(source);
+
+		SourcesList sourceItem = {name, id};
+
+		context->sourcesList.push_back(sourceItem);
+		context->textSourceDropdownList->addItem(name);
+		blog(LOG_INFO, "Found Text Type: %s", source_id);
+	}
+
+	
+
+	return true;
+}
+
+void CountdownDockWidget::obsEventCallback(enum obs_frontend_event event, void *private_data) {
+	UNUSED_PARAMETER(private_data);
+
+	CountdownWidgetStruct* context = (CountdownWidgetStruct*) private_data;
+	blog(LOG_INFO, "Event Triggered!");
+
+	if (event == OBS_FRONTEND_EVENT_FINISHED_LOADING) {
+		// newCounterDock.getSourceList();
+			blog(LOG_INFO, "Getting Source List");
+	obs_enum_sources(enumSources, context);
+	blog(LOG_INFO, "Source checking finished!");
+	}
 }

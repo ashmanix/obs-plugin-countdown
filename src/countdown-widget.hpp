@@ -25,6 +25,9 @@
 #include <iostream>
 #include <sstream>
 #include <util/base.h>
+#include <vector>
+#include <obs.h>
+#include <obs-frontend-api.h>
 
 class CountdownDockWidget : public QDockWidget {
 	Q_OBJECT
@@ -37,6 +40,12 @@ public:
 private:
 	enum MediaButtonType { play, pause, restart };
 	static const int COUNTDOWNPERIOD = 1000;
+
+	struct SourcesList
+		{
+			const char *name;
+			const char *id;
+		};
 	struct CountdownWidgetStruct {
 		bool isPlaying;
 
@@ -53,6 +62,9 @@ private:
 		QPushButton *resetButton;
 
 		QComboBox *textSourceDropdownList;
+		std::vector<SourcesList> sourcesList;
+
+		
 	};
 
 	CountdownWidgetStruct* countdownTimerData;
@@ -64,6 +76,9 @@ private:
 	void initialiseTimerTime(CountdownWidgetStruct* context);
 	QString convertTimeToDisplayString(QTime* timeToConvert);
 	bool isSetTimeZero(CountdownWidgetStruct* context);
+	static void getSourceList();
+	static bool enumSources(void *data, obs_source_t *source);
+	static void obsEventCallback(enum obs_frontend_event event, void *private_data);
 
 public slots:
 	// void mediaButtonClicked();

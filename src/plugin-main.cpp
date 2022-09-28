@@ -23,29 +23,32 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 
 #include "plugin-macros.generated.h"
 
-CountdownDockWidget* countdownWidget = nullptr;
 
 void callback_function(void *private_data)
 {
 	QWidget *main_window = (QWidget *)obs_frontend_get_main_window();
 	// QDockWidget *counter_dock = new QDockWidget("Counter Dock", main_window);
-	countdownWidget = new CountdownDockWidget(main_window);
+	CountdownDockWidget* countdownWidget = new CountdownDockWidget(main_window);
 
 	// countdown_dock_widget->setFloating(true);
 	UNUSED_PARAMETER(private_data);
 	blog(LOG_INFO, "Callback function called!");
 	obs_frontend_add_dock(countdownWidget);
+	countdownWidget = nullptr;
+	main_window = nullptr;
 }
 
 // Callback without using tool menu
 void callback_function()
 {
 	QWidget *main_window = (QWidget *)obs_frontend_get_main_window();
-	countdownWidget = new CountdownDockWidget(main_window);
+	CountdownDockWidget* countdownWidget = new CountdownDockWidget(main_window);
 
 	blog(LOG_INFO, "Callback function called!");
 	countdownWidget->setFloating(true);
 	obs_frontend_add_dock(countdownWidget);
+	countdownWidget = nullptr;
+	main_window = nullptr;
 }
 
 void load_menu_option()
@@ -69,6 +72,5 @@ bool obs_module_load(void)
 
 void obs_module_unload()
 {
-	countdownWidget->~CountdownDockWidget();
 	blog(LOG_INFO, "plugin unloaded");
 }

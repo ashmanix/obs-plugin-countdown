@@ -16,6 +16,9 @@
 #include <QLCDNumber>
 #include <QRegularExpression>
 #include <QValidator>
+#include <QTimer>
+#include <QTime>
+#include <QChar>
 #include <QIcon>
 
 #include <string>
@@ -33,7 +36,12 @@ public:
 
 private:
 	bool isPlaying;
+
+	static const int COUNTDOWNPERIOD = 1000;
+
 	QWidget* countdownTimerUI = nullptr;
+	QTimer* timer = nullptr;
+	QTime* time = nullptr;
 	QLCDNumber* timerDisplay = nullptr;
 	QLineEdit* timerHours = nullptr;
 	QLineEdit* timerMinutes = nullptr;
@@ -46,13 +54,17 @@ private:
 	QComboBox *textSourceDropdownList = nullptr;
 
 	QVBoxLayout* setupCountdownWidgetUI();
-	void setTimerIsCounting();
-	void setTimerNotCounting();
+	void startTimerCounting();
+	void stopTimerCounting();
+	void initialiseTimerTime();
+	QString convertTimeToDisplayString(QTime* timeToConvert);
 
 public slots:
 	void playButtonClicked();
 	void pauseButtonClicked();
 	void resetButtonClicked();
+	void timerDecrement();
+	void updateTimer();
 };
 
 #endif // COUNTDOWNWIDGET_H

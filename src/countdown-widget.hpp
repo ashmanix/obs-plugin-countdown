@@ -23,10 +23,11 @@
 
 #include <string>
 #include <iostream>
-#include <sstream>
+#include <list>
 #include <util/base.h>
 #include <vector>
 #include <obs.h>
+#include <obs.hpp>
 #include <obs-frontend-api.h>
 
 class CountdownDockWidget : public QDockWidget {
@@ -35,17 +36,19 @@ public:
 	explicit CountdownDockWidget(QWidget *parent);
 	~CountdownDockWidget();
 
-	virtual void changeEvent(QEvent *event);
+	virtual void ChangeEvent(QEvent *event);
 
-private:
-	enum MediaButtonType { play, pause, restart };
-	static const int COUNTDOWNPERIOD = 1000;
+	struct SourceListItem {
+		const char *name;
+		const char *id;
 
-	struct SourcesList
-		{
-			const char *name;
-			const char *id;
-		};
+		bool operator<(const SourceListItem& a) const {return name < a.name;}
+	};
+
+	// static bool SortSourceList (SourceListItem a, SourceListItem b) { return a.name < b.name; };
+	// bool id_match(const SourceListItem &a, const char value){return (a.id) == value};
+	
+
 	struct CountdownWidgetStruct {
 		bool isPlaying;
 
@@ -62,31 +65,45 @@ private:
 		QPushButton *resetButton;
 
 		QComboBox *textSourceDropdownList;
-		std::vector<SourcesList> sourcesList;
-
-		
+		// std::vector<SourcesList> sourcesList;
+		std::list<SourceListItem> textSourcesList;
+		std::list<SourceListItem>::iterator it;
+		OBSSignal textSourceAddedSignals;
+		OBSSignal textSourceRemovedSignals;
 	};
 
-	CountdownWidgetStruct* countdownTimerData;
-	
+private:
+	enum MediaButtonType { play, pause, restart };
+	static const int COUNTDOWNPERIOD = 1000;
 
-	QVBoxLayout* setupCountdownWidgetUI(CountdownWidgetStruct *context);
-	void startTimerCounting(CountdownWidgetStruct* context);
-	void stopTimerCounting(CountdownWidgetStruct* context);
-	void initialiseTimerTime(CountdownWidgetStruct* context);
-	QString convertTimeToDisplayString(QTime* timeToConvert);
-	bool isSetTimeZero(CountdownWidgetStruct* context);
-	static void getSourceList();
-	static bool enumSources(void *data, obs_source_t *source);
-	static void obsEventCallback(enum obs_frontend_event event, void *private_data);
+	CountdownWidgetStruct *countdownTimerData;
+
+	QVBoxLayout *SetupCountdownWidgetUI(CountdownWidgetStruct *context);
+	void StartTimerCounting(CountdownWidgetStruct *context);
+	void StopTimerCounting(CountdownWidgetStruct *context);
+	void InitialiseTimerTime(CountdownWidgetStruct *context);
+	QString ConvertTimeToDisplayString(QTime *timeToConvert);
+	bool IsSetTimeZero(CountdownWidgetStruct *context);
+	void ConnectObsSignalHandlers(CountdownWidgetStruct* context);
+
+	static void GetSourceList();
+	static bool EnumSources(void *data, obs_source_t *source);
+	static void ObsEventCallback(enum obs_frontend_event event,
+				     void *private_data);
+	static void ObsSourceSignalHandler();
+	static void OBSSourceAdded(void *param, calldata_t *calldata);
+	static void OBSSourceDeleted(void *param, calldata_t *calldata);
+	static bool CheckIfTextSource(obs_source_t *source);
+	static void AddTextSourceToList(CountdownWidgetStruct *context, obs_source_t *source);
+	static void RemoveTextSourceFromList(CountdownWidgetStruct *context, const char* sourceId);
 
 public slots:
 	// void mediaButtonClicked();
-	void playButtonClicked();
-	void pauseButtonClicked();
-	void resetButtonClicked();
-	void timerDecrement();
-	void updateTimer(CountdownWidgetStruct* context);
+	void PlayButtonClicked();
+	void PauseButtonClicked();
+	void ResetButtonClicked();
+	void TimerDecrement();
+	void UpdateTimer(CountdownWidgetStruct *context);
 };
 
 #endif // COUNTDOWNWIDGET_H

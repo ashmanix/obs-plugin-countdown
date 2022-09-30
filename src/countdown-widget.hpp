@@ -30,18 +30,17 @@
 #include <obs.hpp>
 #include <obs-frontend-api.h>
 
+#include "plugin-macros.generated.h"
+
 class CountdownDockWidget : public QDockWidget {
 	Q_OBJECT
 public:
 	explicit CountdownDockWidget(QWidget *parent);
 	~CountdownDockWidget();
-
-	virtual void ChangeEvent(QEvent *event);
-
 	struct SourceListItem {
 		const char *name;
 		const char *id;
-
+		obs_source_t *source;
 		bool operator<(const SourceListItem& a) const {return name < a.name;}
 	};
 
@@ -67,7 +66,7 @@ public:
 		QComboBox *textSourceDropdownList;
 		// std::vector<SourcesList> sourcesList;
 		std::list<SourceListItem> textSourcesList;
-		std::list<SourceListItem>::iterator it;
+		std::list<obs_source_t*>::iterator it;
 		OBSSignal textSourceAddedSignals;
 		OBSSignal textSourceRemovedSignals;
 	};
@@ -85,25 +84,29 @@ private:
 	QString ConvertTimeToDisplayString(QTime *timeToConvert);
 	bool IsSetTimeZero(CountdownWidgetStruct *context);
 	void ConnectObsSignalHandlers(CountdownWidgetStruct* context);
+	void UpdateTimeDisplay(CountdownWidgetStruct* context, QTime *time);
+	void SetSelectedSource(const QString &text);
 
-	static void GetSourceList();
-	static bool EnumSources(void *data, obs_source_t *source);
-	static void ObsEventCallback(enum obs_frontend_event event,
-				     void *private_data);
 	static void ObsSourceSignalHandler();
-	static void OBSSourceAdded(void *param, calldata_t *calldata);
+	static void OBSSourceCreated(void *param, calldata_t *calldata);
+	static void OBSSourceLoaded(void *param, calldata_t *calldata);
 	static void OBSSourceDeleted(void *param, calldata_t *calldata);
+	static void OBSSourceRemoved(void *param, calldata_t *calldata);
+	static void OBSSourceRenamed(void *param, calldata_t *calldata);
+
 	static bool CheckIfTextSource(obs_source_t *source);
 	static void AddTextSourceToList(CountdownWidgetStruct *context, obs_source_t *source);
-	static void RemoveTextSourceFromList(CountdownWidgetStruct *context, const char* sourceId);
+	static void RemoveTextSourceFromList(CountdownWidgetStruct *context, obs_source_t *source);
+	static void RenameTextSource(CountdownWidgetStruct *context, obs_source_t *source);
+
+	
 
 public slots:
-	// void mediaButtonClicked();
+
 	void PlayButtonClicked();
 	void PauseButtonClicked();
 	void ResetButtonClicked();
 	void TimerDecrement();
-	void UpdateTimer(CountdownWidgetStruct *context);
 };
 
 #endif // COUNTDOWNWIDGET_H

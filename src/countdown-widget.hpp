@@ -90,8 +90,8 @@ private:
 	bool IsSetTimeZero(CountdownWidgetStruct *context);
 	void ConnectObsSignalHandlers(CountdownWidgetStruct* context);
 	void UpdateTimeDisplay(CountdownWidgetStruct* context, QTime *time);
-	void SetSelectedSource(const QString &text);
-	void SetSourceText(CountdownWidgetStruct* context, const char* text);
+	// void SetSelectedSource(const QString &sourceName);
+	void SetSourceText(CountdownWidgetStruct* context, QString newText);
 
 	static void ObsSourceSignalHandler();
 	static void OBSSourceCreated(void *param, calldata_t *calldata);

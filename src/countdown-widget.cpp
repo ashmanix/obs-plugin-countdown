@@ -16,6 +16,8 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 
 	ConnectObsSignalHandlers(countdownTimerData);
 
+	obs_frontend_add_event_callback(OBSFrontendEventHandler, countdownTimerData);
+
 	InitialiseTimerTime(countdownTimerData);
 }
 
@@ -283,6 +285,7 @@ bool CountdownDockWidget::IsSetTimeZero(CountdownWidgetStruct *context)
 void CountdownDockWidget::ConnectObsSignalHandlers(
 	CountdownWidgetStruct *context)
 {
+	// Source Signals
 	signal_handler_connect(obs_get_signal_handler(), "source_create",
 			       OBSSourceCreated, context);
 
@@ -294,6 +297,23 @@ void CountdownDockWidget::ConnectObsSignalHandlers(
 
 	signal_handler_connect(obs_get_signal_handler(), "source_remove",
 			       OBSSourceRemoved, context);
+
+	signal_handler_connect(obs_get_signal_handler(), "source_rename",
+			       OBSSourceRenamed, context);
+
+	// Scene Signals
+	signal_handler_connect(obs_get_signal_handler(), "source_create",
+			       OBSSourceCreated, context);
+
+	// signal_handler_connect(obs_get_signal_handler(), "source_load",
+	// 		       OBSSourceLoaded, context);
+
+	signal_handler_connect(obs_get_signal_handler(), "source_destroy",
+			       OBSSourceDeleted, context);
+
+	signal_handler_connect(obs_get_signal_handler(), "source_remove",
+			       OBSSourceRemoved, context);
+
 	signal_handler_connect(obs_get_signal_handler(), "source_rename",
 			       OBSSourceRenamed, context);
 }
@@ -392,6 +412,41 @@ void CountdownDockWidget::OBSSourceRenamed(void *param, calldata_t *calldata)
 
 	// blog(LOG_INFO, "Text Source Renamed!");
 };
+
+
+void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event, void *private_data) {
+ 
+ CountdownWidgetStruct* context = (CountdownWidgetStruct*) private_data;
+
+ switch (event)
+ {
+ case OBS_FRONTEND_EVENT_FINISHED_LOADING:
+	/* code */
+	break;
+ case OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED:
+	CountdownDockWidget::UpdateSceneList(context);
+	break;
+ default:
+	break;
+ }
+}
+
+void CountdownDockWidget::UpdateSceneList(CountdownWidgetStruct *context) {
+	UNUSED_PARAMETER(context);
+    auto scene_names = obs_frontend_get_scene_names();
+
+    for (size_t i = 0; scene_names[i]; i++) {
+        auto scene_name = scene_names[i];
+        // auto scene = obs_get_source_by_name(scene_name);
+
+        blog(LOG_INFO, "Found scene %s", scene_name);
+
+        // obs_source_release(scene);
+    }
+
+    // bfree(scene_names);
+}
+
 
 bool CountdownDockWidget::CheckIfTextSource(obs_source_t *source)
 {

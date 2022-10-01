@@ -94,18 +94,21 @@ private:
 	void SetSourceText(CountdownWidgetStruct* context, QString newText);
 
 	static void ObsSourceSignalHandler();
+
 	static void OBSSourceCreated(void *param, calldata_t *calldata);
 	static void OBSSourceLoaded(void *param, calldata_t *calldata);
 	static void OBSSourceDeleted(void *param, calldata_t *calldata);
 	static void OBSSourceRemoved(void *param, calldata_t *calldata);
 	static void OBSSourceRenamed(void *param, calldata_t *calldata);
 
+	static void OBSFrontendEventHandler(enum obs_frontend_event event, void *private_data);
+	static void UpdateSceneList(CountdownWidgetStruct *context);
+
 	static bool CheckIfTextSource(obs_source_t *source);
 	static void AddTextSourceToList(CountdownWidgetStruct *context, obs_source_t *source);
 	static void RemoveTextSourceFromList(CountdownWidgetStruct *context, obs_source_t *source);
 	static void RenameTextSource(CountdownWidgetStruct *context, obs_source_t *source);
 
-	
 
 public slots:
 

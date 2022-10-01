@@ -20,6 +20,7 @@
 #include <QTime>
 #include <QChar>
 #include <QIcon>
+#include <QGroupBox>
 
 #include <string>
 #include <iostream>
@@ -59,11 +60,15 @@ public:
 		QLineEdit *timerMinutes;
 		QLineEdit *timerSeconds;
 
+		QLineEdit *timerEndMessage;
+
 		QPushButton *playButton;
 		QPushButton *pauseButton;
 		QPushButton *resetButton;
 
 		QComboBox *textSourceDropdownList;
+		QComboBox *sceneSourceDropdownList;
+
 		// std::vector<SourcesList> sourcesList;
 		std::list<SourceListItem> textSourcesList;
 		std::list<obs_source_t*>::iterator it;
@@ -86,6 +91,7 @@ private:
 	void ConnectObsSignalHandlers(CountdownWidgetStruct* context);
 	void UpdateTimeDisplay(CountdownWidgetStruct* context, QTime *time);
 	void SetSelectedSource(const QString &text);
+	void SetSourceText(CountdownWidgetStruct* context, const char* text);
 
 	static void ObsSourceSignalHandler();
 	static void OBSSourceCreated(void *param, calldata_t *calldata);

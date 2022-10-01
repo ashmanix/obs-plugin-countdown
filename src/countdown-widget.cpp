@@ -62,6 +62,10 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	QObject::connect(context->textSourceDropdownList, SIGNAL(currentTextChanged(const QString&)),
 			 SLOT(SetSelectedSource(const QString&)));
 
+	context->sceneSourceDropdownList = new QComboBox();
+	// QObject::connect(context->textSourceDropdownList, SIGNAL(currentTextChanged(const QString&)),
+			//  SLOT(SetSelectedSource(const QString&)));
+
 	context->playButton = new QPushButton(this);
 	context->playButton->setProperty("themeID", "playIcon");
 	context->playButton->setEnabled(true);
@@ -98,15 +102,50 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	buttonLayout->addWidget(context->pauseButton);
 	buttonLayout->addWidget(context->playButton);
 
-	QHBoxLayout *dropDownLayout = new QHBoxLayout();
-	dropDownLayout->addWidget(new QLabel("Text Source: "));
-	dropDownLayout->addWidget(context->textSourceDropdownList);
+	// QGroupBox *sourceGroupBox = new QGroupBox("Source");
+	QHBoxLayout *sourceDropDownLayout = new QHBoxLayout();
+	sourceDropDownLayout->addWidget(new QLabel("Text Source"));
+	sourceDropDownLayout->addWidget(context->textSourceDropdownList);
+
+	// sourceGroupBox->setLayout(sourceDropDownLayout);
+	
+	QGroupBox *optionsGroupBox = new QGroupBox("Options");
+	QVBoxLayout *optionsVerticalLayout = new QVBoxLayout();
+
+	QHBoxLayout *endMessageLayout = new QHBoxLayout();
+	context->timerEndMessage = new QLineEdit();
+	endMessageLayout->addWidget(new QLabel("End Message"));
+	endMessageLayout->addWidget(context->timerEndMessage);
+	
+
+	QHBoxLayout *sceneDropDownLayout = new QHBoxLayout();
+	sceneDropDownLayout->addWidget(new QLabel("Switch To Scene"));
+	sceneDropDownLayout->addWidget(context->sceneSourceDropdownList);
+
+	optionsVerticalLayout->addLayout(endMessageLayout);
+	optionsVerticalLayout->addLayout(sceneDropDownLayout);
+	optionsGroupBox->setLayout(optionsVerticalLayout);
+
+	
+
+	QVBoxLayout *timeLayout = new QVBoxLayout();
+
+	timeLayout->addWidget(context->timerDisplay);
+	timeLayout->addLayout(timerLayout);
+	// subLayout->addLayout(sourceDropDownLayout);
+	// subLayout->addLayout(endMessageLayout);
+
+	
+
+	// QGroupBox *settingsGroupBox = new QGroupBox("Settings");
+	// settingsGroupBox->setLayout(subLayout);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout();
-
-	mainLayout->addWidget(context->timerDisplay);
-	mainLayout->addLayout(timerLayout);
-	mainLayout->addLayout(dropDownLayout);
+	mainLayout->addLayout(timeLayout);
+	mainLayout->addLayout(sourceDropDownLayout);
+	mainLayout->addWidget(optionsGroupBox);
+	// mainLayout->addLayout(sceneDropDownLayout);
+	// mainLayout->addWidget(settingsGroupBox);
 	mainLayout->addLayout(buttonLayout);
 
 	return mainLayout;
@@ -160,6 +199,11 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	context->timerMinutes->setEnabled(false);
 	context->timerSeconds->setEnabled(false);
 
+	context->textSourceDropdownList->setEnabled(false);
+	context->timerEndMessage->setEnabled(false);
+
+	context->timerEndMessage->setEnabled(false);
+
 	blog(LOG_INFO, "Timer STARTED counting!");
 }
 
@@ -174,6 +218,11 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	context->timerHours->setEnabled(true);
 	context->timerMinutes->setEnabled(true);
 	context->timerSeconds->setEnabled(true);
+
+	context->textSourceDropdownList->setEnabled(true);
+	context->timerEndMessage->setEnabled(true);
+
+	context->timerEndMessage->setEnabled(true);
 
 	blog(LOG_INFO, "Timer STOPPED counting!");
 }
@@ -202,6 +251,10 @@ void CountdownDockWidget::TimerDecrement()
 	UpdateTimeDisplay(context, time);
 
 	if (time->hour() == 0 && time->minute() == 0 && time->second() == 0) {
+		QString endMessageText = context->timerEndMessage->text();
+		if(endMessageText.length() > 0) {
+			SetSourceText(context, endMessageText.toLocal8Bit().data());
+		}
 		timerDisplay->display("00:00:00");
 		time->setHMS(0, 0, 0, 0);
 		StopTimerCounting(context);
@@ -387,18 +440,24 @@ void CountdownDockWidget::UpdateTimeDisplay(CountdownWidgetStruct *context, QTim
 
 	context->timerDisplay->display(ConvertTimeToDisplayString(time));
 
-	QString selectedSourceName = context->textSourceDropdownList->currentText();
+		// blog(LOG_INFO, "Got a source!");
+		const char * timeString = ConvertTimeToDisplayString(time).toLocal8Bit().data();
+		SetSourceText(context, timeString);
+	
+}
+
+void CountdownDockWidget::SetSourceText(CountdownWidgetStruct* context, const char* text) {
+		QString selectedSourceName = context->textSourceDropdownList->currentText();
 	const char* selectedSourceNameString = selectedSourceName.toLocal8Bit().data();
 	obs_source_t* selectedSource = obs_get_source_by_name(selectedSourceNameString);
 
 	if(selectedSource != NULL) {
-		blog(LOG_INFO, "Got a source!");
-		obs_data_t *sourceSettings = obs_source_get_settings(selectedSource);
-		const char * timeString = (ConvertTimeToDisplayString(time)).toLocal8Bit().data();
-		obs_data_set_string(sourceSettings, "text", timeString);
+	obs_data_t *sourceSettings = obs_source_get_settings(selectedSource);
+	
+		
+		obs_data_set_string(sourceSettings, "text", text);
 		obs_source_update(selectedSource, sourceSettings);
 		obs_data_release(sourceSettings);
 		obs_source_release(selectedSource);
 	}
-	
 }

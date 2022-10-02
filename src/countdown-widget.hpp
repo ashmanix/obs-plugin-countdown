@@ -1,13 +1,12 @@
 #ifndef COUNTDOWNWIDGET_H
 #define COUNTDOWNWIDGET_H
 
-// #include <QWidget>
-#include <QDockWidget>
+
 #include <QMainWindow>
+#include <QDockWidget>
 #include <QEvent>
 #include <QLabel>
 #include <QPushButton>
-#include <QDockWidget>
 #include <QObject>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -69,8 +68,6 @@ public:
 
 		QCheckBox *endMessageCheckBox;
 		QCheckBox *switchSceneCheckBox;
-
-		std::list<obs_source_t*>::iterator it;
 		OBSSignal textSourceAddedSignals;
 		OBSSignal textSourceRemovedSignals;
 	};

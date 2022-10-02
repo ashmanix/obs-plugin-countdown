@@ -15,10 +15,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>
 */
-#include <iostream>
-#include <obs-module.h>
-#include <obs-frontend-api.h>
-#include <QDockWidget>
 #include <countdown-widget.hpp>
 
 #include "plugin-macros.generated.h"
@@ -37,7 +33,7 @@ bool obs_module_load(void)
 {
 	const auto main_window =
 		static_cast<QMainWindow *>(obs_frontend_get_main_window());
-	auto *countdownWidget = new CountdownDockWidget(main_window);
+	CountdownDockWidget *countdownWidget = new CountdownDockWidget(main_window);
 
 	// countdownWidget->setFloating(true);
 	obs_frontend_add_dock(countdownWidget);

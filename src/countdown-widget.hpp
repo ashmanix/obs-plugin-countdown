@@ -40,7 +40,7 @@
 class CountdownDockWidget : public QDockWidget {
 	Q_OBJECT
 public:
-	explicit CountdownDockWidget(QWidget *parent = nullptr);
+	explicit CountdownDockWidget(QWidget *parent);
 	~CountdownDockWidget();
 
 	// static bool SortSourceList (SourceListItem a, SourceListItem b) { return a.name < b.name; };

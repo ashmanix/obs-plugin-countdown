@@ -27,17 +27,19 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 // }
 
 OBS_DECLARE_MODULE()
+OBS_MODULE_AUTHOR("Ashmanix")
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
-
 
 bool obs_module_load(void)
 {
 	const auto main_window =
 		static_cast<QMainWindow *>(obs_frontend_get_main_window());
-	auto *countdownWidget = new CountdownDockWidget(main_window);
+	obs_frontend_push_ui_translation(obs_module_get_string);
+	auto countdownWidget = new CountdownDockWidget(main_window);
 
 	// countdownWidget->setFloating(true);
 	obs_frontend_add_dock(countdownWidget);
+	obs_frontend_pop_ui_translation();
 
 	blog(LOG_INFO, "plugin loaded successfully (version %s)",
 	     PLUGIN_VERSION);
@@ -47,4 +49,14 @@ bool obs_module_load(void)
 void obs_module_unload()
 {	
 	blog(LOG_INFO, "plugin unloaded");
+}
+
+const char *obs_module_name(void)
+{
+	return "OBS Countdown Timer";
+}
+
+const char *obs_module_description(void)
+{
+	return "Countdown timer that uses a text source to display a timer.";
 }

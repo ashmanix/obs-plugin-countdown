@@ -16,8 +16,6 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 
 	ConnectObsSignalHandlers(countdownTimerData);
 
-	obs_frontend_add_event_callback(OBSFrontendEventHandler, countdownTimerData);
-
 	InitialiseTimerTime(countdownTimerData);
 }
 
@@ -64,7 +62,14 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	// 		 SIGNAL(currentTextChanged(const QString &)),
 	// 		 SLOT(SetSelectedSource(const QString &)));
 
+	context->switchSceneCheckBox = new QCheckBox();
+	QObject::connect(context->switchSceneCheckBox,
+			 SIGNAL(stateChanged(int)),
+			 SLOT(SceneSwitchCheckBoxSelected(int)));
+	context->switchSceneCheckBox->setCheckState(Qt::Unchecked);
+
 	context->sceneSourceDropdownList = new QComboBox();
+	context->sceneSourceDropdownList->setEnabled(false);
 	// QObject::connect(context->textSourceDropdownList, SIGNAL(currentTextChanged(const QString&)),
 	//  SLOT(SetSelectedSource(const QString&)));
 
@@ -115,12 +120,20 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	QVBoxLayout *optionsVerticalLayout = new QVBoxLayout();
 
 	QHBoxLayout *endMessageLayout = new QHBoxLayout();
+	context->endMessageCheckBox = new QCheckBox();
+	QObject::connect(context->endMessageCheckBox, SIGNAL(stateChanged(int)),
+			 SLOT(EndMessageCheckBoxSelected(int)));
+	context->endMessageCheckBox->setCheckState(Qt::Unchecked);
+
 	context->timerEndMessage = new QLineEdit();
+	context->timerEndMessage->setEnabled(false);
+	endMessageLayout->addWidget(context->endMessageCheckBox);
 	endMessageLayout->addWidget(new QLabel("End Message"));
 	endMessageLayout->addWidget(context->timerEndMessage);
 
 	QHBoxLayout *sceneDropDownLayout = new QHBoxLayout();
-	sceneDropDownLayout->addWidget(new QLabel("Switch To Scene"));
+	sceneDropDownLayout->addWidget(context->switchSceneCheckBox);
+	sceneDropDownLayout->addWidget(new QLabel("Switch Scene"));
 	sceneDropDownLayout->addWidget(context->sceneSourceDropdownList);
 
 	optionsVerticalLayout->addLayout(endMessageLayout);
@@ -197,9 +210,9 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 
 	context->textSourceDropdownList->setEnabled(false);
 	context->timerEndMessage->setEnabled(false);
-
-	context->timerEndMessage->setEnabled(false);
-
+	context->sceneSourceDropdownList->setEnabled(false);
+	context->endMessageCheckBox->setEnabled(false);
+	context->switchSceneCheckBox->setEnabled(false);
 	blog(LOG_INFO, "Timer STARTED counting!");
 }
 
@@ -216,9 +229,15 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	context->timerSeconds->setEnabled(true);
 
 	context->textSourceDropdownList->setEnabled(true);
-	context->timerEndMessage->setEnabled(true);
 
-	context->timerEndMessage->setEnabled(true);
+	context->endMessageCheckBox->setEnabled(true);
+	if(context->endMessageCheckBox->isChecked()) {
+		context->timerEndMessage->setEnabled(true);
+	}
+	context->switchSceneCheckBox->setEnabled(true);
+	if(context->switchSceneCheckBox->isChecked()){
+		context->sceneSourceDropdownList->setEnabled(true);
+	}
 
 	blog(LOG_INFO, "Timer STOPPED counting!");
 }
@@ -240,14 +259,15 @@ void CountdownDockWidget::TimerDecrement()
 	QTime *currentTime = context->time;
 
 	currentTime->setHMS(currentTime->addMSecs(-COUNTDOWNPERIOD).hour(),
-		     currentTime->addMSecs(-COUNTDOWNPERIOD).minute(),
-		     currentTime->addMSecs(-COUNTDOWNPERIOD).second());
+			    currentTime->addMSecs(-COUNTDOWNPERIOD).minute(),
+			    currentTime->addMSecs(-COUNTDOWNPERIOD).second());
 
 	UpdateTimeDisplay(context, currentTime);
 
-	if (currentTime->hour() == 0 && currentTime->minute() == 0 && currentTime->second() == 0) {
+	if (currentTime->hour() == 0 && currentTime->minute() == 0 &&
+	    currentTime->second() == 0) {
 		QString endMessageText = context->timerEndMessage->text();
-		if (endMessageText.length() > 0) {
+		if (context->endMessageCheckBox->isChecked()) {
 			SetSourceText(context,
 				      endMessageText.toStdString().c_str());
 		}
@@ -289,30 +309,8 @@ void CountdownDockWidget::ConnectObsSignalHandlers(
 	signal_handler_connect(obs_get_signal_handler(), "source_create",
 			       OBSSourceCreated, context);
 
-	// signal_handler_connect(obs_get_signal_handler(), "source_load",
-	// 		       OBSSourceLoaded, context);
-
 	signal_handler_connect(obs_get_signal_handler(), "source_destroy",
 			       OBSSourceDeleted, context);
-
-	signal_handler_connect(obs_get_signal_handler(), "source_remove",
-			       OBSSourceRemoved, context);
-
-	signal_handler_connect(obs_get_signal_handler(), "source_rename",
-			       OBSSourceRenamed, context);
-
-	// Scene Signals
-	signal_handler_connect(obs_get_signal_handler(), "source_create",
-			       OBSSourceCreated, context);
-
-	// signal_handler_connect(obs_get_signal_handler(), "source_load",
-	// 		       OBSSourceLoaded, context);
-
-	signal_handler_connect(obs_get_signal_handler(), "source_destroy",
-			       OBSSourceDeleted, context);
-
-	signal_handler_connect(obs_get_signal_handler(), "source_remove",
-			       OBSSourceRemoved, context);
 
 	signal_handler_connect(obs_get_signal_handler(), "source_rename",
 			       OBSSourceRenamed, context);
@@ -330,27 +328,20 @@ void CountdownDockWidget::OBSSourceCreated(void *param, calldata_t *calldata)
 
 	// blog(LOG_INFO, "Source Create Signal Triggered!");
 
-	if (!source || !CheckIfTextSource(source))
+	if (!source)
+		return;
+	int sourceType = CheckSourceType(source);
+	// If not sourceType we need;
+	if (!sourceType)
 		return;
 
-	CountdownDockWidget::AddTextSourceToList(context, source);
-};
+	const char *name = obs_source_get_name(source);
 
-void CountdownDockWidget::OBSSourceLoaded(void *param, calldata_t *calldata)
-{
-	auto context =
-		static_cast<CountdownDockWidget::CountdownWidgetStruct *>(
-			param);
-
-	obs_source_t *source;
-
-	calldata_get_ptr(calldata, "source", &source);
-
-	if (!source || !CheckIfTextSource(source))
-		return;
-	// blog(LOG_INFO, "Text Source Loaded!");
-
-	CountdownDockWidget::AddTextSourceToList(context, source);
+	if (sourceType == TEXT_SOURCE) {
+		context->textSourceDropdownList->addItem(name);
+	} else if (sourceType == SCENE_SOURCE) {
+		context->sceneSourceDropdownList->addItem(name);
+	}
 };
 
 void CountdownDockWidget::OBSSourceDeleted(void *param, calldata_t *calldata)
@@ -363,31 +354,28 @@ void CountdownDockWidget::OBSSourceDeleted(void *param, calldata_t *calldata)
 
 	calldata_get_ptr(calldata, "source", &source);
 
-	// blog(LOG_INFO, "Source Delete Triggered!");
-	if (!source || !CheckIfTextSource(source))
+	if (!source)
+		return;
+	int sourceType = CheckSourceType(source);
+	// If not sourceType we need;
+	if (!sourceType)
 		return;
 	// blog(LOG_INFO, "Text Source Deleted!");
 
-	CountdownDockWidget::RemoveTextSourceFromList(context, source);
-};
+	const char *name = obs_source_get_name(source);
 
-void CountdownDockWidget::OBSSourceRemoved(void *param, calldata_t *calldata)
-{
-	auto context =
-		static_cast<CountdownDockWidget::CountdownWidgetStruct *>(
-			param);
+	if (sourceType == TEXT_SOURCE) {
+		int textIndexToRemove =
+			context->textSourceDropdownList->findText(name);
+		context->textSourceDropdownList->removeItem(textIndexToRemove);
+	} else if (sourceType == SCENE_SOURCE) {
+		int sceneIndexToRemove =
+			context->sceneSourceDropdownList->findText(name);
+		context->sceneSourceDropdownList->removeItem(
+			sceneIndexToRemove);
+	}
 
-	obs_source_t *source;
-
-	calldata_get_ptr(calldata, "source", &source);
-
-	// blog(LOG_INFO, "Source Remove Triggered!");
-
-	if (!source || !CheckIfTextSource(source))
-		return;
-	// blog(LOG_INFO, "Text Source Removed!");
-
-	CountdownDockWidget::RemoveTextSourceFromList(context, source);
+	obs_source_release(source);
 };
 
 void CountdownDockWidget::OBSSourceRenamed(void *param, calldata_t *calldata)
@@ -396,89 +384,54 @@ void CountdownDockWidget::OBSSourceRenamed(void *param, calldata_t *calldata)
 		static_cast<CountdownDockWidget::CountdownWidgetStruct *>(
 			param);
 
+	obs_source_t *source;
+	calldata_get_ptr(calldata, "source", &source);
+
+	if (!source)
+		return;
+	int sourceType = CheckSourceType(source);
+	// If not sourceType we need;
+	if (!sourceType)
+		return;
+
 	const char *newName = calldata_string(calldata, "new_name");
 	const char *oldName = calldata_string(calldata, "prev_name");
+
+	if (sourceType == TEXT_SOURCE) {
+		int textListIndex =
+			context->textSourceDropdownList->findText(oldName);
+		if (textListIndex == -1)
+			return;
+		context->textSourceDropdownList->setItemText(textListIndex,
+							     newName);
+		// blog(LOG_INFO, "Text Source Renamed!");
+	} else if (sourceType == SCENE_SOURCE) {
+		int sceneListIndex =
+			context->sceneSourceDropdownList->findText(oldName);
+		if (sceneListIndex == -1)
+			return;
+		context->sceneSourceDropdownList->setItemText(sceneListIndex,
+							      newName);
+		// blog(LOG_INFO, "Scene Source Renamed!");
+	}
 
 	// blog(LOG_INFO, "Source Rename Triggered!");
 	// blog(LOG_INFO, "Old name: %s", oldName);
 	// blog(LOG_INFO, "New name: %s", newName);
-
-	int index = context->textSourceDropdownList->findText(oldName);
-
-	if (index == -1)
-		return;
-
-	context->textSourceDropdownList->setItemText(index, newName);
-
-	// blog(LOG_INFO, "Text Source Renamed!");
 };
 
-
-void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event, void *private_data) {
- 
- CountdownWidgetStruct* context = (CountdownWidgetStruct*) private_data;
-
- switch (event)
- {
- case OBS_FRONTEND_EVENT_FINISHED_LOADING:
-	/* code */
-	break;
- case OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED:
-	CountdownDockWidget::UpdateSceneList(context);
-	break;
- default:
-	break;
- }
-}
-
-void CountdownDockWidget::UpdateSceneList(CountdownWidgetStruct *context) {
-	UNUSED_PARAMETER(context);
-    auto scene_names = obs_frontend_get_scene_names();
-
-    for (size_t i = 0; scene_names[i]; i++) {
-        auto scene_name = scene_names[i];
-        // auto scene = obs_get_source_by_name(scene_name);
-
-        blog(LOG_INFO, "Found scene %s", scene_name);
-
-        // obs_source_release(scene);
-    }
-
-    // bfree(scene_names);
-}
-
-
-bool CountdownDockWidget::CheckIfTextSource(obs_source_t *source)
+int CountdownDockWidget::CheckSourceType(obs_source_t *source)
 {
 	blog(LOG_INFO, "Checking if Text Source");
 	const char *source_id = obs_source_get_unversioned_id(source);
 	blog(LOG_INFO, "source_id: %s", source_id);
 	if (strcmp(source_id, "text_ft2_source") == 0 ||
 	    strcmp(source_id, "text_gdiplus") == 0) {
-		return true;
+		return TEXT_SOURCE;
+	} else if (strcmp(source_id, "scene") == 0) {
+		return SCENE_SOURCE;
 	}
-	return false;
-}
-
-void CountdownDockWidget::AddTextSourceToList(CountdownWidgetStruct *context,
-					      obs_source_t *source)
-{
-	const char *name = obs_source_get_name(source);
-
-	context->textSourceDropdownList->addItem(name);
-}
-
-void CountdownDockWidget::RemoveTextSourceFromList(
-	CountdownWidgetStruct *context, obs_source_t *source)
-{
-	const char *name = obs_source_get_name(source);
-	int indexToRemove = context->textSourceDropdownList->findText(name);
-	context->textSourceDropdownList->removeItem(indexToRemove);
-
-	obs_source_release(source);
-
-	// blog(LOG_INFO, "ID to remove: %s", sourceId);
-	// blog(LOG_INFO, "Dropdown Index to remove: %i", indexToRemove);
+	return 0;
 }
 
 void CountdownDockWidget::UpdateTimeDisplay(CountdownWidgetStruct *context,
@@ -487,8 +440,8 @@ void CountdownDockWidget::UpdateTimeDisplay(CountdownWidgetStruct *context,
 
 	QString formattedTime = time->toString("hh:mm:ss");
 	context->timerDisplay->display(formattedTime);
-		// blog(LOG_INFO, "Update Time Function String is: %s",
-	    //  formattedTime.toLocal8Bit().data());
+	// blog(LOG_INFO, "Update Time Function String is: %s",
+	//  formattedTime.toLocal8Bit().data());
 	SetSourceText(context, formattedTime);
 }
 
@@ -496,18 +449,42 @@ void CountdownDockWidget::SetSourceText(CountdownWidgetStruct *context,
 					QString newText)
 {
 
-	QString currentSourceNameString = context->textSourceDropdownList->currentText();
-		 
-	obs_source_t *selectedSource =
-		obs_get_source_by_name(currentSourceNameString.toStdString().c_str());
+	QString currentSourceNameString =
+		context->textSourceDropdownList->currentText();
+
+	obs_source_t *selectedSource = obs_get_source_by_name(
+		currentSourceNameString.toStdString().c_str());
 
 	if (selectedSource != NULL) {
 		// blog(LOG_INFO, "Updating Source Text With Text: %s!", newText.toStdString().c_str());
 		obs_data_t *sourceSettings =
 			obs_source_get_settings(selectedSource);
-		obs_data_set_string(sourceSettings, "text", newText.toStdString().c_str());
+		obs_data_set_string(sourceSettings, "text",
+				    newText.toStdString().c_str());
 		obs_source_update(selectedSource, sourceSettings);
 		obs_data_release(sourceSettings);
 		obs_source_release(selectedSource);
 	}
+}
+
+void CountdownDockWidget::EndMessageCheckBoxSelected(int state)
+{
+	if (state) {
+		countdownTimerData->timerEndMessage->setEnabled(true);
+	} else {
+		countdownTimerData->timerEndMessage->setEnabled(false);
+	}
+	blog(LOG_INFO, "End Message Check Box Clicked!");
+	blog(LOG_INFO, "State Set To: %i", state);
+}
+
+void CountdownDockWidget::SceneSwitchCheckBoxSelected(int state)
+{
+	if (state) {
+		countdownTimerData->sceneSourceDropdownList->setEnabled(true);
+	} else {
+		countdownTimerData->sceneSourceDropdownList->setEnabled(false);
+	}
+	blog(LOG_INFO, "Scene Switch Check Box Clicked!");
+	blog(LOG_INFO, "State Set To: %i", state);
 }

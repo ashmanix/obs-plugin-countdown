@@ -21,6 +21,8 @@
 #include <QChar>
 #include <QIcon>
 #include <QGroupBox>
+#include <QCheckbox>
+#include <Qt>
 
 #include <string>
 #include <iostream>
@@ -69,6 +71,9 @@ public:
 		QComboBox *textSourceDropdownList;
 		QComboBox *sceneSourceDropdownList;
 
+		QCheckBox *endMessageCheckBox;
+		QCheckBox *switchSceneCheckBox;
+
 		// std::vector<SourcesList> sourcesList;
 		std::list<SourceListItem> textSourcesList;
 		std::list<obs_source_t*>::iterator it;
@@ -77,7 +82,7 @@ public:
 	};
 
 private:
-	enum MediaButtonType { play, pause, restart };
+	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2};
 	static const int COUNTDOWNPERIOD = 1000;
 
 	CountdownWidgetStruct *countdownTimerData;
@@ -96,18 +101,16 @@ private:
 	static void ObsSourceSignalHandler();
 
 	static void OBSSourceCreated(void *param, calldata_t *calldata);
-	static void OBSSourceLoaded(void *param, calldata_t *calldata);
 	static void OBSSourceDeleted(void *param, calldata_t *calldata);
-	static void OBSSourceRemoved(void *param, calldata_t *calldata);
 	static void OBSSourceRenamed(void *param, calldata_t *calldata);
 
-	static void OBSFrontendEventHandler(enum obs_frontend_event event, void *private_data);
-	static void UpdateSceneList(CountdownWidgetStruct *context);
+	// static void OBSFrontendEventHandler(enum obs_frontend_event event, void *private_data);
+	// static void UpdateSceneList(CountdownWidgetStruct *context);
 
-	static bool CheckIfTextSource(obs_source_t *source);
-	static void AddTextSourceToList(CountdownWidgetStruct *context, obs_source_t *source);
-	static void RemoveTextSourceFromList(CountdownWidgetStruct *context, obs_source_t *source);
-	static void RenameTextSource(CountdownWidgetStruct *context, obs_source_t *source);
+	static int CheckSourceType(obs_source_t *source);
+	// static void AddSourceToList(CountdownWidgetStruct *context, obs_source_t *source, int sourceType);
+	// static void RemoveSourceFromList(CountdownWidgetStruct *context, obs_source_t *source, int sourceType);
+	// static void RenameSource(CountdownWidgetStruct *context, obs_source_t *source, int sourceType);
 
 
 public slots:
@@ -115,6 +118,8 @@ public slots:
 	void PlayButtonClicked();
 	void PauseButtonClicked();
 	void ResetButtonClicked();
+	void EndMessageCheckBoxSelected(int state);
+	void SceneSwitchCheckBoxSelected(int state);
 	void TimerDecrement();
 };
 

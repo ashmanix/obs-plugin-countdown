@@ -29,11 +29,12 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 
+
 bool obs_module_load(void)
 {
 	const auto main_window =
 		static_cast<QMainWindow *>(obs_frontend_get_main_window());
-	CountdownDockWidget *countdownWidget = new CountdownDockWidget(main_window);
+	auto *countdownWidget = new CountdownDockWidget(main_window);
 
 	// countdownWidget->setFloating(true);
 	obs_frontend_add_dock(countdownWidget);
@@ -44,6 +45,6 @@ bool obs_module_load(void)
 }
 
 void obs_module_unload()
-{
+{	
 	blog(LOG_INFO, "plugin unloaded");
 }

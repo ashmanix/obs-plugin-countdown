@@ -28,6 +28,7 @@
 #include <iostream>
 #include <list>
 #include <util/base.h>
+#include <util/platform.h>
 #include <vector>
 #include <obs.h>
 #include <obs.hpp>
@@ -35,6 +36,8 @@
 #include <obs-module.h>
 
 #include "plugin-macros.generated.h"
+
+#define CONFIG "config.json"
 
 class CountdownDockWidget : public QDockWidget {
 	Q_OBJECT
@@ -91,6 +94,7 @@ private:
 	void SetCurrentScene();
 	void LoadSavedSettings();
 	void SaveSettings();
+	const char* ConvertToConstChar(QString value);
 
 	static void ObsSourceSignalHandler();
 

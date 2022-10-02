@@ -9,10 +9,12 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	countdownTimerData->countdownTimerUI->setLayout(
 		SetupCountdownWidgetUI(countdownTimerData));
 
-	// countdownTimerData->countdownTimerUI->setMinimumSize(200, 200);
-	// countdownTimerData->countdownTimerUI->setVisible(true);
+
 
 	setWidget(countdownTimerData->countdownTimerUI);
+	this->setMinimumSize(200, 200);
+	this->setVisible(true);
+	this->setFloating(true);
 
 	ConnectObsSignalHandlers(countdownTimerData);
 
@@ -24,7 +26,8 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 
 CountdownDockWidget::~CountdownDockWidget()
 {
-	this->destroy();
+	SaveSettings();
+	deleteLater();
 }
 
 QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
@@ -226,11 +229,11 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	context->textSourceDropdownList->setEnabled(true);
 
 	context->endMessageCheckBox->setEnabled(true);
-	if(context->endMessageCheckBox->isChecked()) {
+	if (context->endMessageCheckBox->isChecked()) {
 		context->timerEndMessage->setEnabled(true);
 	}
 	context->switchSceneCheckBox->setEnabled(true);
-	if(context->switchSceneCheckBox->isChecked()){
+	if (context->switchSceneCheckBox->isChecked()) {
 		context->sceneSourceDropdownList->setEnabled(true);
 	}
 
@@ -266,7 +269,7 @@ void CountdownDockWidget::TimerDecrement()
 			SetSourceText(context,
 				      endMessageText.toStdString().c_str());
 		}
-		if(context->switchSceneCheckBox->isChecked()){
+		if (context->switchSceneCheckBox->isChecked()) {
 			SetCurrentScene();
 		}
 		context->timerDisplay->display("00:00:00");
@@ -487,18 +490,22 @@ void CountdownDockWidget::SceneSwitchCheckBoxSelected(int state)
 	blog(LOG_INFO, "State Set To: %i", state);
 }
 
-void CountdownDockWidget::SetCurrentScene() {
-	QString selectedScene = countdownTimerData->sceneSourceDropdownList->currentText();
-	if(selectedScene.length()){
-		obs_source_t *source = obs_get_source_by_name(selectedScene.toStdString().c_str());
-		if(source != NULL){
+void CountdownDockWidget::SetCurrentScene()
+{
+	QString selectedScene =
+		countdownTimerData->sceneSourceDropdownList->currentText();
+	if (selectedScene.length()) {
+		obs_source_t *source = obs_get_source_by_name(
+			selectedScene.toStdString().c_str());
+		if (source != NULL) {
 			obs_frontend_set_current_scene(source);
 			obs_source_release(source);
 		}
 	}
 }
 
-void CountdownDockWidget::LoadSavedSettings() {
+void CountdownDockWidget::LoadSavedSettings()
+{
 	char *file = obs_module_config_path("config.json");
 	obs_data_t *data = nullptr;
 	if (file) {
@@ -521,32 +528,94 @@ void CountdownDockWidget::LoadSavedSettings() {
 
 		blog(LOG_INFO, "Saved Hours: %i", hours);
 
-		const char* selectedTextSource = obs_data_get_string(data, "selectedTextSource");
+		const char *selectedTextSource =
+			obs_data_get_string(data, "selectedTextSource");
 
-		int endMessageCheckBoxStatus = obs_data_get_int(data, "endMessageCheckBoxStatus");
+		int endMessageCheckBoxStatus =
+			obs_data_get_int(data, "endMessageCheckBoxStatus");
 
-		const char* endMessageText = obs_data_get_string(data, "endMessageText");
+		const char *endMessageText =
+			obs_data_get_string(data, "endMessageText");
 
 		int switchSceneCheckBoxStatus =
 			obs_data_get_int(data, "switchSceneCheckBoxStatus");
-	
-		const char* selectedSceneSource = obs_data_get_string(data, "selectedSceneSource");
+
+		const char *selectedSceneSource =
+			obs_data_get_string(data, "selectedSceneSource");
 
 		UNUSED_PARAMETER(selectedTextSource);
-		UNUSED_PARAMETER(endMessageCheckBoxStatus);
-		UNUSED_PARAMETER(endMessageText);
-		UNUSED_PARAMETER(switchSceneCheckBoxStatus);
 		UNUSED_PARAMETER(selectedSceneSource);
 
 		// Apply saved data to plugin
 		countdownTimerData->timerHours->setText(QString::number(hours));
-		countdownTimerData->timerMinutes->setText(QString::number(minutes));
-		countdownTimerData->timerSeconds->setText(QString::number(seconds));
+		countdownTimerData->timerMinutes->setText(
+			QString::number(minutes));
+		countdownTimerData->timerSeconds->setText(
+			QString::number(seconds));
+		countdownTimerData->timerEndMessage->setText(endMessageText);
 
-		
+		countdownTimerData->endMessageCheckBox->setCheckState((Qt::CheckState)endMessageCheckBoxStatus);
+
+		countdownTimerData->switchSceneCheckBox->setCheckState((Qt::CheckState)switchSceneCheckBoxStatus);
+
+		obs_data_release(data);
 	}
 }
 
-void CountdownDockWidget::SaveSettings() {
+void CountdownDockWidget::SaveSettings()
+{
+	obs_data_t *data = obs_data_create();
 
+	int hours = countdownTimerData->timerHours->text().toInt();
+	obs_data_set_int(data, "hours", hours);
+	int minutes = countdownTimerData->timerMinutes->text().toInt();
+	obs_data_set_int(data, "minutes", minutes);
+	int seconds = countdownTimerData->timerSeconds->text().toInt();
+	obs_data_set_int(data, "seconds", seconds);
+
+	QString selectedTextSource =
+		countdownTimerData->textSourceDropdownList->currentText();
+	obs_data_set_string(data, "selectedTextSource",
+			    ConvertToConstChar(selectedTextSource));
+
+	int indexTextSource = countdownTimerData->textSourceDropdownList->currentIndex();
+	blog(LOG_INFO, "Current Text Select Index: %i", indexTextSource);
+
+	int endMessageCheckBoxStatus =
+		countdownTimerData->endMessageCheckBox->checkState();
+	obs_data_set_int(data, "endMessageCheckBoxStatus",
+			 endMessageCheckBoxStatus);
+
+	QString timerEndMessage = countdownTimerData->timerEndMessage->text();
+	obs_data_set_string(data, "endMessageText",
+			    timerEndMessage.toStdString().c_str());
+
+	int switchSceneCheckBoxStatus =
+		countdownTimerData->switchSceneCheckBox->checkState();
+	obs_data_set_int(data, "switchSceneCheckBoxStatus",
+			 switchSceneCheckBoxStatus);
+
+	QString selectedSceneSource =
+		countdownTimerData->sceneSourceDropdownList->currentText();
+
+	obs_data_set_string(data, "selectedSceneSource",
+			    ConvertToConstChar(selectedSceneSource));
+
+	char *file = obs_module_config_path(CONFIG);
+	obs_data_save_json(data, file);
+	obs_data_release(data);
+	bfree(file);
+
+	blog(LOG_INFO, "Data file saved at: %s", file);
+	blog(LOG_INFO, "timerEndMessage: %s", timerEndMessage.toStdString().c_str());
+	blog(LOG_INFO, "selectedTextSource: %s", textSourceString);
+	blog(LOG_INFO, "selectedSceneSource: %s", selectedSceneSource.toStdString().c_str());
+
+	deleteLater();
+}
+
+const char* CountdownDockWidget::ConvertToConstChar(QString value){
+	QByteArray ba = value.toLocal8Bit();
+	const char *cString = ba.data();
+	return cString;
 }

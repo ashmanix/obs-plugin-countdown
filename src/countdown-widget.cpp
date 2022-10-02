@@ -9,14 +9,17 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	countdownTimerData->countdownTimerUI->setLayout(
 		SetupCountdownWidgetUI(countdownTimerData));
 
-	countdownTimerData->countdownTimerUI->setMinimumSize(200, 200);
-	countdownTimerData->countdownTimerUI->setVisible(true);
+	// countdownTimerData->countdownTimerUI->setMinimumSize(200, 200);
+	// countdownTimerData->countdownTimerUI->setVisible(true);
 
 	setWidget(countdownTimerData->countdownTimerUI);
 
 	ConnectObsSignalHandlers(countdownTimerData);
 
+	LoadSavedSettings();
+
 	InitialiseTimerTime(countdownTimerData);
+	hide();
 }
 
 CountdownDockWidget::~CountdownDockWidget()
@@ -109,15 +112,12 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	buttonLayout->addWidget(context->pauseButton);
 	buttonLayout->addWidget(context->playButton);
 
-	// QGroupBox *sourceGroupBox = new QGroupBox("Source");
 	QHBoxLayout *sourceDropDownLayout = new QHBoxLayout();
 	sourceDropDownLayout->addWidget(new QLabel("Text Source"));
 	sourceDropDownLayout->addWidget(context->textSourceDropdownList);
 
-	// sourceGroupBox->setLayout(sourceDropDownLayout);
-
-	QGroupBox *optionsGroupBox = new QGroupBox("Options");
-	QVBoxLayout *optionsVerticalLayout = new QVBoxLayout();
+	// QGroupBox *optionsGroupBox = new QGroupBox("Options");
+	// QVBoxLayout *optionsVerticalLayout = new QVBoxLayout();
 
 	QHBoxLayout *endMessageLayout = new QHBoxLayout();
 	context->endMessageCheckBox = new QCheckBox();
@@ -136,26 +136,21 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	sceneDropDownLayout->addWidget(new QLabel("Switch Scene"));
 	sceneDropDownLayout->addWidget(context->sceneSourceDropdownList);
 
-	optionsVerticalLayout->addLayout(endMessageLayout);
-	optionsVerticalLayout->addLayout(sceneDropDownLayout);
-	optionsGroupBox->setLayout(optionsVerticalLayout);
+	// optionsVerticalLayout->addLayout(endMessageLayout);
+	// optionsVerticalLayout->addLayout(sceneDropDownLayout);
+	// optionsGroupBox->setLayout(optionsVerticalLayout);
 
 	QVBoxLayout *timeLayout = new QVBoxLayout();
 
 	timeLayout->addWidget(context->timerDisplay);
 	timeLayout->addLayout(timerLayout);
-	// subLayout->addLayout(sourceDropDownLayout);
-	// subLayout->addLayout(endMessageLayout);
-
-	// QGroupBox *settingsGroupBox = new QGroupBox("Settings");
-	// settingsGroupBox->setLayout(subLayout);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout();
 	mainLayout->addLayout(timeLayout);
 	mainLayout->addLayout(sourceDropDownLayout);
-	mainLayout->addWidget(optionsGroupBox);
-	// mainLayout->addLayout(sceneDropDownLayout);
-	// mainLayout->addWidget(settingsGroupBox);
+	mainLayout->addLayout(endMessageLayout);
+	mainLayout->addLayout(sceneDropDownLayout);
+	// mainLayout->addWidget(optionsGroupBox);
 	mainLayout->addLayout(buttonLayout);
 
 	return mainLayout;
@@ -270,6 +265,9 @@ void CountdownDockWidget::TimerDecrement()
 		if (context->endMessageCheckBox->isChecked()) {
 			SetSourceText(context,
 				      endMessageText.toStdString().c_str());
+		}
+		if(context->switchSceneCheckBox->isChecked()){
+			SetCurrentScene();
 		}
 		context->timerDisplay->display("00:00:00");
 		currentTime->setHMS(0, 0, 0, 0);
@@ -487,4 +485,68 @@ void CountdownDockWidget::SceneSwitchCheckBoxSelected(int state)
 	}
 	blog(LOG_INFO, "Scene Switch Check Box Clicked!");
 	blog(LOG_INFO, "State Set To: %i", state);
+}
+
+void CountdownDockWidget::SetCurrentScene() {
+	QString selectedScene = countdownTimerData->sceneSourceDropdownList->currentText();
+	if(selectedScene.length()){
+		obs_source_t *source = obs_get_source_by_name(selectedScene.toStdString().c_str());
+		if(source != NULL){
+			obs_frontend_set_current_scene(source);
+			obs_source_release(source);
+		}
+	}
+}
+
+void CountdownDockWidget::LoadSavedSettings() {
+	char *file = obs_module_config_path("config.json");
+	obs_data_t *data = nullptr;
+	if (file) {
+		data = obs_data_create_from_json_file(file);
+		bfree(file);
+	}
+	if (data) {
+		// Things to get:
+		// Hours, Minutes and Seconds setting
+		// Selected Text Source
+		// Check status for end message
+		// String for end message
+		// Check status for scene switch
+		// Selected Scene Source
+
+		// Get Save Data
+		int hours = obs_data_get_int(data, "hours");
+		int minutes = obs_data_get_int(data, "minutes");
+		int seconds = obs_data_get_int(data, "seconds");
+
+		blog(LOG_INFO, "Saved Hours: %i", hours);
+
+		const char* selectedTextSource = obs_data_get_string(data, "selectedTextSource");
+
+		int endMessageCheckBoxStatus = obs_data_get_int(data, "endMessageCheckBoxStatus");
+
+		const char* endMessageText = obs_data_get_string(data, "endMessageText");
+
+		int switchSceneCheckBoxStatus =
+			obs_data_get_int(data, "switchSceneCheckBoxStatus");
+	
+		const char* selectedSceneSource = obs_data_get_string(data, "selectedSceneSource");
+
+		UNUSED_PARAMETER(selectedTextSource);
+		UNUSED_PARAMETER(endMessageCheckBoxStatus);
+		UNUSED_PARAMETER(endMessageText);
+		UNUSED_PARAMETER(switchSceneCheckBoxStatus);
+		UNUSED_PARAMETER(selectedSceneSource);
+
+		// Apply saved data to plugin
+		countdownTimerData->timerHours->setText(QString::number(hours));
+		countdownTimerData->timerMinutes->setText(QString::number(minutes));
+		countdownTimerData->timerSeconds->setText(QString::number(seconds));
+
+		
+	}
+}
+
+void CountdownDockWidget::SaveSettings() {
+
 }

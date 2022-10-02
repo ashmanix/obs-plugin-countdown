@@ -35,17 +35,15 @@ OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
 
 bool obs_module_load(void)
 {
-	QWidget *main_window = (QWidget *)obs_frontend_get_main_window();
-	CountdownDockWidget* countdownWidget = new CountdownDockWidget(main_window);
+	const auto main_window =
+		static_cast<QMainWindow *>(obs_frontend_get_main_window());
+	auto *countdownWidget = new CountdownDockWidget(main_window);
 
-	countdownWidget->setFloating(true);
+	// countdownWidget->setFloating(true);
 	obs_frontend_add_dock(countdownWidget);
 
 	blog(LOG_INFO, "plugin loaded successfully (version %s)",
 	     PLUGIN_VERSION);
-
-	countdownWidget = nullptr;
-	main_window = nullptr;
 	return true;
 }
 

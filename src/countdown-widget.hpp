@@ -3,6 +3,7 @@
 
 // #include <QWidget>
 #include <QDockWidget>
+#include <QMainWindow>
 #include <QEvent>
 #include <QLabel>
 #include <QPushButton>
@@ -32,20 +33,15 @@
 #include <obs.h>
 #include <obs.hpp>
 #include <obs-frontend-api.h>
+#include <obs-module.h>
 
 #include "plugin-macros.generated.h"
 
 class CountdownDockWidget : public QDockWidget {
 	Q_OBJECT
 public:
-	explicit CountdownDockWidget(QWidget *parent);
+	explicit CountdownDockWidget(QWidget *parent = nullptr);
 	~CountdownDockWidget();
-	struct SourceListItem {
-		const char *name;
-		const char *id;
-		obs_source_t *source;
-		bool operator<(const SourceListItem& a) const {return name < a.name;}
-	};
 
 	// static bool SortSourceList (SourceListItem a, SourceListItem b) { return a.name < b.name; };
 	// bool id_match(const SourceListItem &a, const char value){return (a.id) == value};
@@ -74,8 +70,6 @@ public:
 		QCheckBox *endMessageCheckBox;
 		QCheckBox *switchSceneCheckBox;
 
-		// std::vector<SourcesList> sourcesList;
-		std::list<SourceListItem> textSourcesList;
 		std::list<obs_source_t*>::iterator it;
 		OBSSignal textSourceAddedSignals;
 		OBSSignal textSourceRemovedSignals;
@@ -97,6 +91,9 @@ private:
 	void UpdateTimeDisplay(CountdownWidgetStruct* context, QTime *time);
 	// void SetSelectedSource(const QString &sourceName);
 	void SetSourceText(CountdownWidgetStruct* context, QString newText);
+	void SetCurrentScene();
+	void LoadSavedSettings();
+	void SaveSettings();
 
 	static void ObsSourceSignalHandler();
 

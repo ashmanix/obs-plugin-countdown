@@ -28,7 +28,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_AUTHOR("Ashmanix")
-OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-US")
+OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-GB")
 
 bool obs_module_load(void)
 {
@@ -53,10 +53,10 @@ void obs_module_unload()
 
 const char *obs_module_name(void)
 {
-	return "OBS Countdown Timer";
+	return obs_module_text("CountdownTimer");
 }
 
 const char *obs_module_description(void)
 {
-	return "Countdown timer that uses a text source to display a timer.";
+	return obs_module_text("Description");
 }

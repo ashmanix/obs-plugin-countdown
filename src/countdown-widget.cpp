@@ -95,7 +95,7 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	buttonLayout->addWidget(context->playButton);
 
 	QHBoxLayout *sourceDropDownLayout = new QHBoxLayout();
-	sourceDropDownLayout->addWidget(new QLabel("Text Source"));
+	sourceDropDownLayout->addWidget(new QLabel(obs_module_text("TextSource")));
 	sourceDropDownLayout->addWidget(context->textSourceDropdownList);
 
 	QHBoxLayout *endMessageLayout = new QHBoxLayout();
@@ -103,7 +103,7 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	context->endMessageCheckBox->setCheckState(Qt::Unchecked);
 
 	context->timerEndMessage = new QLineEdit();
-	context->timerEndLabel = new QLabel("End Message");
+	context->timerEndLabel = new QLabel(obs_module_text("EndMessage"));
 	context->timerEndLabel->setEnabled(false);
 	context->timerEndMessage->setEnabled(false);
 	endMessageLayout->addWidget(context->endMessageCheckBox);
@@ -111,7 +111,7 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	endMessageLayout->addWidget(context->timerEndMessage);
 
 	QHBoxLayout *sceneDropDownLayout = new QHBoxLayout();
-	context->sceneSwitchLabel = new QLabel("Switch Scene");
+	context->sceneSwitchLabel = new QLabel(obs_module_text("SwitchScene"));
 	sceneDropDownLayout->addWidget(context->switchSceneCheckBox);
 	sceneDropDownLayout->addWidget(context->sceneSwitchLabel);
 	sceneDropDownLayout->addWidget(context->sceneSourceDropdownList);
@@ -532,14 +532,6 @@ void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 		bfree(file);
 	}
 	if (data) {
-		// Things to get:
-		// Hours, Minutes and Seconds setting
-		// Selected Text Source
-		// Check status for end message
-		// String for end message
-		// Check status for scene switch
-		// Selected Scene Source
-
 		// Get Save Data
 		int hours = obs_data_get_int(data, "hours");
 		int minutes = obs_data_get_int(data, "minutes");

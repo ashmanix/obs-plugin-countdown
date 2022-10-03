@@ -57,23 +57,29 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 		QRegularExpression("^[1-5]?[0-9]"), this));
 
 	context->textSourceDropdownList = new QComboBox();
+	context->textSourceDropdownList->setToolTip(obs_module_text("TextSourceDropdownTip"));
 
 	context->switchSceneCheckBox = new QCheckBox();
 	context->switchSceneCheckBox->setCheckState(Qt::Unchecked);
+	context->switchSceneCheckBox->setToolTip(obs_module_text("SwitchSceneCheckBoxTip"));
 
 	context->sceneSourceDropdownList = new QComboBox();
 	context->sceneSourceDropdownList->setEnabled(false);
+	context->sceneSourceDropdownList->setToolTip(obs_module_text("SceneSourceDropdownTip"));
 
 	context->playButton = new QPushButton(this);
 	context->playButton->setProperty("themeID", "playIcon");
 	context->playButton->setEnabled(true);
+	context->playButton->setToolTip(obs_module_text("PlayButton"));
 
 	context->pauseButton = new QPushButton(this);
 	context->pauseButton->setProperty("themeID", "pauseIcon");
 	context->pauseButton->setEnabled(false);
+	context->pauseButton->setToolTip(obs_module_text("PauseButton"));
 
 	context->resetButton = new QPushButton(this);
 	context->resetButton->setProperty("themeID", "restartIcon");
+	context->resetButton->setToolTip(obs_module_text("ResetButton"));
 
 	context->isPlaying = false;
 
@@ -95,17 +101,20 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	buttonLayout->addWidget(context->playButton);
 
 	QHBoxLayout *sourceDropDownLayout = new QHBoxLayout();
-	sourceDropDownLayout->addWidget(new QLabel(obs_module_text("TextSource")));
+	sourceDropDownLayout->addWidget(new QLabel(obs_module_text("TextSourceLabel")));
 	sourceDropDownLayout->addWidget(context->textSourceDropdownList);
 
 	QHBoxLayout *endMessageLayout = new QHBoxLayout();
 	context->endMessageCheckBox = new QCheckBox();
 	context->endMessageCheckBox->setCheckState(Qt::Unchecked);
+	context->endMessageCheckBox->setToolTip(obs_module_text("EndMessageCheckBoxTip"));
 
 	context->timerEndMessage = new QLineEdit();
-	context->timerEndLabel = new QLabel(obs_module_text("EndMessage"));
-	context->timerEndLabel->setEnabled(false);
 	context->timerEndMessage->setEnabled(false);
+	context->timerEndMessage->setToolTip(obs_module_text("EndMessageLineEditTip"));
+
+	context->timerEndLabel = new QLabel(obs_module_text("EndMessageLabel"));
+	context->timerEndLabel->setEnabled(false);
 	endMessageLayout->addWidget(context->endMessageCheckBox);
 	endMessageLayout->addWidget(context->timerEndLabel);
 	endMessageLayout->addWidget(context->timerEndMessage);

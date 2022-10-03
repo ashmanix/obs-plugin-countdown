@@ -568,8 +568,6 @@ void CountdownDockWidget::SaveSettings()
 
 	obs_data_t *data = obs_data_create();
 
-	int indexTextSource = context->textSourceDropdownList->currentIndex();
-
 	int hours = context->timerHours->text().toInt();
 	obs_data_set_int(data, "hours", hours);
 	int minutes = context->timerMinutes->text().toInt();

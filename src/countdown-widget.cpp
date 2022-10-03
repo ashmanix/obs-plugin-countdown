@@ -3,8 +3,6 @@
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	: QDockWidget("Countdown Timer", parent)
 {
-	blog(LOG_INFO, "Starting loading of widget!");
-
 	countdownTimerData = new CountdownWidgetStruct;
 	countdownTimerData->countdownTimerUI = new QWidget();
 	countdownTimerData->countdownTimerUI->setLayout(
@@ -169,7 +167,6 @@ void CountdownDockWidget::ConnectUISignalHandlers(CountdownWidgetStruct *context
 
 void CountdownDockWidget::PlayButtonClicked()
 {
-	// blog(LOG_INFO, "Play Button Clicked");
 	CountdownWidgetStruct *context = countdownTimerData;
 	if (IsSetTimeZero(context))
 		return;
@@ -181,15 +178,12 @@ void CountdownDockWidget::PlayButtonClicked()
 
 void CountdownDockWidget::PauseButtonClicked()
 {
-	// blog(LOG_INFO, "Pause Button Clicked");
 	CountdownWidgetStruct *context = countdownTimerData;
 	StopTimerCounting(context);
 }
 
 void CountdownDockWidget::ResetButtonClicked()
 {
-	// blog(LOG_INFO, "Reset Button Clicked");
-
 	CountdownWidgetStruct *context = countdownTimerData;
 	int hours = context->timerHours->text().toInt();
 	int minutes = context->timerMinutes->text().toInt();
@@ -219,7 +213,6 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	context->sceneSourceDropdownList->setEnabled(false);
 	context->endMessageCheckBox->setEnabled(false);
 	context->switchSceneCheckBox->setEnabled(false);
-	blog(LOG_INFO, "Timer STARTED counting!");
 }
 
 void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
@@ -245,7 +238,6 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 		context->sceneSourceDropdownList->setEnabled(true);
 	}
 
-	blog(LOG_INFO, "Timer STOPPED counting!");
 }
 
 void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)
@@ -283,11 +275,8 @@ void CountdownDockWidget::TimerDecrement()
 		context->timerDisplay->display("00:00:00");
 		currentTime->setHMS(0, 0, 0, 0);
 		StopTimerCounting(context);
-		blog(LOG_INFO, "Timer reached zero");
 		return;
 	}
-
-	// blog(LOG_INFO, "One second down!");
 }
 
 QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
@@ -346,12 +335,8 @@ void CountdownDockWidget::OBSSourceCreated(void *param, calldata_t *calldata)
 	auto context =
 		static_cast<CountdownDockWidget::CountdownWidgetStruct *>(
 			param);
-
 	obs_source_t *source;
-
 	calldata_get_ptr(calldata, "source", &source);
-
-	// blog(LOG_INFO, "Source Create Signal Triggered!");
 
 	if (!source)
 		return;
@@ -385,7 +370,6 @@ void CountdownDockWidget::OBSSourceDeleted(void *param, calldata_t *calldata)
 	// If not sourceType we need;
 	if (!sourceType)
 		return;
-	// blog(LOG_INFO, "Text Source Deleted!");
 
 	const char *name = obs_source_get_name(source);
 
@@ -429,7 +413,6 @@ void CountdownDockWidget::OBSSourceRenamed(void *param, calldata_t *calldata)
 			return;
 		context->textSourceDropdownList->setItemText(textListIndex,
 							     newName);
-		// blog(LOG_INFO, "Text Source Renamed!");
 	} else if (sourceType == SCENE_SOURCE) {
 		int sceneListIndex =
 			context->sceneSourceDropdownList->findText(oldName);
@@ -437,19 +420,12 @@ void CountdownDockWidget::OBSSourceRenamed(void *param, calldata_t *calldata)
 			return;
 		context->sceneSourceDropdownList->setItemText(sceneListIndex,
 							      newName);
-		// blog(LOG_INFO, "Scene Source Renamed!");
 	}
-
-	// blog(LOG_INFO, "Source Rename Triggered!");
-	// blog(LOG_INFO, "Old name: %s", oldName);
-	// blog(LOG_INFO, "New name: %s", newName);
 };
 
 int CountdownDockWidget::CheckSourceType(obs_source_t *source)
 {
-	blog(LOG_INFO, "Checking if Text Source");
 	const char *source_id = obs_source_get_unversioned_id(source);
-	blog(LOG_INFO, "source_id: %s", source_id);
 	if (strcmp(source_id, "text_ft2_source") == 0 ||
 	    strcmp(source_id, "text_gdiplus") == 0) {
 		return TEXT_SOURCE;
@@ -465,8 +441,6 @@ void CountdownDockWidget::UpdateTimeDisplay(CountdownWidgetStruct *context,
 
 	QString formattedTime = time->toString("hh:mm:ss");
 	context->timerDisplay->display(formattedTime);
-	// blog(LOG_INFO, "Update Time Function String is: %s",
-	//  formattedTime.toLocal8Bit().data());
 	SetSourceText(context, formattedTime);
 }
 
@@ -481,7 +455,6 @@ void CountdownDockWidget::SetSourceText(CountdownWidgetStruct *context,
 		currentSourceNameString.toStdString().c_str());
 
 	if (selectedSource != NULL) {
-		// blog(LOG_INFO, "Updating Source Text With Text: %s!", newText.toStdString().c_str());
 		obs_data_t *sourceSettings =
 			obs_source_get_settings(selectedSource);
 		obs_data_set_string(sourceSettings, "text",
@@ -501,8 +474,6 @@ void CountdownDockWidget::EndMessageCheckBoxSelected(int state)
 		countdownTimerData->timerEndMessage->setEnabled(false);
 		countdownTimerData->timerEndLabel->setEnabled(false);
 	}
-	blog(LOG_INFO, "End Message Check Box Clicked!");
-	blog(LOG_INFO, "State Set To: %i", state);
 }
 
 void CountdownDockWidget::SceneSwitchCheckBoxSelected(int state)
@@ -514,8 +485,6 @@ void CountdownDockWidget::SceneSwitchCheckBoxSelected(int state)
 		countdownTimerData->sceneSourceDropdownList->setEnabled(false);
 		countdownTimerData->sceneSwitchLabel->setEnabled(false);
 	}
-	blog(LOG_INFO, "Scene Switch Check Box Clicked!");
-	blog(LOG_INFO, "State Set To: %i", state);
 }
 
 void CountdownDockWidget::SetCurrentScene()
@@ -545,8 +514,6 @@ void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 		int hours = obs_data_get_int(data, "hours");
 		int minutes = obs_data_get_int(data, "minutes");
 		int seconds = obs_data_get_int(data, "seconds");
-
-		blog(LOG_INFO, "Saved Hours: %i", hours);
 
 		const char *selectedTextSource =
 			obs_data_get_string(data, "selectedTextSource");
@@ -580,8 +547,6 @@ void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 
 		int textSelectIndex = context->textSourceDropdownList->findText(
 			selectedTextSource);
-		// blog(LOG_INFO, "Load Text Index: %i, Load Text Name: %s",
-		    //  textSelectIndex, selectedTextSource);
 		if (textSelectIndex != -1)
 			context->textSourceDropdownList->setCurrentIndex(
 				textSelectIndex);
@@ -589,8 +554,6 @@ void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 		int sceneSelectIndex =
 			context->sceneSourceDropdownList->findText(
 				selectedSceneSource);
-		// blog(LOG_INFO, "Load Scene Index: %i, Load Scene Name: %s",
-		    //  sceneSelectIndex, selectedSceneSource);
 		if (sceneSelectIndex != -1)
 			context->sceneSourceDropdownList->setCurrentIndex(
 				sceneSelectIndex);
@@ -606,7 +569,6 @@ void CountdownDockWidget::SaveSettings()
 	obs_data_t *data = obs_data_create();
 
 	int indexTextSource = context->textSourceDropdownList->currentIndex();
-	blog(LOG_INFO, "Current Text Select Index: %i", indexTextSource);
 
 	int hours = context->timerHours->text().toInt();
 	obs_data_set_int(data, "hours", hours);
@@ -640,14 +602,6 @@ void CountdownDockWidget::SaveSettings()
 	obs_data_release(data);
 	bfree(file);
 
-	blog(LOG_INFO, "Data file saved at: %s", file);
-	blog(LOG_INFO, "timerEndMessage: %s",
-	     timerEndMessage.toStdString().c_str());
-	blog(LOG_INFO, "selectedTextSource: %s",
-	     context->textSourceNameText.c_str());
-	blog(LOG_INFO, "selectedSceneSource: %s",
-	     context->sceneSourceNameText.c_str());
-
 	deleteLater();
 }
 
@@ -662,18 +616,10 @@ void CountdownDockWidget::HandleTextSourceChange(QString newText)
 {
 	std::string textSourceSelected = newText.toStdString();
 	countdownTimerData->textSourceNameText = textSourceSelected;
-	// int textSelectIndex =
-		// countdownTimerData->textSourceDropdownList->currentIndex();
-	// blog(LOG_INFO, "Text Index: %i, Text Name: %s", textSelectIndex,
-	    //  textSourceSelected.c_str());
 }
 
 void CountdownDockWidget::HandleSceneSourceChange(QString newText)
 {
 	std::string sceneSourceSelected = newText.toStdString();
 	countdownTimerData->sceneSourceNameText = sceneSourceSelected;
-	// int sceneSelectIndex =
-		// countdownTimerData->sceneSourceDropdownList->currentIndex();
-	// blog(LOG_INFO, "Scene Index: %i, Scene Name: %s", sceneSelectIndex,
-	    //  sceneSourceSelected.c_str());
 }

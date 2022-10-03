@@ -8,10 +8,15 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	countdownTimerData->countdownTimerUI->setLayout(
 		SetupCountdownWidgetUI(countdownTimerData));
 
+	// countdownTimerData->countdownTimerUI->setGeometry(0,0, 200, 200);
+	// countdownTimerData->countdownTimerUI->setMinimumSize(300, 200);
 	setWidget(countdownTimerData->countdownTimerUI);
-	// this->setMinimumSize(200, 200);
-	this->setVisible(false);
-	this->setFloating(true);
+	setGeometry(0,0,150,350);
+	// this->setVisible(false);
+	setFloating(true);
+	setFeatures(QDockWidget::DockWidgetClosable);
+	setFeatures(QDockWidget::DockWidgetMovable);
+	setFeatures(QDockWidget::DockWidgetFloatable);
 
 	obs_frontend_add_event_callback(OBSFrontendEventHandler,
 					countdownTimerData);
@@ -21,6 +26,7 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	ConnectObsSignalHandlers(countdownTimerData);
 
 	InitialiseTimerTime(countdownTimerData);
+	hide();
 }
 
 CountdownDockWidget::~CountdownDockWidget()
@@ -134,6 +140,8 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	mainLayout->addLayout(endMessageLayout);
 	mainLayout->addLayout(sceneDropDownLayout);
 	mainLayout->addLayout(buttonLayout);
+
+	mainLayout->setGeometry(QRect(0,0,200,300));
 
 	return mainLayout;
 }

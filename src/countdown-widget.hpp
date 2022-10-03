@@ -42,7 +42,7 @@
 class CountdownDockWidget : public QDockWidget {
 	Q_OBJECT
 public:
-	explicit CountdownDockWidget(QWidget *parent);
+	explicit CountdownDockWidget(QWidget *parent = nullptr);
 	~CountdownDockWidget();
 	// static bool SortSourceList (SourceListItem a, SourceListItem b) { return a.name < b.name; };
 	// bool id_match(const SourceListItem &a, const char value){return (a.id) == value};

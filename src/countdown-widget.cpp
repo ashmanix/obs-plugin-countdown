@@ -1,7 +1,7 @@
 #include "countdown-widget.hpp"
 
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
-	: QDockWidget("Countdown Timer", parent)
+	: QDockWidget("Countdown Timer", parent), ui(new Ui::CountdownTimer)
 {
 	countdownTimerData = new CountdownWidgetStruct;
 	countdownTimerData->countdownTimerUI = new QWidget();
@@ -17,6 +17,8 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	setFeatures(QDockWidget::DockWidgetClosable);
 	setFeatures(QDockWidget::DockWidgetMovable);
 	setFeatures(QDockWidget::DockWidgetFloatable);
+
+	ui->setupUi(this);
 
 	obs_frontend_add_event_callback(OBSFrontendEventHandler,
 					countdownTimerData);

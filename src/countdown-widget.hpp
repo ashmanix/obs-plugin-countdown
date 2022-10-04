@@ -36,6 +36,7 @@
 #include <obs-module.h>
 
 #include "plugin-macros.generated.h"
+#include "ui_CountdownTimer.h"
 
 #define CONFIG "config.json"
 
@@ -84,6 +85,7 @@ private:
 	static const int COUNTDOWNPERIOD = 1000;
 
 	CountdownWidgetStruct *countdownTimerData;
+	Ui::CountdownTimer *ui;
 
 	QVBoxLayout *SetupCountdownWidgetUI(CountdownWidgetStruct *context);
 	void StartTimerCounting(CountdownWidgetStruct *context);

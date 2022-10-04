@@ -20,7 +20,7 @@
 #include <QChar>
 #include <QIcon>
 #include <QGroupBox>
-#include <QCheckbox>
+#include <QCheckBox>
 #include <Qt>
 
 #include <string>

@@ -51,30 +51,29 @@ public:
 
 	struct CountdownWidgetStruct {
 		bool isPlaying;
-
-		QWidget *countdownTimerUI;
 		QTimer *timer;
 		QTime *time;
-		QLCDNumber *timerDisplay;
+
+		QWidget *countdownTimerUI;
+
+		QLCDNumber *timeDisplay;
 		QLineEdit *timerHours;
 		QLineEdit *timerMinutes;
 		QLineEdit *timerSeconds;
+	
+		QComboBox *textSourceDropdownList;
 
-		QLineEdit *timerEndMessage;
+		QCheckBox *endMessageCheckBox;
 		QLabel *timerEndLabel;
+		QLineEdit *endMessageLineEdit;
+
+		QCheckBox *switchSceneCheckBox;
+		QLabel *sceneSwitchLabel;
+		QComboBox *sceneSourceDropdownList;
 
 		QPushButton *playButton;
 		QPushButton *pauseButton;
 		QPushButton *resetButton;
-
-		QComboBox *textSourceDropdownList;
-		QComboBox *sceneSourceDropdownList;
-		QLabel *sceneSwitchLabel;
-
-		QCheckBox *endMessageCheckBox;
-		QCheckBox *switchSceneCheckBox;
-		OBSSignal textSourceAddedSignals;
-		OBSSignal textSourceRemovedSignals;
 
 		std::string textSourceNameText;
 		std::string sceneSourceNameText;

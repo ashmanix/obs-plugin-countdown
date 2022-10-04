@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DockWidget</class>
+ <class>CountdownTimer</class>
  <widget class="QDockWidget" name="CountdownTimer">
   <property name="geometry">
    <rect>
@@ -13,13 +13,6 @@
   <property name="windowTitle">
    <string>Countdown Timer</string>
   </property>
-  <widget class="QWidget" name="dockWidgetContents">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout"/>
-    </item>
-   </layout>
-  </widget>
  </widget>
  <resources/>
  <connections/>

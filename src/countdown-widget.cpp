@@ -567,38 +567,38 @@ void CountdownDockWidget::SaveSettings()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
 
-	obs_data_t *data = obs_data_create();
+	obs_data_t *obsData = obs_data_create();
 
 	int hours = context->timerHours->text().toInt();
-	obs_data_set_int(data, "hours", hours);
+	obs_data_set_int(obsData, "hours", hours);
 	int minutes = context->timerMinutes->text().toInt();
-	obs_data_set_int(data, "minutes", minutes);
+	obs_data_set_int(obsData, "minutes", minutes);
 	int seconds = context->timerSeconds->text().toInt();
-	obs_data_set_int(data, "seconds", seconds);
+	obs_data_set_int(obsData, "seconds", seconds);
 
-	obs_data_set_string(data, "selectedTextSource",
+	obs_data_set_string(obsData, "selectedTextSource",
 			    context->textSourceNameText.c_str());
 
 	int endMessageCheckBoxStatus =
 		context->endMessageCheckBox->checkState();
-	obs_data_set_int(data, "endMessageCheckBoxStatus",
+	obs_data_set_int(obsData, "endMessageCheckBoxStatus",
 			 endMessageCheckBoxStatus);
 
 	QString endMessageLineEdit = context->endMessageLineEdit->text();
-	obs_data_set_string(data, "endMessageText",
+	obs_data_set_string(obsData, "endMessageText",
 			    endMessageLineEdit.toStdString().c_str());
 
 	int switchSceneCheckBoxStatus =
 		context->switchSceneCheckBox->checkState();
-	obs_data_set_int(data, "switchSceneCheckBoxStatus",
+	obs_data_set_int(obsData, "switchSceneCheckBoxStatus",
 			 switchSceneCheckBoxStatus);
 
-	obs_data_set_string(data, "selectedSceneSource",
+	obs_data_set_string(obsData, "selectedSceneSource",
 			    context->sceneSourceNameText.c_str());
 
 	char *file = obs_module_config_path(CONFIG);
-	obs_data_save_json(data, file);
-	obs_data_release(data);
+	obs_data_save_json(obsData, file);
+	obs_data_release(obsData);
 	bfree(file);
 
 	deleteLater();

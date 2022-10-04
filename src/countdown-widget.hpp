@@ -1,7 +1,6 @@
 #ifndef COUNTDOWNWIDGET_H
 #define COUNTDOWNWIDGET_H
 
-
 #include <QMainWindow>
 #include <QDockWidget>
 #include <QEvent>
@@ -47,7 +46,6 @@ public:
 	~CountdownDockWidget();
 	// static bool SortSourceList (SourceListItem a, SourceListItem b) { return a.name < b.name; };
 	// bool id_match(const SourceListItem &a, const char value){return (a.id) == value};
-	
 
 	struct CountdownWidgetStruct {
 		bool isPlaying;
@@ -60,7 +58,7 @@ public:
 		QLineEdit *timerHours;
 		QLineEdit *timerMinutes;
 		QLineEdit *timerSeconds;
-	
+
 		QComboBox *textSourceDropdownList;
 
 		QCheckBox *endMessageCheckBox;
@@ -80,7 +78,7 @@ public:
 	};
 
 private:
-	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2};
+	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	static const int COUNTDOWNPERIOD = 1000;
 
 	CountdownWidgetStruct *countdownTimerData;
@@ -92,15 +90,15 @@ private:
 	void InitialiseTimerTime(CountdownWidgetStruct *context);
 	QString ConvertTimeToDisplayString(QTime *timeToConvert);
 	bool IsSetTimeZero(CountdownWidgetStruct *context);
-	void ConnectObsSignalHandlers(CountdownWidgetStruct* context);
+	void ConnectObsSignalHandlers(CountdownWidgetStruct *context);
 	void ConnectUISignalHandlers(CountdownWidgetStruct *context);
-	void UpdateTimeDisplay(CountdownWidgetStruct* context, QTime *time);
+	void UpdateTimeDisplay(CountdownWidgetStruct *context, QTime *time);
 	// void SetSelectedSource(const QString &sourceName);
-	void SetSourceText(CountdownWidgetStruct* context, QString newText);
+	void SetSourceText(CountdownWidgetStruct *context, QString newText);
 	void SetCurrentScene();
 	void SaveSettings();
 
-	const char* ConvertToConstChar(QString value);
+	const char *ConvertToConstChar(QString value);
 
 	static void ObsSourceSignalHandler();
 
@@ -108,16 +106,16 @@ private:
 	static void OBSSourceDeleted(void *param, calldata_t *calldata);
 	static void OBSSourceRenamed(void *param, calldata_t *calldata);
 
-	static void OBSFrontendEventHandler(enum obs_frontend_event event, void *private_data);
+	static void OBSFrontendEventHandler(enum obs_frontend_event event,
+					    void *private_data);
 	// static void ConnectUISignalHandlers(CountdownWidgetStruct *context);
 	// static void UpdateSceneList(CountdownWidgetStruct *context);
 
 	static int CheckSourceType(obs_source_t *source);
-	static void LoadSavedSettings(CountdownWidgetStruct* context);
+	static void LoadSavedSettings(CountdownWidgetStruct *context);
 	// static void AddSourceToList(CountdownWidgetStruct *context, obs_source_t *source, int sourceType);
 	// static void RemoveSourceFromList(CountdownWidgetStruct *context, obs_source_t *source, int sourceType);
 	// static void RenameSource(CountdownWidgetStruct *context, obs_source_t *source, int sourceType);
-
 
 private slots:
 

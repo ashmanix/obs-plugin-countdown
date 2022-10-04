@@ -68,21 +68,25 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	timeLayout->addLayout(timerLayout);
 
 	context->textSourceDropdownList = new QComboBox();
-	context->textSourceDropdownList->setToolTip(obs_module_text("TextSourceDropdownTip"));
+	context->textSourceDropdownList->setToolTip(
+		obs_module_text("TextSourceDropdownTip"));
 
 	QHBoxLayout *sourceDropDownLayout = new QHBoxLayout();
-	sourceDropDownLayout->addWidget(new QLabel(obs_module_text("TextSourceLabel")));
+	sourceDropDownLayout->addWidget(
+		new QLabel(obs_module_text("TextSourceLabel")));
 	sourceDropDownLayout->addWidget(context->textSourceDropdownList);
-	sourceDropDownLayout->setStretch(1,1);
-	
+	sourceDropDownLayout->setStretch(1, 1);
+
 	context->endMessageCheckBox = new QCheckBox();
 	context->endMessageCheckBox->setCheckState(Qt::Unchecked);
-	context->endMessageCheckBox->setToolTip(obs_module_text("EndMessageCheckBoxTip"));
+	context->endMessageCheckBox->setToolTip(
+		obs_module_text("EndMessageCheckBoxTip"));
 	context->timerEndLabel = new QLabel(obs_module_text("EndMessageLabel"));
 	context->timerEndLabel->setEnabled(false);
 	context->endMessageLineEdit = new QLineEdit();
 	context->endMessageLineEdit->setEnabled(false);
-	context->endMessageLineEdit->setToolTip(obs_module_text("EndMessageLineEditTip"));
+	context->endMessageLineEdit->setToolTip(
+		obs_module_text("EndMessageLineEditTip"));
 
 	QHBoxLayout *endMessageLayout = new QHBoxLayout();
 	endMessageLayout->addWidget(context->endMessageCheckBox);
@@ -91,19 +95,21 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 
 	context->switchSceneCheckBox = new QCheckBox();
 	context->switchSceneCheckBox->setCheckState(Qt::Unchecked);
-	context->switchSceneCheckBox->setToolTip(obs_module_text("SwitchSceneCheckBoxTip"));
+	context->switchSceneCheckBox->setToolTip(
+		obs_module_text("SwitchSceneCheckBoxTip"));
 	context->sceneSwitchLabel = new QLabel(obs_module_text("SwitchScene"));
 	context->sceneSwitchLabel->setEnabled(false);
 	context->sceneSourceDropdownList = new QComboBox();
 	context->sceneSourceDropdownList->setEnabled(false);
-	context->sceneSourceDropdownList->setToolTip(obs_module_text("SceneSourceDropdownTip"));
+	context->sceneSourceDropdownList->setToolTip(
+		obs_module_text("SceneSourceDropdownTip"));
 
 	QHBoxLayout *sceneDropDownLayout = new QHBoxLayout();
 	sceneDropDownLayout->addWidget(context->switchSceneCheckBox);
 	sceneDropDownLayout->addWidget(context->sceneSwitchLabel);
 	sceneDropDownLayout->addWidget(context->sceneSourceDropdownList);
 	sceneDropDownLayout->setEnabled(false);
-	sceneDropDownLayout->setStretch(2,1);
+	sceneDropDownLayout->setStretch(2, 1);
 
 	context->playButton = new QPushButton(this);
 	context->playButton->setProperty("themeID", "playIcon");
@@ -121,7 +127,6 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	buttonLayout->addWidget(context->resetButton);
 	buttonLayout->addWidget(context->pauseButton);
 	buttonLayout->addWidget(context->playButton);
-
 
 	QVBoxLayout *mainLayout = new QVBoxLayout();
 	mainLayout->addLayout(timeLayout);
@@ -234,7 +239,6 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	if (context->switchSceneCheckBox->isChecked()) {
 		context->sceneSourceDropdownList->setEnabled(true);
 	}
-
 }
 
 void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)

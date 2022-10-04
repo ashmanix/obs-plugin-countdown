@@ -19,7 +19,6 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 
 #include "plugin-macros.generated.h"
 
-
 // void load_menu_option()
 // {
 // 	obs_frontend_add_tools_menu_item("Add Countdown Timer",
@@ -47,7 +46,7 @@ bool obs_module_load(void)
 }
 
 void obs_module_unload()
-{	
+{
 	blog(LOG_INFO, "plugin unloaded");
 }
 

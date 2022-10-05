@@ -46,7 +46,7 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 	context->timerHours->setAlignment(Qt::AlignCenter);
 	context->timerHours->setMaxLength(2);
 	context->timerHours->setValidator(new QRegularExpressionValidator(
-		QRegularExpression("[0-9]{1,2}"), this));
+		QRegularExpression("[0-2]?[0-3]"), this));
 
 	context->minutesCheckBox = new QCheckBox();
 	context->minutesCheckBox->setCheckState(Qt::Checked);

@@ -9,11 +9,15 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 		SetupCountdownWidgetUI(countdownTimerData));
 
 	setWidget(countdownTimerData->countdownTimerUI);
-	setFeatures(QDockWidget::DockWidgetClosable);
-	setFeatures(QDockWidget::DockWidgetMovable);
-	setFeatures(QDockWidget::DockWidgetFloatable);
+	setFeatures(QDockWidget::DockWidgetClosable |
+		    QDockWidget::DockWidgetMovable |
+		    QDockWidget::DockWidgetFloatable);
 
 	ui->setupUi(this);
+
+	setVisible(false);
+	setFloating(true);
+	resize(300, 380);
 
 	obs_frontend_add_event_callback(OBSFrontendEventHandler,
 					countdownTimerData);
@@ -23,7 +27,6 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	ConnectObsSignalHandlers(countdownTimerData);
 
 	InitialiseTimerTime(countdownTimerData);
-	hide();
 }
 
 CountdownDockWidget::~CountdownDockWidget()

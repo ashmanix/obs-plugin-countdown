@@ -36,7 +36,6 @@ bool obs_module_load(void)
 	obs_frontend_push_ui_translation(obs_module_get_string);
 	auto countdownWidget = new CountdownDockWidget(main_window);
 
-	// countdownWidget->setFloating(true);
 	obs_frontend_add_dock(countdownWidget);
 	obs_frontend_pop_ui_translation();
 

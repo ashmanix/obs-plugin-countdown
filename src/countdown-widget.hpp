@@ -56,8 +56,11 @@ public:
 
 		QLCDNumber *timeDisplay;
 		QLineEdit *timerHours;
+		QCheckBox *hoursCheckBox;
 		QLineEdit *timerMinutes;
+		QCheckBox *minutesCheckBox;
 		QLineEdit *timerSeconds;
+		QCheckBox *secondsCheckBox;
 
 		QComboBox *textSourceDropdownList;
 

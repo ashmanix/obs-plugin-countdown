@@ -541,35 +541,6 @@ void CountdownDockWidget::SceneSwitchCheckBoxSelected(int state)
 	}
 }
 
-void CountdownDockWidget::ToggleHoursCheckBoxSelected(int state)
-{
-	if (state) {
-		countdownTimerData->timerHours->setEnabled(true);
-	} else {
-		countdownTimerData->timerHours->setEnabled(false);
-	}
-}
-
-void CountdownDockWidget::ToggleMinutesCheckBoxSelected(int state)
-{
-	if (state) {
-		countdownTimerData->timerMinutes->setEnabled(true);
-	} else {
-		countdownTimerData->timerMinutes->setEnabled(false);
-	}
-}
-
-void CountdownDockWidget::ToggleSecondsCheckBoxSelected(int state)
-{
-	if (state) {
-		countdownTimerData->timerSeconds->setEnabled(true);
-	} else {
-		countdownTimerData->timerSeconds->setEnabled(false);
-	}
-}
-
-
-
 void CountdownDockWidget::SetCurrentScene()
 {
 	QString selectedScene =

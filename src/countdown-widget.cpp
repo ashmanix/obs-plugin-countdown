@@ -50,7 +50,8 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 
 	context->minutesCheckBox = new QCheckBox();
 	context->minutesCheckBox->setCheckState(Qt::Checked);
-	context->minutesCheckBox->setToolTip(obs_module_text("MinutesCheckBoxTip"));
+	context->minutesCheckBox->setToolTip(
+		obs_module_text("MinutesCheckBoxTip"));
 	context->timerMinutes = new QLineEdit("0");
 	context->timerMinutes->setAlignment(Qt::AlignCenter);
 	context->timerMinutes->setMaxLength(2);
@@ -59,7 +60,8 @@ QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
 
 	context->secondsCheckBox = new QCheckBox();
 	context->secondsCheckBox->setCheckState(Qt::Checked);
-	context->secondsCheckBox->setToolTip(obs_module_text("SecondsCheckBoxTip"));
+	context->secondsCheckBox->setToolTip(
+		obs_module_text("SecondsCheckBoxTip"));
 	context->timerSeconds = new QLineEdit("0");
 	context->timerSeconds->setAlignment(Qt::AlignCenter);
 	context->timerSeconds->setMaxLength(2);
@@ -182,12 +184,12 @@ void CountdownDockWidget::ConnectUISignalHandlers(CountdownWidgetStruct *context
 
 	QObject::connect(context->hoursCheckBox, SIGNAL(stateChanged(int)),
 			 SLOT(ToggleHoursCheckBoxSelected(int)));
-	
+
 	QObject::connect(context->minutesCheckBox, SIGNAL(stateChanged(int)),
-		SLOT(ToggleMinutesCheckBoxSelected(int)));
-	
+			 SLOT(ToggleMinutesCheckBoxSelected(int)));
+
 	QObject::connect(context->secondsCheckBox, SIGNAL(stateChanged(int)),
-		SLOT(ToggleSecondsCheckBoxSelected(int)));
+			 SLOT(ToggleSecondsCheckBoxSelected(int)));
 }
 
 void CountdownDockWidget::PlayButtonClicked()
@@ -309,28 +311,28 @@ void CountdownDockWidget::TimerDecrement()
 }
 
 QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
-{	
+{
 	int hoursState = countdownTimerData->hoursCheckBox->checkState();
 	int minutesState = countdownTimerData->minutesCheckBox->checkState();
 	int secondsState = countdownTimerData->secondsCheckBox->checkState();
 
 	QString stringTime = "";
 
-	if(hoursState && minutesState & secondsState){
+	if (hoursState && minutesState & secondsState) {
 		stringTime = timeToConvert->toString("hh:mm:ss");
-	} else if(!hoursState && minutesState && secondsState) {
+	} else if (!hoursState && minutesState && secondsState) {
 		stringTime = timeToConvert->toString("mm:ss");
-	} else if (!hoursState && !minutesState && secondsState){
+	} else if (!hoursState && !minutesState && secondsState) {
 		stringTime = timeToConvert->toString("ss");
-	 } else if(!hoursState && minutesState && !secondsState){
+	} else if (!hoursState && minutesState && !secondsState) {
 		stringTime = timeToConvert->toString("mm");
-	 } else if(hoursState && !minutesState && !secondsState) {
+	} else if (hoursState && !minutesState && !secondsState) {
 		stringTime = timeToConvert->toString("hh");
-	 } else if(hoursState && !minutesState && secondsState){
+	} else if (hoursState && !minutesState && secondsState) {
 		stringTime = timeToConvert->toString("hh:ss");
-	 } else if (hoursState && minutesState && !secondsState) {
+	} else if (hoursState && minutesState && !secondsState) {
 		stringTime = timeToConvert->toString("hh:mm");
-	 } else if(!hoursState && !minutesState && !secondsState){
+	} else if (!hoursState && !minutesState && !secondsState) {
 		stringTime = "Nothing selected!";
 	}
 
@@ -342,7 +344,7 @@ void CountdownDockWidget::UpdateTimeDisplay(CountdownWidgetStruct *context,
 {
 	context->timeDisplay->display(time->toString("hh:mm:ss"));
 	QString formattedDisplayTime = ConvertTimeToDisplayString(time);
-	const char* timeToShow = ConvertToConstChar(formattedDisplayTime);
+	const char *timeToShow = ConvertToConstChar(formattedDisplayTime);
 	blog(LOG_INFO, "Formatted time is: %s", timeToShow);
 	SetSourceText(context, formattedDisplayTime);
 }
@@ -566,13 +568,16 @@ void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 	if (data) {
 		// Get Save Data
 		int hours = obs_data_get_int(data, "hours");
-		int hoursCheckBoxStatus = obs_data_get_int(data, "hoursCheckBoxStatus");
+		int hoursCheckBoxStatus =
+			obs_data_get_int(data, "hoursCheckBoxStatus");
 
 		int minutes = obs_data_get_int(data, "minutes");
-		int minutesCheckBoxStatus = obs_data_get_int(data, "minutesCheckBoxStatus");
+		int minutesCheckBoxStatus =
+			obs_data_get_int(data, "minutesCheckBoxStatus");
 
 		int seconds = obs_data_get_int(data, "seconds");
-		int secondsCheckBoxStatus = obs_data_get_int(data, "secondsCheckBoxStatus");
+		int secondsCheckBoxStatus =
+			obs_data_get_int(data, "secondsCheckBoxStatus");
 
 		const char *selectedTextSource =
 			obs_data_get_string(data, "selectedTextSource");
@@ -594,13 +599,16 @@ void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 
 		// Apply saved data to plugin
 		context->timerHours->setText(QString::number(hours));
-		context->hoursCheckBox->setCheckState((Qt::CheckState)hoursCheckBoxStatus);
+		context->hoursCheckBox->setCheckState(
+			(Qt::CheckState)hoursCheckBoxStatus);
 
 		context->timerMinutes->setText(QString::number(minutes));
-		context->minutesCheckBox->setCheckState((Qt::CheckState)minutesCheckBoxStatus);
+		context->minutesCheckBox->setCheckState(
+			(Qt::CheckState)minutesCheckBoxStatus);
 
 		context->timerSeconds->setText(QString::number(seconds));
-		context->secondsCheckBox->setCheckState((Qt::CheckState)secondsCheckBoxStatus);
+		context->secondsCheckBox->setCheckState(
+			(Qt::CheckState)secondsCheckBoxStatus);
 
 		context->endMessageLineEdit->setText(endMessageText);
 
@@ -635,22 +643,18 @@ void CountdownDockWidget::SaveSettings()
 
 	int hours = context->timerHours->text().toInt();
 	obs_data_set_int(obsData, "hours", hours);
-	int hoursCheckBoxStatus =
-		context->hoursCheckBox->checkState();
-	obs_data_set_int(obsData, "hoursCheckBoxStatus",
-			 hoursCheckBoxStatus);
+	int hoursCheckBoxStatus = context->hoursCheckBox->checkState();
+	obs_data_set_int(obsData, "hoursCheckBoxStatus", hoursCheckBoxStatus);
 
 	int minutes = context->timerMinutes->text().toInt();
 	obs_data_set_int(obsData, "minutes", minutes);
-	int minutesCheckBoxStatus =
-		context->minutesCheckBox->checkState();
+	int minutesCheckBoxStatus = context->minutesCheckBox->checkState();
 	obs_data_set_int(obsData, "minutesCheckBoxStatus",
 			 minutesCheckBoxStatus);
 
 	int seconds = context->timerSeconds->text().toInt();
 	obs_data_set_int(obsData, "seconds", seconds);
-	int secondsCheckBoxStatus =
-		context->secondsCheckBox->checkState();
+	int secondsCheckBoxStatus = context->secondsCheckBox->checkState();
 	obs_data_set_int(obsData, "secondsCheckBoxStatus",
 			 secondsCheckBoxStatus);
 

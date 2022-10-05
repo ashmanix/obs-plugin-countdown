@@ -56,8 +56,11 @@ public:
 
 		QLCDNumber *timeDisplay;
 		QLineEdit *timerHours;
+		QCheckBox *hoursCheckBox;
 		QLineEdit *timerMinutes;
+		QCheckBox *minutesCheckBox;
 		QLineEdit *timerSeconds;
+		QCheckBox *secondsCheckBox;
 
 		QComboBox *textSourceDropdownList;
 
@@ -124,6 +127,9 @@ private slots:
 	void ResetButtonClicked();
 	void EndMessageCheckBoxSelected(int state);
 	void SceneSwitchCheckBoxSelected(int state);
+	void ToggleHoursCheckBoxSelected(int state);
+	void ToggleMinutesCheckBoxSelected(int state);
+	void ToggleSecondsCheckBoxSelected(int state);
 	void HandleTextSourceChange(QString newText);
 	void HandleSceneSourceChange(QString newText);
 	void TimerDecrement();

@@ -568,29 +568,29 @@ void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 	}
 	if (data) {
 		// Get Save Data
-		int hours = (int) obs_data_get_int(data, "hours");
+		int hours = (int)obs_data_get_int(data, "hours");
 		int hoursCheckBoxStatus =
-			(int) obs_data_get_int(data, "hoursCheckBoxStatus");
+			(int)obs_data_get_int(data, "hoursCheckBoxStatus");
 
-		int minutes = (int) obs_data_get_int(data, "minutes");
+		int minutes = (int)obs_data_get_int(data, "minutes");
 		int minutesCheckBoxStatus =
-			(int) obs_data_get_int(data, "minutesCheckBoxStatus");
+			(int)obs_data_get_int(data, "minutesCheckBoxStatus");
 
-		int seconds = (int) obs_data_get_int(data, "seconds");
+		int seconds = (int)obs_data_get_int(data, "seconds");
 		int secondsCheckBoxStatus =
-			(int) obs_data_get_int(data, "secondsCheckBoxStatus");
+			(int)obs_data_get_int(data, "secondsCheckBoxStatus");
 
 		const char *selectedTextSource =
 			obs_data_get_string(data, "selectedTextSource");
 
 		int endMessageCheckBoxStatus =
-			(int) obs_data_get_int(data, "endMessageCheckBoxStatus");
+			(int)obs_data_get_int(data, "endMessageCheckBoxStatus");
 
 		const char *endMessageText =
 			obs_data_get_string(data, "endMessageText");
 
-		int switchSceneCheckBoxStatus =
-			(int) obs_data_get_int(data, "switchSceneCheckBoxStatus");
+		int switchSceneCheckBoxStatus = (int)obs_data_get_int(
+			data, "switchSceneCheckBoxStatus");
 
 		const char *selectedSceneSource =
 			obs_data_get_string(data, "selectedSceneSource");

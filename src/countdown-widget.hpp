@@ -28,6 +28,7 @@
 #include <list>
 #include <util/base.h>
 #include <util/platform.h>
+#include <util/config-file.h>
 #include <vector>
 #include <obs.h>
 #include <obs.hpp>
@@ -78,6 +79,10 @@ public:
 
 		std::string textSourceNameText;
 		std::string sceneSourceNameText;
+
+		int startCountdownHotkey;
+		int pauseCountdownHotkey;
+		int resetCountdownHotkey;
 	};
 
 private:
@@ -100,6 +105,9 @@ private:
 	void SetSourceText(CountdownWidgetStruct *context, QString newText);
 	void SetCurrentScene();
 	void SaveSettings();
+	void RegisterHotkeys(CountdownWidgetStruct *context);
+	void UnregisterHotkeys();
+	void ClickButton(CountdownWidgetStruct *context);
 
 	const char *ConvertToConstChar(QString value);
 

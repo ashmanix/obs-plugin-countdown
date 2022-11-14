@@ -209,9 +209,9 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 	};
 
 	char *file = obs_module_config_path(CONFIG);
-	obs_data_t *data = nullptr;
+	obs_data_t *saved_data = nullptr;
 	if (file) {
-		data = obs_data_create_from_json_file(file);
+		saved_data = obs_data_create_from_json_file(file);
 		bfree(file);
 	}
 
@@ -232,8 +232,8 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 		HOTKEY_CALLBACK(true, countdownData.playButton->animateClick,
 				"Play Button Pressed"),
 		context);
-	if (data)
-		LoadHotkey(data, context->startCountdownHotkeyId,
+	if (saved_data)
+		LoadHotkey(saved_data, context->startCountdownHotkeyId,
 			   "Ashmanix_Countdown_Timer_Start");
 
 	// Register Pause Hotkey
@@ -243,8 +243,8 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 		HOTKEY_CALLBACK(true, countdownData.pauseButton->animateClick,
 				"Pause Button Pressed"),
 		context);
-	if (data)
-		LoadHotkey(data, context->pauseCountdownHotkeyId,
+	if (saved_data)
+		LoadHotkey(saved_data, context->pauseCountdownHotkeyId,
 			   "Ashmanix_Countdown_Timer_Pause");
 
 	// Register Reset Hotkey
@@ -254,11 +254,11 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 		HOTKEY_CALLBACK(true, countdownData.resetButton->animateClick,
 				"Set Button Pressed"),
 		context);
-	if (data)
-		LoadHotkey(data, context->setCountdownHotkeyId,
+	if (saved_data)
+		LoadHotkey(saved_data, context->setCountdownHotkeyId,
 			   "Ashmanix_Countdown_Timer_Set");
 
-	obs_data_release(data);
+	obs_data_release(saved_data);
 #undef HOTKEY_CALLBACK
 }
 

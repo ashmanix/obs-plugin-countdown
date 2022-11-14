@@ -216,14 +216,14 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 		bfree(file);
 	}
 
-#define HOTKEY_CALLBACK(pred, method, log_action)                     \
+#define HOTKEY_CALLBACK(pred, method, log_action)                              \
 	[](void *incoming_data, obs_hotkey_id, obs_hotkey_t *, bool pressed) { \
-		CountdownWidgetStruct &countdownData =                \
+		CountdownWidgetStruct &countdownData =                         \
 			*static_cast<CountdownWidgetStruct *>(incoming_data);  \
-		if ((pred) && pressed) {                              \
-			blog(LOG_INFO, log_action " due to hotkey");  \
-			method();                                     \
-		}                                                     \
+		if ((pred) && pressed) {                                       \
+			blog(LOG_INFO, log_action " due to hotkey");           \
+			method();                                              \
+		}                                                              \
 	}
 
 	// Register Play Hotkey

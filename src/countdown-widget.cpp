@@ -27,11 +27,14 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	ConnectObsSignalHandlers(countdownTimerData);
 
 	InitialiseTimerTime(countdownTimerData);
+
+	RegisterHotkeys(countdownTimerData);
 }
 
 CountdownDockWidget::~CountdownDockWidget()
 {
 	SaveSettings();
+	UnregisterHotkeys();
 }
 
 QVBoxLayout *CountdownDockWidget::SetupCountdownWidgetUI(
@@ -195,6 +198,83 @@ void CountdownDockWidget::ConnectUISignalHandlers(CountdownWidgetStruct *context
 			 SLOT(ToggleSecondsCheckBoxSelected(int)));
 }
 
+void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
+{
+	auto LoadHotkey = [](obs_data_t *s_data, obs_hotkey_id id,
+			     const char *name) {
+		OBSDataArrayAutoRelease array =
+			obs_data_get_array(s_data, name);
+
+		obs_hotkey_load(id, array);
+		obs_data_array_release(array);
+	};
+
+	char *file = obs_module_config_path(CONFIG);
+	obs_data_t *saved_data = nullptr;
+	if (file) {
+		saved_data = obs_data_create_from_json_file(file);
+		bfree(file);
+	}
+
+#define HOTKEY_CALLBACK(pred, method, log_action)                              \
+	[](void *incoming_data, obs_hotkey_id, obs_hotkey_t *, bool pressed) { \
+		CountdownWidgetStruct &countdownData =                         \
+			*static_cast<CountdownWidgetStruct *>(incoming_data);  \
+		if ((pred) && pressed) {                                       \
+			blog(LOG_INFO, log_action " due to hotkey");           \
+			method();                                              \
+		}                                                              \
+	}
+
+	// Register Play Hotkey
+	context->startCountdownHotkeyId = (int)obs_hotkey_register_frontend(
+		"Ashmanix_Countdown_Timer_Start",
+		obs_module_text("StartCountdownHotkeyDecription"),
+		HOTKEY_CALLBACK(true, countdownData.playButton->animateClick,
+				"Play Button Pressed"),
+		context);
+	if (saved_data)
+		LoadHotkey(saved_data, context->startCountdownHotkeyId,
+			   "Ashmanix_Countdown_Timer_Start");
+
+	// Register Pause Hotkey
+	context->pauseCountdownHotkeyId = (int)obs_hotkey_register_frontend(
+		"Ashmanix_Countdown_Timer_Pause",
+		obs_module_text("PauseCountdownHotkeyDecription"),
+		HOTKEY_CALLBACK(true, countdownData.pauseButton->animateClick,
+				"Pause Button Pressed"),
+		context);
+	if (saved_data)
+		LoadHotkey(saved_data, context->pauseCountdownHotkeyId,
+			   "Ashmanix_Countdown_Timer_Pause");
+
+	// Register Reset Hotkey
+	context->setCountdownHotkeyId = (int)obs_hotkey_register_frontend(
+		"Ashmanix_Countdown_Timer_Set",
+		obs_module_text("SetCountdownHotkeyDecription"),
+		HOTKEY_CALLBACK(true, countdownData.resetButton->animateClick,
+				"Set Button Pressed"),
+		context);
+	if (saved_data)
+		LoadHotkey(saved_data, context->setCountdownHotkeyId,
+			   "Ashmanix_Countdown_Timer_Set");
+
+	obs_data_release(saved_data);
+#undef HOTKEY_CALLBACK
+}
+
+void CountdownDockWidget::UnregisterHotkeys()
+{
+	if (countdownTimerData->startCountdownHotkeyId)
+		obs_hotkey_unregister(
+			countdownTimerData->startCountdownHotkeyId);
+	if (countdownTimerData->pauseCountdownHotkeyId)
+		obs_hotkey_unregister(
+			countdownTimerData->pauseCountdownHotkeyId);
+	if (countdownTimerData->setCountdownHotkeyId)
+		obs_hotkey_unregister(countdownTimerData->setCountdownHotkeyId);
+}
+
 void CountdownDockWidget::PlayButtonClicked()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
@@ -347,8 +427,8 @@ void CountdownDockWidget::UpdateTimeDisplay(CountdownWidgetStruct *context,
 {
 	context->timeDisplay->display(time->toString("hh:mm:ss"));
 	QString formattedDisplayTime = ConvertTimeToDisplayString(time);
-	const char *timeToShow = ConvertToConstChar(formattedDisplayTime);
-	blog(LOG_INFO, "Formatted time is: %s", timeToShow);
+	// const char *timeToShow = ConvertToConstChar(formattedDisplayTime);
+	// blog(LOG_INFO, "Formatted time is: %s", timeToShow);
 	SetSourceText(context, formattedDisplayTime);
 }
 
@@ -560,7 +640,7 @@ void CountdownDockWidget::SetCurrentScene()
 
 void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 {
-	char *file = obs_module_config_path("config.json");
+	char *file = obs_module_config_path(CONFIG);
 	obs_data_t *data = nullptr;
 	if (file) {
 		data = obs_data_create_from_json_file(file);
@@ -568,6 +648,8 @@ void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 	}
 	if (data) {
 		// Get Save Data
+
+		// Time
 		int hours = (int)obs_data_get_int(data, "hours");
 		int hoursCheckBoxStatus =
 			(int)obs_data_get_int(data, "hoursCheckBoxStatus");
@@ -577,6 +659,8 @@ void CountdownDockWidget::LoadSavedSettings(CountdownWidgetStruct *context)
 			(int)obs_data_get_int(data, "minutesCheckBoxStatus");
 
 		int seconds = (int)obs_data_get_int(data, "seconds");
+
+		// Selections
 		int secondsCheckBoxStatus =
 			(int)obs_data_get_int(data, "secondsCheckBoxStatus");
 
@@ -678,6 +762,25 @@ void CountdownDockWidget::SaveSettings()
 
 	obs_data_set_string(obsData, "selectedSceneSource",
 			    context->sceneSourceNameText.c_str());
+
+	// Hotkeys
+	obs_data_array_t *start_countdown_hotkey_save_array =
+		obs_hotkey_save(context->startCountdownHotkeyId);
+	obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_Start",
+			   start_countdown_hotkey_save_array);
+	obs_data_array_release(start_countdown_hotkey_save_array);
+
+	obs_data_array_t *pause_countdown_hotkey_save_array =
+		obs_hotkey_save(context->pauseCountdownHotkeyId);
+	obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_Pause",
+			   pause_countdown_hotkey_save_array);
+	obs_data_array_release(pause_countdown_hotkey_save_array);
+
+	obs_data_array_t *set_countdown_hotkey_save_array =
+		obs_hotkey_save(context->setCountdownHotkeyId);
+	obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_Set",
+			   set_countdown_hotkey_save_array);
+	obs_data_array_release(set_countdown_hotkey_save_array);
 
 	char *file = obs_module_config_path(CONFIG);
 	obs_data_save_json(obsData, file);

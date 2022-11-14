@@ -200,9 +200,9 @@ void CountdownDockWidget::ConnectUISignalHandlers(CountdownWidgetStruct *context
 
 void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 {
-	auto LoadHotkey = [](obs_data_t *data, obs_hotkey_id id,
+	auto LoadHotkey = [](obs_data_t *s_data, obs_hotkey_id id,
 			     const char *name) {
-		OBSDataArrayAutoRelease array = obs_data_get_array(data, name);
+		OBSDataArrayAutoRelease array = obs_data_get_array(s_data, name);
 
 		obs_hotkey_load(id, array);
 		obs_data_array_release(array);

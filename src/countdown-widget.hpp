@@ -80,9 +80,9 @@ public:
 		std::string textSourceNameText;
 		std::string sceneSourceNameText;
 
-		int startCountdownHotkey;
-		int pauseCountdownHotkey;
-		int resetCountdownHotkey;
+		int startCountdownHotkeyId;
+		int pauseCountdownHotkeyId;
+		int setCountdownHotkeyId;
 	};
 
 private:

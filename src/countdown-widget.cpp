@@ -202,7 +202,8 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 {
 	auto LoadHotkey = [](obs_data_t *s_data, obs_hotkey_id id,
 			     const char *name) {
-		OBSDataArrayAutoRelease array = obs_data_get_array(s_data, name);
+		OBSDataArrayAutoRelease array =
+			obs_data_get_array(s_data, name);
 
 		obs_hotkey_load(id, array);
 		obs_data_array_release(array);
@@ -216,9 +217,9 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 	}
 
 #define HOTKEY_CALLBACK(pred, method, log_action)                     \
-	[](void *data, obs_hotkey_id, obs_hotkey_t *, bool pressed) { \
+	[](void *incoming_data, obs_hotkey_id, obs_hotkey_t *, bool pressed) { \
 		CountdownWidgetStruct &countdownData =                \
-			*static_cast<CountdownWidgetStruct *>(data);  \
+			*static_cast<CountdownWidgetStruct *>(incoming_data);  \
 		if ((pred) && pressed) {                              \
 			blog(LOG_INFO, log_action " due to hotkey");  \
 			method();                                     \

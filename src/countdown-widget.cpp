@@ -305,6 +305,7 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	ui->switchSceneCheckBox->setEnabled(false);
 
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(false);
+	ui->timeEdit->setEnabled(false);
 }
 
 void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
@@ -338,6 +339,7 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	}
 
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(true);
+	ui->timeEdit->setEnabled(true);
 }
 
 void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)

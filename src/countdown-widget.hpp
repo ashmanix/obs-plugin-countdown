@@ -63,6 +63,12 @@ public:
 		int setCountdownHotkeyId;
 	};
 
+	struct TimeIncrements {
+		int hours;
+		int minutes;
+		int seconds;
+	};
+
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	static const int COUNTDOWNPERIOD = 1000;
@@ -85,6 +91,7 @@ private:
 	void RegisterHotkeys(CountdownWidgetStruct *context);
 	void UnregisterHotkeys();
 	void ClickButton(CountdownWidgetStruct *context);
+	TimeIncrements CalculateTimeDifference(QTime timeToCountdownTo);
 
 	const char *ConvertToConstChar(QString value);
 

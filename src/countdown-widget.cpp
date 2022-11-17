@@ -13,8 +13,7 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	setFloating(true);
 	resize(300, 380);
 
-	obs_frontend_add_event_callback(OBSFrontendEventHandler,
-					ui);
+	obs_frontend_add_event_callback(OBSFrontendEventHandler, ui);
 
 	ConnectUISignalHandlers();
 
@@ -47,28 +46,30 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 
 	ui->minutesCheckBox->setText(obs_module_text("MinutesCheckboxLabel"));
 	ui->minutesCheckBox->setCheckState(Qt::Checked);
-	ui->minutesCheckBox->setToolTip(
-		obs_module_text("MinutesCheckBoxTip"));
+	ui->minutesCheckBox->setToolTip(obs_module_text("MinutesCheckBoxTip"));
 	ui->timerMinutes->setMaxLength(2);
 	ui->timerMinutes->setValidator(new QRegularExpressionValidator(
 		QRegularExpression("^[1-5]?[0-9]"), this));
 
 	ui->secondsCheckBox->setText(obs_module_text("SecondsCheckboxLabel"));
 	ui->secondsCheckBox->setCheckState(Qt::Checked);
-	ui->secondsCheckBox->setToolTip(
-		obs_module_text("SecondsCheckBoxTip"));
+	ui->secondsCheckBox->setToolTip(obs_module_text("SecondsCheckBoxTip"));
 	ui->timerSeconds->setAlignment(Qt::AlignCenter);
 	ui->timerSeconds->setMaxLength(2);
 	ui->timerSeconds->setValidator(new QRegularExpressionValidator(
 		QRegularExpression("^[1-5]?[0-9]"), this));
 
-	ui->countdownTypeTabWidget->setTabText(0,  obs_module_text("SetPeriodTabLabel"));
-	ui->countdownTypeTabWidget->setTabText(1,  obs_module_text("SetTimeTabLabel"));
-	ui->countdownTypeTabWidget->setToolTip(obs_module_text("SetCountdownTypeTip"));
+	ui->countdownTypeTabWidget->setTabText(
+		0, obs_module_text("SetPeriodTabLabel"));
+	ui->countdownTypeTabWidget->setTabText(
+		1, obs_module_text("SetTimeTabLabel"));
+	ui->countdownTypeTabWidget->setToolTip(
+		obs_module_text("SetCountdownTypeTip"));
 
 	ui->textSourceDropdownList->setToolTip(
 		obs_module_text("TextSourceDropdownTip"));
-	ui->textSourceDropdownLabel->setText(obs_module_text("TextSourceLabel"));
+	ui->textSourceDropdownLabel->setText(
+		obs_module_text("TextSourceLabel"));
 
 	ui->endMessageCheckBox->setCheckState(Qt::Unchecked);
 	ui->endMessageCheckBox->setToolTip(
@@ -102,8 +103,7 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 
 void CountdownDockWidget::ConnectUISignalHandlers()
 {
-	QObject::connect(ui->switchSceneCheckBox,
-			 SIGNAL(stateChanged(int)),
+	QObject::connect(ui->switchSceneCheckBox, SIGNAL(stateChanged(int)),
 			 SLOT(SceneSwitchCheckBoxSelected(int)));
 
 	QObject::connect(ui->playButton, SIGNAL(clicked()),
@@ -156,8 +156,8 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 
 #define HOTKEY_CALLBACK(pred, method, log_action)                              \
 	[](void *incoming_data, obs_hotkey_id, obs_hotkey_t *, bool pressed) { \
-			Ui::CountdownTimer &countdownUi =                         \
-			*static_cast<Ui::CountdownTimer *>(incoming_data);  \
+		Ui::CountdownTimer &countdownUi =                              \
+			*static_cast<Ui::CountdownTimer *>(incoming_data);     \
 		if ((pred) && pressed) {                                       \
 			blog(LOG_INFO, log_action " due to hotkey");           \
 			method();                                              \
@@ -231,14 +231,23 @@ void CountdownDockWidget::PauseButtonClicked()
 void CountdownDockWidget::ResetButtonClicked()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
-	int hours = ui->timerHours->text().toInt();
-	int minutes = ui->timerMinutes->text().toInt();
-	int seconds = ui->timerSeconds->text().toInt();
 
-	StopTimerCounting(context);
+	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+		int hours = ui->timerHours->text().toInt();
+		int minutes = ui->timerMinutes->text().toInt();
+		int seconds = ui->timerSeconds->text().toInt();
 
-	context->time->setHMS(hours, minutes, seconds, 0);
+		StopTimerCounting(context);
 
+		context->time->setHMS(hours, minutes, seconds);
+	} else {
+		// We get the current time and compare it to the set time to countdown to
+		CountdownDockWidget::TimeIncrements timeDifference =
+			CalculateTimeDifference(ui->timeEdit->time());
+		context->time->setHMS(timeDifference.hours,
+				      timeDifference.minutes,
+				      timeDifference.seconds);
+	}
 	UpdateTimeDisplay(context->time);
 }
 
@@ -311,11 +320,24 @@ void CountdownDockWidget::TimerDecrement()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
 
-	QTime *currentTime = context->time;
+	QTime *currentTime = new QTime();
 
-	currentTime->setHMS(currentTime->addMSecs(-COUNTDOWNPERIOD).hour(),
-			    currentTime->addMSecs(-COUNTDOWNPERIOD).minute(),
-			    currentTime->addMSecs(-COUNTDOWNPERIOD).second());
+	// If selected tab is h/m/s
+	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+		currentTime = context->time;
+
+		currentTime->setHMS(
+			currentTime->addMSecs(-COUNTDOWNPERIOD).hour(),
+			currentTime->addMSecs(-COUNTDOWNPERIOD).minute(),
+			currentTime->addMSecs(-COUNTDOWNPERIOD).second());
+	} else {
+		// We get the current time and compare it to the set time to countdown to
+		CountdownDockWidget::TimeIncrements timeDifference =
+			CalculateTimeDifference(ui->timeEdit->time());
+		currentTime->setHMS(timeDifference.hours,
+				    timeDifference.minutes,
+				    timeDifference.seconds);
+	}
 
 	UpdateTimeDisplay(currentTime);
 
@@ -333,6 +355,23 @@ void CountdownDockWidget::TimerDecrement()
 		StopTimerCounting(context);
 		return;
 	}
+}
+
+CountdownDockWidget::TimeIncrements
+CountdownDockWidget::CalculateTimeDifference(QTime timeToCountdownTo)
+{
+	QTime systemTime = QTime::currentTime();
+	int secondsDifference = systemTime.secsTo(timeToCountdownTo);
+	int hours = 0;
+	int minutes = 0;
+	int seconds = 0;
+
+	if (secondsDifference > 0) {
+		seconds = secondsDifference % 60;
+		minutes = (secondsDifference / 60) % 60;
+		hours = (secondsDifference / 60 / 60);
+	}
+	return {hours, minutes, seconds};
 }
 
 QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
@@ -484,8 +523,7 @@ void CountdownDockWidget::OBSSourceDeleted(void *param, calldata_t *calldata)
 	} else if (sourceType == SCENE_SOURCE) {
 		int sceneIndexToRemove =
 			ui->sceneSourceDropdownList->findText(name);
-		ui->sceneSourceDropdownList->removeItem(
-			sceneIndexToRemove);
+		ui->sceneSourceDropdownList->removeItem(sceneIndexToRemove);
 	}
 };
 
@@ -511,15 +549,14 @@ void CountdownDockWidget::OBSSourceRenamed(void *param, calldata_t *calldata)
 			ui->textSourceDropdownList->findText(oldName);
 		if (textListIndex == -1)
 			return;
-		ui->textSourceDropdownList->setItemText(textListIndex,
-							     newName);
+		ui->textSourceDropdownList->setItemText(textListIndex, newName);
 	} else if (sourceType == SCENE_SOURCE) {
 		int sceneListIndex =
 			ui->sceneSourceDropdownList->findText(oldName);
 		if (sceneListIndex == -1)
 			return;
 		ui->sceneSourceDropdownList->setItemText(sceneListIndex,
-							      newName);
+							 newName);
 	}
 };
 
@@ -559,8 +596,7 @@ void CountdownDockWidget::SceneSwitchCheckBoxSelected(int state)
 
 void CountdownDockWidget::SetCurrentScene()
 {
-	QString selectedScene =
-		ui->sceneSourceDropdownList->currentText();
+	QString selectedScene = ui->sceneSourceDropdownList->currentText();
 	if (selectedScene.length()) {
 		obs_source_t *source = obs_get_source_by_name(
 			selectedScene.toStdString().c_str());
@@ -612,7 +648,8 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		const char *selectedSceneSource =
 			obs_data_get_string(data, "selectedSceneSource");
 
-		const char *countdownToTime = obs_data_get_string(data, "countdownToTime");
+		const char *countdownToTime =
+			obs_data_get_string(data, "countdownToTime");
 
 		UNUSED_PARAMETER(selectedTextSource);
 		UNUSED_PARAMETER(selectedSceneSource);
@@ -637,7 +674,7 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 
 		ui->switchSceneCheckBox->setCheckState(
 			(Qt::CheckState)switchSceneCheckBoxStatus);
-		
+
 		QTime savedTime = QTime::fromString(countdownToTime);
 		ui->timeEdit->setTime(savedTime);
 
@@ -647,9 +684,8 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 			ui->textSourceDropdownList->setCurrentIndex(
 				textSelectIndex);
 
-		int sceneSelectIndex =
-			ui->sceneSourceDropdownList->findText(
-				selectedSceneSource);
+		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(
+			selectedSceneSource);
 		if (sceneSelectIndex != -1)
 			ui->sceneSourceDropdownList->setCurrentIndex(
 				sceneSelectIndex);
@@ -684,8 +720,7 @@ void CountdownDockWidget::SaveSettings()
 	obs_data_set_string(obsData, "selectedTextSource",
 			    context->textSourceNameText.c_str());
 
-	int endMessageCheckBoxStatus =
-		ui->endMessageCheckBox->checkState();
+	int endMessageCheckBoxStatus = ui->endMessageCheckBox->checkState();
 	obs_data_set_int(obsData, "endMessageCheckBoxStatus",
 			 endMessageCheckBoxStatus);
 
@@ -693,8 +728,7 @@ void CountdownDockWidget::SaveSettings()
 	obs_data_set_string(obsData, "endMessageText",
 			    endMessageLineEdit.toStdString().c_str());
 
-	int switchSceneCheckBoxStatus =
-		ui->switchSceneCheckBox->checkState();
+	int switchSceneCheckBoxStatus = ui->switchSceneCheckBox->checkState();
 	obs_data_set_int(obsData, "switchSceneCheckBoxStatus",
 			 switchSceneCheckBoxStatus);
 

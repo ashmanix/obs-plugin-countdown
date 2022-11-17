@@ -98,6 +98,15 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 	ui->resetButton->setProperty("themeID", "restartIcon");
 	ui->resetButton->setToolTip(obs_module_text("ResetButtonTip"));
 
+	ui->toTimePlayButton->setProperty("themeID", "playIcon");
+	ui->toTimePlayButton->setEnabled(true);
+	ui->toTimePlayButton->setToolTip(
+		obs_module_text("ToTimePlayButtonTip"));
+	ui->toTimeStopButton->setProperty("themeID", "stopIcon");
+	ui->toTimeStopButton->setEnabled(false);
+	ui->toTimeStopButton->setToolTip(
+		obs_module_text("ToTimeStopButtonTip"));
+
 	context->isPlaying = false;
 }
 
@@ -114,6 +123,12 @@ void CountdownDockWidget::ConnectUISignalHandlers()
 
 	QObject::connect(ui->resetButton, SIGNAL(clicked()),
 			 SLOT(ResetButtonClicked()));
+
+	QObject::connect(ui->toTimePlayButton, SIGNAL(clicked()),
+			 SLOT(ToTimePlayButtonClicked()));
+
+	QObject::connect(ui->toTimeStopButton, SIGNAL(clicked()),
+			 SLOT(ToTimeStopButtonClicked()));
 
 	QObject::connect(ui->endMessageCheckBox, SIGNAL(stateChanged(int)),
 			 SLOT(EndMessageCheckBoxSelected(int)));
@@ -231,24 +246,37 @@ void CountdownDockWidget::PauseButtonClicked()
 void CountdownDockWidget::ResetButtonClicked()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
+	int hours = ui->timerHours->text().toInt();
+	int minutes = ui->timerMinutes->text().toInt();
+	int seconds = ui->timerSeconds->text().toInt();
 
-	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-		int hours = ui->timerHours->text().toInt();
-		int minutes = ui->timerMinutes->text().toInt();
-		int seconds = ui->timerSeconds->text().toInt();
+	StopTimerCounting(context);
 
-		StopTimerCounting(context);
-
-		context->time->setHMS(hours, minutes, seconds);
-	} else {
-		// We get the current time and compare it to the set time to countdown to
-		CountdownDockWidget::TimeIncrements timeDifference =
-			CalculateTimeDifference(ui->timeEdit->time());
-		context->time->setHMS(timeDifference.hours,
-				      timeDifference.minutes,
-				      timeDifference.seconds);
-	}
+	context->time->setHMS(hours, minutes, seconds);
 	UpdateTimeDisplay(context->time);
+}
+
+void CountdownDockWidget::ToTimeStopButtonClicked()
+{
+	CountdownWidgetStruct *context = countdownTimerData;
+	StopTimerCounting(context);
+}
+
+void CountdownDockWidget::ToTimePlayButtonClicked()
+{
+	CountdownWidgetStruct *context = countdownTimerData;
+
+	CountdownDockWidget::TimeIncrements timeDifference =
+		CalculateTimeDifference(ui->timeEdit->time());
+	context->time->setHMS(timeDifference.hours, timeDifference.minutes,
+			      timeDifference.seconds,
+			      timeDifference.milliseconds);
+
+	if (IsSetTimeZero(context))
+		return;
+
+	ui->timeDisplay->display(context->time->toString("hh:mm:ss"));
+	StartTimerCounting(context);
 }
 
 void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
@@ -258,6 +286,9 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	ui->playButton->setEnabled(false);
 	ui->pauseButton->setEnabled(true);
 	ui->resetButton->setEnabled(false);
+
+	ui->toTimePlayButton->setEnabled(false);
+	ui->toTimeStopButton->setEnabled(true);
 
 	ui->timerHours->setEnabled(false);
 	ui->hoursCheckBox->setEnabled(false);
@@ -273,7 +304,7 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	ui->endMessageCheckBox->setEnabled(false);
 	ui->switchSceneCheckBox->setEnabled(false);
 
-	ui->countdownTypeTabWidget->setEnabled(false);
+	ui->countdownTypeTabWidget->tabBar()->setEnabled(false);
 }
 
 void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
@@ -283,6 +314,9 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	ui->playButton->setEnabled(true);
 	ui->pauseButton->setEnabled(false);
 	ui->resetButton->setEnabled(true);
+
+	ui->toTimePlayButton->setEnabled(true);
+	ui->toTimeStopButton->setEnabled(false);
 
 	ui->timerHours->setEnabled(true);
 	ui->hoursCheckBox->setEnabled(true);
@@ -303,7 +337,7 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 		ui->sceneSourceDropdownList->setEnabled(true);
 	}
 
-	ui->countdownTypeTabWidget->setEnabled(true);
+	ui->countdownTypeTabWidget->tabBar()->setEnabled(true);
 }
 
 void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)
@@ -361,17 +395,19 @@ CountdownDockWidget::TimeIncrements
 CountdownDockWidget::CalculateTimeDifference(QTime timeToCountdownTo)
 {
 	QTime systemTime = QTime::currentTime();
-	int secondsDifference = systemTime.secsTo(timeToCountdownTo);
+	int millisecondsDifference = systemTime.msecsTo(timeToCountdownTo);
 	int hours = 0;
 	int minutes = 0;
 	int seconds = 0;
+	int milliseconds = 0;
 
-	if (secondsDifference > 0) {
-		seconds = secondsDifference % 60;
-		minutes = (secondsDifference / 60) % 60;
-		hours = (secondsDifference / 60 / 60);
+	if (millisecondsDifference > 0) {
+		milliseconds = (int)(millisecondsDifference % 1000);
+		seconds = (int)((millisecondsDifference / 1000) % 60);
+		minutes = (int)((millisecondsDifference / (1000 * 60)) % 60);
+		hours = (int)((millisecondsDifference / (1000 * 60 * 60)) % 24);
 	}
-	return {hours, minutes, seconds};
+	return {hours, minutes, seconds, milliseconds};
 }
 
 QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)

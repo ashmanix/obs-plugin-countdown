@@ -67,6 +67,7 @@ public:
 		int hours;
 		int minutes;
 		int seconds;
+		int milliseconds;
 	};
 
 private:
@@ -112,6 +113,10 @@ private slots:
 	void PlayButtonClicked();
 	void PauseButtonClicked();
 	void ResetButtonClicked();
+
+	void ToTimePlayButtonClicked();
+	void ToTimeStopButtonClicked();
+
 	void EndMessageCheckBoxSelected(int state);
 	void SceneSwitchCheckBoxSelected(int state);
 	void HandleTextSourceChange(QString newText);

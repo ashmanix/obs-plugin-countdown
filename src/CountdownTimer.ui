@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>308</width>
-    <height>403</height>
+    <width>337</width>
+    <height>448</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Countdown Timer</string>
   </property>
-  <widget class="QWidget" name="dockWidgetContents">
-   <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0,0,0,0,0,0">
+  <widget class="QWidget" name="mainLayout">
+   <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0,0,0,0,0,0,0,0">
     <property name="leftMargin">
      <number>8</number>
     </property>
@@ -27,51 +27,26 @@
     <property name="bottomMargin">
      <number>8</number>
     </property>
-    <property name="horizontalSpacing">
+    <property name="spacing">
      <number>-1</number>
     </property>
-    <property name="verticalSpacing">
-     <number>0</number>
-    </property>
-    <item row="6" column="0">
-     <layout class="QHBoxLayout" name="buttonLayout">
+    <item row="3" column="0">
+     <layout class="QHBoxLayout" name="sourceDropDownLayout" stretch="0,0,1">
+      <property name="spacing">
+       <number>-1</number>
+      </property>
       <item>
-       <widget class="QPushButton" name="resetButton">
+       <widget class="QLabel" name="textSourceDropdownLabel">
         <property name="text">
-         <string/>
+         <string>Source</string>
+        </property>
+        <property name="margin">
+         <number>2</number>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pauseButton">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="playButton">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="5" column="0">
-     <layout class="QHBoxLayout" name="sceneDropdownLayout" stretch="0,0,1">
-      <item>
-       <widget class="QCheckBox" name="switchSceneCheckBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="text">
-         <string>Scene</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_2">
+       <spacer name="horizontalSpacer_3">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -87,9 +62,67 @@
        </spacer>
       </item>
       <item>
-       <widget class="QComboBox" name="sceneSourceDropdownList"/>
+       <widget class="QComboBox" name="textSourceDropdownList"/>
       </item>
      </layout>
+    </item>
+    <item row="4" column="0">
+     <layout class="QHBoxLayout" name="endMessageLayout" stretch="0,0,1">
+      <property name="spacing">
+       <number>-1</number>
+      </property>
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMinimumSize</enum>
+      </property>
+      <item>
+       <widget class="QCheckBox" name="endMessageCheckBox">
+        <property name="text">
+         <string>Message</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>10</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="endMessageLineEdit"/>
+      </item>
+     </layout>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLCDNumber" name="timeDisplay">
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="lineWidth">
+       <number>1</number>
+      </property>
+      <property name="smallDecimalPoint">
+       <bool>false</bool>
+      </property>
+      <property name="digitCount">
+       <number>8</number>
+      </property>
+      <property name="mode">
+       <enum>QLCDNumber::Bin</enum>
+      </property>
+      <property name="segmentStyle">
+       <enum>QLCDNumber::Filled</enum>
+      </property>
+     </widget>
     </item>
     <item row="1" column="0">
      <layout class="QHBoxLayout" name="selectTimeFormatLayout" stretch="0,0,0">
@@ -149,23 +182,20 @@
       </item>
      </layout>
     </item>
-    <item row="4" column="0">
-     <layout class="QHBoxLayout" name="endMessageLayout" stretch="0,0,1">
-      <property name="spacing">
-       <number>-1</number>
-      </property>
-      <property name="sizeConstraint">
-       <enum>QLayout::SetMinimumSize</enum>
-      </property>
+    <item row="5" column="0">
+     <layout class="QHBoxLayout" name="sceneDropdownLayout" stretch="0,0,1">
       <item>
-       <widget class="QCheckBox" name="endMessageCheckBox">
+       <widget class="QCheckBox" name="switchSceneCheckBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="text">
-         <string>Message</string>
+         <string>Scene</string>
         </property>
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer">
+       <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -181,69 +211,11 @@
        </spacer>
       </item>
       <item>
-       <widget class="QLineEdit" name="endMessageLineEdit"/>
+       <widget class="QComboBox" name="sceneSourceDropdownList"/>
       </item>
      </layout>
     </item>
-    <item row="3" column="0">
-     <layout class="QHBoxLayout" name="sourceDropDownLayout" stretch="0,0,1">
-      <property name="spacing">
-       <number>-1</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="textSourceDropdownLabel">
-        <property name="text">
-         <string>Source</string>
-        </property>
-        <property name="margin">
-         <number>2</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>10</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QComboBox" name="textSourceDropdownList"/>
-      </item>
-     </layout>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLCDNumber" name="timeDisplay">
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="lineWidth">
-       <number>1</number>
-      </property>
-      <property name="smallDecimalPoint">
-       <bool>false</bool>
-      </property>
-      <property name="digitCount">
-       <number>8</number>
-      </property>
-      <property name="mode">
-       <enum>QLCDNumber::Bin</enum>
-      </property>
-      <property name="segmentStyle">
-       <enum>QLCDNumber::Filled</enum>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
+    <item row="6" column="0">
      <widget class="QTabWidget" name="countdownTypeTabWidget">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
@@ -278,72 +250,107 @@
          <number>0</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="timerLayout">
+         <layout class="QVBoxLayout" name="verticalLayout_4">
           <property name="spacing">
            <number>-1</number>
           </property>
-          <property name="leftMargin">
-           <number>10</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="rightMargin">
-           <number>10</number>
-          </property>
           <property name="bottomMargin">
-           <number>5</number>
+           <number>0</number>
           </property>
           <item>
-           <widget class="QLineEdit" name="timerHours">
-            <property name="text">
-             <string>0</string>
+           <layout class="QHBoxLayout" name="timerLayout">
+            <property name="spacing">
+             <number>-1</number>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
+            <property name="leftMargin">
+             <number>10</number>
             </property>
-           </widget>
+            <property name="topMargin">
+             <number>5</number>
+            </property>
+            <property name="rightMargin">
+             <number>10</number>
+            </property>
+            <property name="bottomMargin">
+             <number>5</number>
+            </property>
+            <item>
+             <widget class="QLineEdit" name="timerHours">
+              <property name="text">
+               <string>0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="timerHoursLabel">
+              <property name="text">
+               <string>h</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="timerMinutes">
+              <property name="text">
+               <string>0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="timerMinutesLabel">
+              <property name="text">
+               <string>m</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="timerSeconds">
+              <property name="text">
+               <string>0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="timerSecondsLabel">
+              <property name="text">
+               <string>s</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QLabel" name="timerHoursLabel">
-            <property name="text">
-             <string>h</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="timerMinutes">
-            <property name="text">
-             <string>0</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="timerMinutesLabel">
-            <property name="text">
-             <string>m</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="timerSeconds">
-            <property name="text">
-             <string>0</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="timerSecondsLabel">
-            <property name="text">
-             <string>s</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="buttonLayout">
+            <item>
+             <widget class="QPushButton" name="resetButton">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pauseButton">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="playButton">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -405,6 +412,24 @@
              <bool>false</bool>
             </property>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QPushButton" name="toTimeStopButton">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toTimePlayButton">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>

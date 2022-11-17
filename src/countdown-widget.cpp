@@ -612,6 +612,8 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		const char *selectedSceneSource =
 			obs_data_get_string(data, "selectedSceneSource");
 
+		const char *countdownToTime = obs_data_get_string(data, "countdownToTime");
+
 		UNUSED_PARAMETER(selectedTextSource);
 		UNUSED_PARAMETER(selectedSceneSource);
 
@@ -635,6 +637,9 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 
 		ui->switchSceneCheckBox->setCheckState(
 			(Qt::CheckState)switchSceneCheckBoxStatus);
+		
+		QTime savedTime = QTime::fromString(countdownToTime);
+		ui->timeEdit->setTime(savedTime);
 
 		int textSelectIndex = ui->textSourceDropdownList->findText(
 			selectedTextSource);
@@ -695,6 +700,10 @@ void CountdownDockWidget::SaveSettings()
 
 	obs_data_set_string(obsData, "selectedSceneSource",
 			    context->sceneSourceNameText.c_str());
+
+	QString countdownToTime = ui->timeEdit->time().toString();
+	obs_data_set_string(obsData, "countdownToTime",
+			    countdownToTime.toStdString().c_str());
 
 	// Hotkeys
 	obs_data_array_t *start_countdown_hotkey_save_array =

@@ -4,13 +4,6 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	: QDockWidget("Countdown Timer", parent), ui(new Ui::CountdownTimer)
 {
 	countdownTimerData = new CountdownWidgetStruct;
-	// countdownTimerData->countdownTimerUI = new QWidget();
-	// countdownTimerData->countdownTimerUI->setLayout(SetupCountdownWidgetUI(countdownTimerData));
-
-	// setWidget(countdownTimerData->countdownTimerUI);
-	// setFeatures(QDockWidget::DockWidgetClosable |
-	// 	    QDockWidget::DockWidgetMovable |
-	// 	    QDockWidget::DockWidgetFloatable);
 
 	ui->setupUi(this);
 

@@ -272,8 +272,7 @@ void CountdownDockWidget::ToTimePlayButtonClicked()
 			      timeDifference.seconds,
 			      timeDifference.milliseconds);
 
-	if (IsSetTimeZero(context))
-		return;
+	if (IsSetTimeZero(context)) return;
 
 	ui->timeDisplay->display(context->time->toString("hh:mm:ss"));
 	StartTimerCounting(context);
@@ -402,6 +401,9 @@ CountdownDockWidget::CalculateTimeDifference(QTime timeToCountdownTo)
 	int minutes = 0;
 	int seconds = 0;
 	int milliseconds = 0;
+
+	millisecondsDifference =
+		millisecondsDifference + 1000; // Add 1 second for countdown
 
 	if (millisecondsDifference > 0) {
 		milliseconds = (int)(millisecondsDifference % 1000);

@@ -14,7 +14,7 @@
    <string>Countdown Timer</string>
   </property>
   <widget class="QWidget" name="mainLayout">
-   <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0,0,0,0,0,0,0,0">
+   <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0,0,0,0,0,0">
     <property name="leftMargin">
      <number>8</number>
     </property>
@@ -27,8 +27,11 @@
     <property name="bottomMargin">
      <number>8</number>
     </property>
-    <property name="spacing">
+    <property name="horizontalSpacing">
      <number>-1</number>
+    </property>
+    <property name="verticalSpacing">
+     <number>0</number>
     </property>
     <item row="3" column="0">
      <layout class="QHBoxLayout" name="sourceDropDownLayout" stretch="0,0,1">
@@ -392,6 +395,19 @@
           </property>
           <item row="0" column="0">
            <widget class="QTimeEdit" name="timeEdit">
+            <property name="font">
+             <font>
+              <pointsize>18</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="frame">
+             <bool>true</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
             <property name="buttonSymbols">
              <enum>QAbstractSpinBox::UpDownArrows</enum>
             </property>

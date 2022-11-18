@@ -61,6 +61,8 @@ public:
 		int startCountdownHotkeyId;
 		int pauseCountdownHotkeyId;
 		int setCountdownHotkeyId;
+		int startCountdownToTimeHotkeyId;
+		int stopCountdownToTimeHotkeyId;
 	};
 
 	struct TimeIncrements {

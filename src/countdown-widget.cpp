@@ -181,7 +181,7 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 	// Register Play Hotkey
 	context->startCountdownHotkeyId = (int)obs_hotkey_register_frontend(
 		"Ashmanix_Countdown_Timer_Start",
-		obs_module_text("StartCountdownHotkeyDecription"),
+		obs_module_text("StartCountdownHotkeyDescription"),
 		HOTKEY_CALLBACK(true, countdownUi.playButton->animateClick,
 				"Play Button Pressed"),
 		ui);
@@ -192,7 +192,7 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 	// Register Pause Hotkey
 	context->pauseCountdownHotkeyId = (int)obs_hotkey_register_frontend(
 		"Ashmanix_Countdown_Timer_Pause",
-		obs_module_text("PauseCountdownHotkeyDecription"),
+		obs_module_text("PauseCountdownHotkeyDescription"),
 		HOTKEY_CALLBACK(true, countdownUi.pauseButton->animateClick,
 				"Pause Button Pressed"),
 		ui);
@@ -203,13 +203,39 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 	// Register Reset Hotkey
 	context->setCountdownHotkeyId = (int)obs_hotkey_register_frontend(
 		"Ashmanix_Countdown_Timer_Set",
-		obs_module_text("SetCountdownHotkeyDecription"),
+		obs_module_text("SetCountdownHotkeyDescription"),
 		HOTKEY_CALLBACK(true, countdownUi.resetButton->animateClick,
 				"Set Button Pressed"),
 		ui);
 	if (saved_data)
 		LoadHotkey(saved_data, context->setCountdownHotkeyId,
 			   "Ashmanix_Countdown_Timer_Set");
+
+	// Register To Time Start Hotkey
+	context->startCountdownToTimeHotkeyId =
+		(int)obs_hotkey_register_frontend(
+			"Ashmanix_Countdown_Timer_To_Time_Start",
+			obs_module_text("StartCountdownToTimeHotkeyDescription"),
+			HOTKEY_CALLBACK(
+				true,
+				countdownUi.toTimePlayButton->animateClick,
+				"To Time Start Button Pressed"),
+			ui);
+	if (saved_data)
+		LoadHotkey(saved_data, context->startCountdownToTimeHotkeyId,
+			   "Ashmanix_Countdown_Timer_To_Time_Start");
+
+	// Register To Time Stop Hotkey
+	context->stopCountdownToTimeHotkeyId = (int)obs_hotkey_register_frontend(
+		"Ashmanix_Countdown_Timer_To_Time_Stop",
+		obs_module_text("StopCountdownToTimeHotkeyDescription"),
+		HOTKEY_CALLBACK(true,
+				countdownUi.toTimeStopButton->animateClick,
+				"To Time Stop Button Pressed"),
+		ui);
+	if (saved_data)
+		LoadHotkey(saved_data, context->stopCountdownToTimeHotkeyId,
+			   "Ashmanix_Countdown_Timer_To_Time_Stop");
 
 	obs_data_release(saved_data);
 #undef HOTKEY_CALLBACK
@@ -225,11 +251,23 @@ void CountdownDockWidget::UnregisterHotkeys()
 			countdownTimerData->pauseCountdownHotkeyId);
 	if (countdownTimerData->setCountdownHotkeyId)
 		obs_hotkey_unregister(countdownTimerData->setCountdownHotkeyId);
+
+	if (countdownTimerData->startCountdownToTimeHotkeyId)
+		obs_hotkey_unregister(
+			countdownTimerData->startCountdownToTimeHotkeyId);
+	if (countdownTimerData->stopCountdownToTimeHotkeyId)
+		obs_hotkey_unregister(
+			countdownTimerData->stopCountdownToTimeHotkeyId);
 }
 
 void CountdownDockWidget::PlayButtonClicked()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
+
+	if (ui->countdownTypeTabWidget->currentIndex() == 1) {
+		ui->countdownTypeTabWidget->setCurrentIndex(0);
+	}
+
 	if (IsSetTimeZero(context))
 		return;
 
@@ -240,12 +278,22 @@ void CountdownDockWidget::PlayButtonClicked()
 void CountdownDockWidget::PauseButtonClicked()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
+
+	if (ui->countdownTypeTabWidget->currentIndex() == 1) {
+		ui->countdownTypeTabWidget->setCurrentIndex(0);
+	}
+
 	StopTimerCounting(context);
 }
 
 void CountdownDockWidget::ResetButtonClicked()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
+
+	if (ui->countdownTypeTabWidget->currentIndex() == 1) {
+		ui->countdownTypeTabWidget->setCurrentIndex(0);
+	}
+
 	int hours = ui->timerHours->text().toInt();
 	int minutes = ui->timerMinutes->text().toInt();
 	int seconds = ui->timerSeconds->text().toInt();
@@ -259,6 +307,11 @@ void CountdownDockWidget::ResetButtonClicked()
 void CountdownDockWidget::ToTimeStopButtonClicked()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
+
+	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+		ui->countdownTypeTabWidget->setCurrentIndex(1);
+	}
+
 	StopTimerCounting(context);
 }
 
@@ -266,13 +319,18 @@ void CountdownDockWidget::ToTimePlayButtonClicked()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
 
+	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+		ui->countdownTypeTabWidget->setCurrentIndex(1);
+	}
+
 	CountdownDockWidget::TimeIncrements timeDifference =
 		CalculateTimeDifference(ui->timeEdit->time());
 	context->time->setHMS(timeDifference.hours, timeDifference.minutes,
 			      timeDifference.seconds,
 			      timeDifference.milliseconds);
 
-	if (IsSetTimeZero(context)) return;
+	if (IsSetTimeZero(context))
+		return;
 
 	ui->timeDisplay->display(context->time->toString("hh:mm:ss"));
 	StartTimerCounting(context);
@@ -797,6 +855,18 @@ void CountdownDockWidget::SaveSettings()
 	obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_Set",
 			   set_countdown_hotkey_save_array);
 	obs_data_array_release(set_countdown_hotkey_save_array);
+
+	obs_data_array_t *start_to_time_countdown_hotkey_save_array =
+		obs_hotkey_save(context->startCountdownToTimeHotkeyId);
+	obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Start",
+			   start_to_time_countdown_hotkey_save_array);
+	obs_data_array_release(start_to_time_countdown_hotkey_save_array);
+
+	obs_data_array_t *stop_to_time_countdown_hotkey_save_array =
+		obs_hotkey_save(context->stopCountdownToTimeHotkeyId);
+	obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Stop",
+			   stop_to_time_countdown_hotkey_save_array);
+	obs_data_array_release(stop_to_time_countdown_hotkey_save_array);
 
 	char *file = obs_module_config_path(CONFIG);
 	obs_data_save_json(obsData, file);

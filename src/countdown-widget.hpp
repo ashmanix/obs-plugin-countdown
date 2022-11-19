@@ -58,11 +58,11 @@ public:
 		std::string textSourceNameText;
 		std::string sceneSourceNameText;
 
-		int startCountdownHotkeyId;
-		int pauseCountdownHotkeyId;
-		int setCountdownHotkeyId;
-		int startCountdownToTimeHotkeyId;
-		int stopCountdownToTimeHotkeyId;
+		int startCountdownHotkeyId = -1;
+		int pauseCountdownHotkeyId = -1;
+		int setCountdownHotkeyId = -1;
+		int startCountdownToTimeHotkeyId = -1;
+		int stopCountdownToTimeHotkeyId = -1;
 	};
 
 	struct TimeIncrements {

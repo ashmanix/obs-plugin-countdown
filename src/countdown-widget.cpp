@@ -155,11 +155,14 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 {
 	auto LoadHotkey = [](obs_data_t *s_data, obs_hotkey_id id,
 			     const char *name) {
+		if ((int)id == -1)
+			return;
+
 		OBSDataArrayAutoRelease array =
 			obs_data_get_array(s_data, name);
 
 		obs_hotkey_load(id, array);
-		obs_data_array_release(array);
+		// obs_data_array_release(array);
 	};
 
 	char *file = obs_module_config_path(CONFIG);
@@ -215,7 +218,8 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 	context->startCountdownToTimeHotkeyId =
 		(int)obs_hotkey_register_frontend(
 			"Ashmanix_Countdown_Timer_To_Time_Start",
-			obs_module_text("StartCountdownToTimeHotkeyDescription"),
+			obs_module_text(
+				"StartCountdownToTimeHotkeyDescription"),
 			HOTKEY_CALLBACK(
 				true,
 				countdownUi.toTimePlayButton->animateClick,
@@ -838,6 +842,15 @@ void CountdownDockWidget::SaveSettings()
 			    countdownToTime.toStdString().c_str());
 
 	// Hotkeys
+	auto SaveHotkey = [](obs_data_t *sv_data, obs_hotkey_id id,
+			     const char *name) {
+		blog(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
+		if ((int)id == -1)
+			return;
+		OBSDataArrayAutoRelease array = obs_hotkey_save(id);
+		obs_data_set_array(sv_data, name, array);
+	};
+
 	obs_data_array_t *start_countdown_hotkey_save_array =
 		obs_hotkey_save(context->startCountdownHotkeyId);
 	obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_Start",
@@ -856,17 +869,22 @@ void CountdownDockWidget::SaveSettings()
 			   set_countdown_hotkey_save_array);
 	obs_data_array_release(set_countdown_hotkey_save_array);
 
-	obs_data_array_t *start_to_time_countdown_hotkey_save_array =
-		obs_hotkey_save(context->startCountdownToTimeHotkeyId);
-	obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Start",
-			   start_to_time_countdown_hotkey_save_array);
-	obs_data_array_release(start_to_time_countdown_hotkey_save_array);
+	SaveHotkey(obsData, context->startCountdownToTimeHotkeyId,
+		   "Ashmanix_Countdown_Timer_To_Time_Start");
+	SaveHotkey(obsData, context->stopCountdownToTimeHotkeyId,
+		   "Ashmanix_Countdown_Timer_To_Time_Stop");
 
-	obs_data_array_t *stop_to_time_countdown_hotkey_save_array =
-		obs_hotkey_save(context->stopCountdownToTimeHotkeyId);
-	obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Stop",
-			   stop_to_time_countdown_hotkey_save_array);
-	obs_data_array_release(stop_to_time_countdown_hotkey_save_array);
+	// obs_data_array_t *start_to_time_countdown_hotkey_save_array =
+	// 	obs_hotkey_save(context->startCountdownToTimeHotkeyId);
+	// obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Start",
+	// 		   start_to_time_countdown_hotkey_save_array);
+	// obs_data_array_release(start_to_time_countdown_hotkey_save_array);
+
+	// obs_data_array_t *stop_to_time_countdown_hotkey_save_array =
+	// 	obs_hotkey_save(context->stopCountdownToTimeHotkeyId);
+	// obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Stop",
+	// 		   stop_to_time_countdown_hotkey_save_array);
+	// obs_data_array_release(stop_to_time_countdown_hotkey_save_array);
 
 	char *file = obs_module_config_path(CONFIG);
 	obs_data_save_json(obsData, file);

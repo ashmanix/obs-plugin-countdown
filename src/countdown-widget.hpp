@@ -13,6 +13,7 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QLCDNumber>
+#include <QDateTimeEdit>
 #include <QRegularExpression>
 #include <QValidator>
 #include <QTimer>
@@ -21,10 +22,12 @@
 #include <QIcon>
 #include <QGroupBox>
 #include <QCheckBox>
+#include <QTabWidget>
 #include <Qt>
 
 #include <string>
 #include <iostream>
+#include <chrono>
 #include <list>
 #include <util/base.h>
 #include <util/platform.h>
@@ -45,44 +48,28 @@ class CountdownDockWidget : public QDockWidget {
 public:
 	explicit CountdownDockWidget(QWidget *parent = nullptr);
 	~CountdownDockWidget();
-	// static bool SortSourceList (SourceListItem a, SourceListItem b) { return a.name < b.name; };
-	// bool id_match(const SourceListItem &a, const char value){return (a.id) == value};
-
 	struct CountdownWidgetStruct {
 		bool isPlaying;
 		QTimer *timer;
 		QTime *time;
 
-		QWidget *countdownTimerUI;
-
-		QLCDNumber *timeDisplay;
-		QLineEdit *timerHours;
-		QCheckBox *hoursCheckBox;
-		QLineEdit *timerMinutes;
-		QCheckBox *minutesCheckBox;
-		QLineEdit *timerSeconds;
-		QCheckBox *secondsCheckBox;
-
-		QComboBox *textSourceDropdownList;
-
-		QCheckBox *endMessageCheckBox;
-		QLabel *timerEndLabel;
-		QLineEdit *endMessageLineEdit;
-
-		QCheckBox *switchSceneCheckBox;
-		QLabel *sceneSwitchLabel;
-		QComboBox *sceneSourceDropdownList;
-
-		QPushButton *playButton;
-		QPushButton *pauseButton;
-		QPushButton *resetButton;
+		QTabWidget *countdownTypeTabWidget;
 
 		std::string textSourceNameText;
 		std::string sceneSourceNameText;
 
-		int startCountdownHotkeyId;
-		int pauseCountdownHotkeyId;
-		int setCountdownHotkeyId;
+		int startCountdownHotkeyId = -1;
+		int pauseCountdownHotkeyId = -1;
+		int setCountdownHotkeyId = -1;
+		int startCountdownToTimeHotkeyId = -1;
+		int stopCountdownToTimeHotkeyId = -1;
+	};
+
+	struct TimeIncrements {
+		int hours;
+		int minutes;
+		int seconds;
+		int milliseconds;
 	};
 
 private:
@@ -92,22 +79,22 @@ private:
 	CountdownWidgetStruct *countdownTimerData;
 	Ui::CountdownTimer *ui;
 
-	QVBoxLayout *SetupCountdownWidgetUI(CountdownWidgetStruct *context);
+	void SetupCountdownWidgetUI(CountdownWidgetStruct *context);
 	void StartTimerCounting(CountdownWidgetStruct *context);
 	void StopTimerCounting(CountdownWidgetStruct *context);
 	void InitialiseTimerTime(CountdownWidgetStruct *context);
 	QString ConvertTimeToDisplayString(QTime *timeToConvert);
 	bool IsSetTimeZero(CountdownWidgetStruct *context);
-	void ConnectObsSignalHandlers(CountdownWidgetStruct *context);
-	void ConnectUISignalHandlers(CountdownWidgetStruct *context);
-	void UpdateTimeDisplay(CountdownWidgetStruct *context, QTime *time);
-	// void SetSelectedSource(const QString &sourceName);
-	void SetSourceText(CountdownWidgetStruct *context, QString newText);
+	void ConnectObsSignalHandlers();
+	void ConnectUISignalHandlers();
+	void UpdateTimeDisplay(QTime *time);
+	void SetSourceText(QString newText);
 	void SetCurrentScene();
 	void SaveSettings();
 	void RegisterHotkeys(CountdownWidgetStruct *context);
 	void UnregisterHotkeys();
 	void ClickButton(CountdownWidgetStruct *context);
+	TimeIncrements CalculateTimeDifference(QTime timeToCountdownTo);
 
 	const char *ConvertToConstChar(QString value);
 
@@ -119,20 +106,19 @@ private:
 
 	static void OBSFrontendEventHandler(enum obs_frontend_event event,
 					    void *private_data);
-	// static void ConnectUISignalHandlers(CountdownWidgetStruct *context);
-	// static void UpdateSceneList(CountdownWidgetStruct *context);
 
 	static int CheckSourceType(obs_source_t *source);
-	static void LoadSavedSettings(CountdownWidgetStruct *context);
-	// static void AddSourceToList(CountdownWidgetStruct *context, obs_source_t *source, int sourceType);
-	// static void RemoveSourceFromList(CountdownWidgetStruct *context, obs_source_t *source, int sourceType);
-	// static void RenameSource(CountdownWidgetStruct *context, obs_source_t *source, int sourceType);
+	static void LoadSavedSettings(Ui::CountdownTimer *ui);
 
 private slots:
 
 	void PlayButtonClicked();
 	void PauseButtonClicked();
 	void ResetButtonClicked();
+
+	void ToTimePlayButtonClicked();
+	void ToTimeStopButtonClicked();
+
 	void EndMessageCheckBoxSelected(int state);
 	void SceneSwitchCheckBoxSelected(int state);
 	void HandleTextSourceChange(QString newText);

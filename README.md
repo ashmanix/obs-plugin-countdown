@@ -1,7 +1,7 @@
 # OBS Countdown Timer Plugin
 
 <p align="center">
-<image height="400px" src="/images/screenshot.png">
+<image height="400px" src="/images/screenshotV2.png">
 </p>
 
 ## Introduction

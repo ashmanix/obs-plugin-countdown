@@ -227,7 +227,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="tabsClosable">
        <bool>false</bool>
@@ -401,6 +401,9 @@
               <weight>50</weight>
               <bold>false</bold>
              </font>
+            </property>
+            <property name="wrapping">
+             <bool>true</bool>
             </property>
             <property name="frame">
              <bool>true</bool>

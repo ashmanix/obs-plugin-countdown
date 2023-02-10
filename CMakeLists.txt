@@ -85,4 +85,18 @@ else()
 endif()
 # --- End of section ---
 
+if(BUILD_OUT_OF_TREE)
+    if(NOT LIB_OUT_DIR)
+        set(LIB_OUT_DIR "/lib/obs-plugins")
+    endif()
+    if(NOT DATA_OUT_DIR)
+        set(DATA_OUT_DIR "/share/obs/obs-plugins/${PROJECT_NAME}")
+    endif()
+    set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+    install(TARGETS ${PROJECT_NAME}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIB_OUT_DIR})
+    install(DIRECTORY data/locale
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${DATA_OUT_DIR})
+endif()
+
 setup_plugin_target(${CMAKE_PROJECT_NAME})

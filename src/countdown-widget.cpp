@@ -140,15 +140,6 @@ void CountdownDockWidget::ConnectUISignalHandlers()
 	QObject::connect(ui->sceneSourceDropdownList,
 			 SIGNAL(currentTextChanged(QString)),
 			 SLOT(HandleSceneSourceChange(QString)));
-
-	QObject::connect(ui->hoursCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(ToggleHoursCheckBoxSelected(int)));
-
-	QObject::connect(ui->minutesCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(ToggleMinutesCheckBoxSelected(int)));
-
-	QObject::connect(ui->secondsCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(ToggleSecondsCheckBoxSelected(int)));
 }
 
 void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
@@ -753,6 +744,9 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		const char *countdownToTime =
 			obs_data_get_string(data, "countdownToTime");
 
+		int selectedTimerTabIndex =
+			(int)obs_data_get_int(data, "selectedTimerTabIndex");
+
 		UNUSED_PARAMETER(selectedTextSource);
 		UNUSED_PARAMETER(selectedSceneSource);
 
@@ -791,6 +785,9 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		if (sceneSelectIndex != -1)
 			ui->sceneSourceDropdownList->setCurrentIndex(
 				sceneSelectIndex);
+		if (selectedTimerTabIndex != -1)
+			ui->countdownTypeTabWidget->setCurrentIndex(
+				selectedTimerTabIndex);
 
 		obs_data_release(data);
 	}
@@ -840,6 +837,15 @@ void CountdownDockWidget::SaveSettings()
 	QString countdownToTime = ui->timeEdit->time().toString();
 	obs_data_set_string(obsData, "countdownToTime",
 			    countdownToTime.toStdString().c_str());
+
+	int selectedTimerTabIndex = ui->countdownTypeTabWidget->currentIndex();
+	if (selectedTimerTabIndex != -1) {
+		obs_data_set_int(obsData, "selectedTimerTabIndex",
+				 selectedTimerTabIndex);
+	};
+
+	obs_data_set_int(obsData, "endMessageCheckBoxStatus",
+			 endMessageCheckBoxStatus);
 
 	// Hotkeys
 	auto SaveHotkey = [](obs_data_t *sv_data, obs_hotkey_id id,

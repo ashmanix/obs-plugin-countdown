@@ -893,10 +893,16 @@ void CountdownDockWidget::SaveSettings()
 	// obs_data_array_release(stop_to_time_countdown_hotkey_save_array);
 
 	char *file = obs_module_config_path(CONFIG);
-	obs_data_save_json(obsData, file);
+	if (!obs_data_save_json(obsData, file)) {
+		char *path = obs_module_config_path("");
+		if (path) {
+			os_mkdirs(path);
+			bfree(path);
+		}
+		obs_data_save_json(obsData, file);
+	}
 	obs_data_release(obsData);
 	bfree(file);
-
 	deleteLater();
 }
 

@@ -478,17 +478,17 @@ QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
 	if (hoursState && minutesState & secondsState) {
 		stringTime = timeToConvert->toString("hh:mm:ss");
 	} else if (!hoursState && minutesState && secondsState) {
-		stringTime = timeToConvert->toString("mm:ss");
+		stringTime = timeToConvert->toString("m:ss");
 	} else if (!hoursState && !minutesState && secondsState) {
-		stringTime = timeToConvert->toString("ss");
+		stringTime = timeToConvert->toString("s");
 	} else if (!hoursState && minutesState && !secondsState) {
 		stringTime = timeToConvert->toString("mm");
 	} else if (hoursState && !minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("hh");
+		stringTime = timeToConvert->toString("h");
 	} else if (hoursState && !minutesState && secondsState) {
-		stringTime = timeToConvert->toString("hh:ss");
+		stringTime = timeToConvert->toString("h:ss");
 	} else if (hoursState && minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("hh:mm");
+		stringTime = timeToConvert->toString("h:mm");
 	} else if (!hoursState && !minutesState && !secondsState) {
 		stringTime = "Nothing selected!";
 	}

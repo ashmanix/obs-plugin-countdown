@@ -42,7 +42,7 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 	ui->hoursCheckBox->setToolTip(obs_module_text("HoursCheckBoxTip"));
 	ui->timerHours->setMaxLength(2);
 	ui->timerHours->setValidator(new QRegularExpressionValidator(
-		QRegularExpression("^[0-2]?[0-3]"), this));
+		QRegularExpression("^(0?[0-9]|1[0-9]|2[0-3])$"), this));
 
 	ui->minutesCheckBox->setText(obs_module_text("MinutesCheckboxLabel"));
 	ui->minutesCheckBox->setCheckState(Qt::Checked);
@@ -478,17 +478,17 @@ QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
 	if (hoursState && minutesState & secondsState) {
 		stringTime = timeToConvert->toString("hh:mm:ss");
 	} else if (!hoursState && minutesState && secondsState) {
-		stringTime = timeToConvert->toString("mm:ss");
+		stringTime = timeToConvert->toString("m:ss");
 	} else if (!hoursState && !minutesState && secondsState) {
-		stringTime = timeToConvert->toString("ss");
+		stringTime = timeToConvert->toString("s");
 	} else if (!hoursState && minutesState && !secondsState) {
 		stringTime = timeToConvert->toString("mm");
 	} else if (hoursState && !minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("hh");
+		stringTime = timeToConvert->toString("h");
 	} else if (hoursState && !minutesState && secondsState) {
-		stringTime = timeToConvert->toString("hh:ss");
+		stringTime = timeToConvert->toString("h:ss");
 	} else if (hoursState && minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("hh:mm");
+		stringTime = timeToConvert->toString("h:mm");
 	} else if (!hoursState && !minutesState && !secondsState) {
 		stringTime = "Nothing selected!";
 	}

@@ -42,7 +42,7 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 	ui->hoursCheckBox->setToolTip(obs_module_text("HoursCheckBoxTip"));
 	ui->timerHours->setMaxLength(2);
 	ui->timerHours->setValidator(new QRegularExpressionValidator(
-		QRegularExpression("^[0-2]?[0-3]"), this));
+		QRegularExpression("^(0?[0-9]|1[0-9]|2[0-3])$"), this));
 
 	ui->minutesCheckBox->setText(obs_module_text("MinutesCheckboxLabel"));
 	ui->minutesCheckBox->setCheckState(Qt::Checked);

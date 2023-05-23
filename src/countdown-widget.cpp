@@ -430,7 +430,7 @@ void CountdownDockWidget::TimerDecrement()
 	UpdateTimeDisplay(currentTime);
 
 	if (currentTime->hour() == 0 && currentTime->minute() == 0 &&
-	    currentTime->second() == 0) {
+	    currentTime->second() == 10) {
 		QString endMessageText = ui->endMessageLineEdit->text();
 		if (ui->endMessageCheckBox->isChecked()) {
 			SetSourceText(endMessageText.toStdString().c_str());

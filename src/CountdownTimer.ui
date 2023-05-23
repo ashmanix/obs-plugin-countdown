@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Countdown Timer</string>
+   <string>Countdown Timer - ITS RADIO VERSION - by telfrancesco</string>
   </property>
   <widget class="QWidget" name="mainLayout">
    <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0,0,0,0,0,0">

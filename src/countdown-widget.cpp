@@ -324,9 +324,6 @@ void CountdownDockWidget::ToTimePlayButtonClicked()
 			      timeDifference.seconds,
 			      timeDifference.milliseconds);
 
-	// if (IsSetTimeZero(context))
-	// 	return;
-
 	ui->timeDisplay->display(context->time->toString("hh:mm:ss"));
 	StartTimerCounting(context);
 }

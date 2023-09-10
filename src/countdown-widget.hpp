@@ -37,6 +37,7 @@
 #include <obs.hpp>
 #include <obs-frontend-api.h>
 #include <obs-module.h>
+#include <obs-websocket-api.h>
 
 #include "plugin-macros.generated.h"
 #include "ui_CountdownTimer.h"
@@ -48,6 +49,7 @@ class CountdownDockWidget : public QDockWidget {
 public:
 	explicit CountdownDockWidget(QWidget *parent = nullptr);
 	~CountdownDockWidget();
+	void ConfigureWebSocketConnection();
 	struct CountdownWidgetStruct {
 		bool isPlaying;
 		QTimer *timer;
@@ -75,6 +77,7 @@ public:
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	static const int COUNTDOWNPERIOD = 1000;
+	obs_websocket_vendor vendor = nullptr;
 
 	CountdownWidgetStruct *countdownTimerData;
 	Ui::CountdownTimer *ui;
@@ -95,6 +98,9 @@ private:
 	void UnregisterHotkeys();
 	void ClickButton(CountdownWidgetStruct *context);
 	TimeIncrements CalculateTimeDifference(QTime timeToCountdownTo);
+	
+	static void VendorRequestPlayButtonClicked(obs_data_t *request_data, obs_data_t *response_data,
+			    void *);
 
 	const char *ConvertToConstChar(QString value);
 

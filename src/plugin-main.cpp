@@ -29,12 +29,14 @@ OBS_DECLARE_MODULE()
 OBS_MODULE_AUTHOR("Ashmanix")
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-GB")
 
+CountdownDockWidget* countdownWidget = nullptr;
+
 bool obs_module_load(void)
 {
 	const auto main_window =
 		static_cast<QMainWindow *>(obs_frontend_get_main_window());
 	obs_frontend_push_ui_translation(obs_module_get_string);
-	auto countdownWidget = new CountdownDockWidget(main_window);
+	countdownWidget = new CountdownDockWidget(main_window);
 
 	obs_frontend_add_dock(countdownWidget);
 	obs_frontend_pop_ui_translation();
@@ -42,6 +44,10 @@ bool obs_module_load(void)
 	blog(LOG_INFO, "plugin loaded successfully (version %s)",
 	     PLUGIN_VERSION);
 	return true;
+}
+
+void obs_module_post_load(void) {
+	countdownWidget->ConfigureWebSocketConnection();
 }
 
 void obs_module_unload()

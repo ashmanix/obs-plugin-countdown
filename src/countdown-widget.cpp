@@ -236,6 +236,56 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 #undef HOTKEY_CALLBACK
 }
 
+void CountdownDockWidget::ConfigureWebSocketConnection()
+{
+	vendor = obs_websocket_register_vendor("ashmanix-countdown-timer");
+
+	if (!vendor) {
+		blog(LOG_ERROR, "Error regitering vendor to websocket!");
+		return;
+	}
+
+#define WEBSOCKET_CALLBACK(method, log_action)                              \
+	[](obs_data_t *request_data, obs_data_t *response_data,             \
+	   void *incoming_data) {                                           \
+		UNUSED_PARAMETER(request_data);                             \
+		CountdownDockWidget &cdWidget =                             \
+			*static_cast<CountdownDockWidget *>(incoming_data); \
+		blog(LOG_INFO, log_action " due to websocket call");        \
+		method();                                                   \
+		obs_data_set_bool(response_data, "success", true);          \
+	}
+
+	obs_websocket_vendor_register_request(
+		vendor, "period_play",
+		WEBSOCKET_CALLBACK(cdWidget.ui->playButton->click,
+				   "Period play button pressed"),
+		this);
+	obs_websocket_vendor_register_request(
+		vendor, "period_pause",
+		WEBSOCKET_CALLBACK(cdWidget.ui->pauseButton->click,
+				   "Period pause button pressed"),
+		this);
+	obs_websocket_vendor_register_request(
+		vendor, "period_set",
+		WEBSOCKET_CALLBACK(cdWidget.ui->resetButton->click,
+				   "Period Set button pressed"),
+		this);
+
+	obs_websocket_vendor_register_request(
+		vendor, "to_time_play",
+		WEBSOCKET_CALLBACK(cdWidget.ui->toTimePlayButton->click,
+				   "To time play button pressed"),
+		this);
+	obs_websocket_vendor_register_request(
+		vendor, "to_time_stop",
+		WEBSOCKET_CALLBACK(cdWidget.ui->toTimeStopButton->click,
+				   "To time stop button pressed"),
+		this);
+
+#undef WEBSOCKET_CALLBACK
+}
+
 void CountdownDockWidget::UnregisterHotkeys()
 {
 	if (countdownTimerData->startCountdownHotkeyId)
@@ -257,7 +307,11 @@ void CountdownDockWidget::UnregisterHotkeys()
 
 void CountdownDockWidget::PlayButtonClicked()
 {
+	blog(LOG_INFO, "Play button clicked function running");
 	CountdownWidgetStruct *context = countdownTimerData;
+
+	bool isActive = context->timer->isActive();
+	blog(LOG_INFO, "Timer active: %s", isActive ? "true" : "false");
 
 	if (ui->countdownTypeTabWidget->currentIndex() == 1) {
 		ui->countdownTypeTabWidget->setCurrentIndex(0);
@@ -268,6 +322,9 @@ void CountdownDockWidget::PlayButtonClicked()
 
 	ui->timeDisplay->display(context->time->toString("hh:mm:ss"));
 	StartTimerCounting(context);
+
+	isActive = context->timer->isActive();
+	blog(LOG_INFO, "Timer active: %s", isActive ? "true" : "false");
 }
 
 void CountdownDockWidget::PauseButtonClicked()
@@ -424,6 +481,10 @@ void CountdownDockWidget::TimerDecrement()
 				    timeDifference.seconds);
 	}
 
+	QString formattedDisplayTime = ConvertTimeToDisplayString(currentTime);
+	const char *timeToShow = ConvertToConstChar(formattedDisplayTime);
+	blog(LOG_INFO, "Formatted time is: %s", timeToShow);
+
 	UpdateTimeDisplay(currentTime);
 
 	if (currentTime->hour() == 0 && currentTime->minute() == 0 &&
@@ -499,6 +560,7 @@ void CountdownDockWidget::UpdateTimeDisplay(QTime *time)
 	QString formattedDisplayTime = ConvertTimeToDisplayString(time);
 	// const char *timeToShow = ConvertToConstChar(formattedDisplayTime);
 	// blog(LOG_INFO, "Formatted time is: %s", timeToShow);
+	blog(LOG_INFO, "Current Time is: %s", qPrintable(formattedDisplayTime));
 	SetSourceText(formattedDisplayTime);
 }
 

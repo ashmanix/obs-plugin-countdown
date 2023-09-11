@@ -560,7 +560,6 @@ void CountdownDockWidget::UpdateTimeDisplay(QTime *time)
 	QString formattedDisplayTime = ConvertTimeToDisplayString(time);
 	// const char *timeToShow = ConvertToConstChar(formattedDisplayTime);
 	// blog(LOG_INFO, "Formatted time is: %s", timeToShow);
-	blog(LOG_INFO, "Current Time is: %s", qPrintable(formattedDisplayTime));
 	SetSourceText(formattedDisplayTime);
 }
 

@@ -98,9 +98,10 @@ private:
 	void UnregisterHotkeys();
 	void ClickButton(CountdownWidgetStruct *context);
 	TimeIncrements CalculateTimeDifference(QTime timeToCountdownTo);
-	
-	static void VendorRequestPlayButtonClicked(obs_data_t *request_data, obs_data_t *response_data,
-			    void *);
+
+	static void VendorRequestPlayButtonClicked(obs_data_t *request_data,
+						   obs_data_t *response_data,
+						   void *);
 
 	const char *ConvertToConstChar(QString value);
 

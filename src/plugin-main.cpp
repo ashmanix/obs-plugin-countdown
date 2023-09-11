@@ -29,7 +29,7 @@ OBS_DECLARE_MODULE()
 OBS_MODULE_AUTHOR("Ashmanix")
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-GB")
 
-CountdownDockWidget* countdownWidget = nullptr;
+CountdownDockWidget *countdownWidget = nullptr;
 
 bool obs_module_load(void)
 {
@@ -46,7 +46,8 @@ bool obs_module_load(void)
 	return true;
 }
 
-void obs_module_post_load(void) {
+void obs_module_post_load(void)
+{
 	countdownWidget->ConfigureWebSocketConnection();
 }
 

@@ -245,62 +245,37 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 		return;
 	}
 
-	// #define WEBSOCKET_CALLBACK(method, log_action)                           \
-// 	[](obs_data_t *request_data, obs_data_t *response_data,          \
-// 	   void *widget_data) {                                          \
-// 		UNUSED_PARAMETER(request_data);                          \
-// 		Ui::CountdownTimer &countdownUi =                        \
-// 			*static_cast<Ui::CountdownTimer *>(widget_data); \
-// 		blog(LOG_INFO, log_action " due to websocket call");     \
-// 		method();                                                \
-// 		obs_data_set_bool(response_data, "success", true);       \
-// 	}
-
-#define WEBSOCKET_CALLBACK(method, log_action)                            \
-	[](obs_data_t *request_data, obs_data_t *response_data,           \
+#define WEBSOCKET_CALLBACK(method, log_action)                              \
+	[](obs_data_t *request_data, obs_data_t *response_data,             \
 	   void *incoming_data) {                                           \
-		UNUSED_PARAMETER(request_data);                           \
-		CountdownDockWidget &cdWidget =                    \
+		UNUSED_PARAMETER(request_data);                             \
+		CountdownDockWidget &cdWidget =                             \
 			*static_cast<CountdownDockWidget *>(incoming_data); \
-		blog(LOG_INFO, log_action " due to websocket call");      \
-		method();                                                 \
-		obs_data_set_bool(response_data, "success", true);        \
+		blog(LOG_INFO, log_action " due to websocket call");        \
+		method();                                                   \
+		obs_data_set_bool(response_data, "success", true);          \
 	}
 
 	blog(LOG_INFO, "Successfully registered plugin to websocket!");
-
-	// obs_websocket_vendor_register_request(
-	// 	vendor, "period_play", VendorRequestPlayButtonClicked, this);
 	obs_websocket_vendor_register_request(
 		vendor, "period_play",
-		WEBSOCKET_CALLBACK(cdWidget.PlayButtonClicked,
+		WEBSOCKET_CALLBACK(cdWidget.ui->playButton->click,
 				   "Play button pressed"),
-		countdownTimerData);
+		this);
 	obs_websocket_vendor_register_request(
 		vendor, "period_pause",
-		WEBSOCKET_CALLBACK(cdWidget.PauseButtonClicked,
+		WEBSOCKET_CALLBACK(cdWidget.ui->pauseButton->click,
 				   "Pause button pressed"),
-		countdownTimerData);
+		this);
 	obs_websocket_vendor_register_request(
 		vendor, "period_reset",
-		WEBSOCKET_CALLBACK(cdWidget.ResetButtonClicked,
+		WEBSOCKET_CALLBACK(cdWidget.ui->resetButton->click,
 				   "Reset button pressed"),
-		countdownTimerData);
+		this);
 
 #undef WEBSOCKET_CALLBACK
 }
 
-// void CountdownDockWidget::VendorRequestPlayButtonClicked(
-// 	obs_data_t *request_data, obs_data_t *response_data, void *cd_ui)
-// {
-// 	UNUSED_PARAMETER(request_data);
-// 	CountdownDockWidget &widget =
-// 		*static_cast<CountdownDockWidget *>(cd_ui);
-// 	// UNUSED_PARAMETER(widget);
-// 	widget.ui->playButton->animateClick();
-// 	blog(LOG_INFO, "Play button function triggered!");
-// 	obs_data_set_bool(response_data, "success", true);
-// }
 void CountdownDockWidget::UnregisterHotkeys()
 {
 	if (countdownTimerData->startCountdownHotkeyId)

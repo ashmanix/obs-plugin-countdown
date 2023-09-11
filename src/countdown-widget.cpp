@@ -256,21 +256,31 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 		obs_data_set_bool(response_data, "success", true);          \
 	}
 
-	blog(LOG_INFO, "Successfully registered plugin to websocket!");
 	obs_websocket_vendor_register_request(
 		vendor, "period_play",
 		WEBSOCKET_CALLBACK(cdWidget.ui->playButton->click,
-				   "Play button pressed"),
+				   "Period play button pressed"),
 		this);
 	obs_websocket_vendor_register_request(
 		vendor, "period_pause",
 		WEBSOCKET_CALLBACK(cdWidget.ui->pauseButton->click,
-				   "Pause button pressed"),
+				   "Period pause button pressed"),
 		this);
 	obs_websocket_vendor_register_request(
-		vendor, "period_reset",
+		vendor, "period_set",
 		WEBSOCKET_CALLBACK(cdWidget.ui->resetButton->click,
-				   "Reset button pressed"),
+				   "Period Set button pressed"),
+		this);
+
+	obs_websocket_vendor_register_request(
+		vendor, "to_time_play",
+		WEBSOCKET_CALLBACK(cdWidget.ui->toTimePlayButton->click,
+				   "To time play button pressed"),
+		this);
+	obs_websocket_vendor_register_request(
+		vendor, "to_time_stop",
+		WEBSOCKET_CALLBACK(cdWidget.ui->toTimeStopButton->click,
+				   "To time stop button pressed"),
 		this);
 
 #undef WEBSOCKET_CALLBACK

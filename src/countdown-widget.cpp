@@ -307,11 +307,7 @@ void CountdownDockWidget::UnregisterHotkeys()
 
 void CountdownDockWidget::PlayButtonClicked()
 {
-	blog(LOG_INFO, "Play button clicked function running");
 	CountdownWidgetStruct *context = countdownTimerData;
-
-	bool isActive = context->timer->isActive();
-	blog(LOG_INFO, "Timer active: %s", isActive ? "true" : "false");
 
 	if (ui->countdownTypeTabWidget->currentIndex() == 1) {
 		ui->countdownTypeTabWidget->setCurrentIndex(0);
@@ -322,9 +318,6 @@ void CountdownDockWidget::PlayButtonClicked()
 
 	ui->timeDisplay->display(context->time->toString("hh:mm:ss"));
 	StartTimerCounting(context);
-
-	isActive = context->timer->isActive();
-	blog(LOG_INFO, "Timer active: %s", isActive ? "true" : "false");
 }
 
 void CountdownDockWidget::PauseButtonClicked()
@@ -480,10 +473,6 @@ void CountdownDockWidget::TimerDecrement()
 				    timeDifference.minutes,
 				    timeDifference.seconds);
 	}
-
-	QString formattedDisplayTime = ConvertTimeToDisplayString(currentTime);
-	const char *timeToShow = ConvertToConstChar(formattedDisplayTime);
-	blog(LOG_INFO, "Formatted time is: %s", timeToShow);
 
 	UpdateTimeDisplay(currentTime);
 

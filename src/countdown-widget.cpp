@@ -704,7 +704,8 @@ int CountdownDockWidget::CheckSourceType(obs_source_t *source)
 {
 	const char *source_id = obs_source_get_unversioned_id(source);
 	if (strcmp(source_id, "text_ft2_source") == 0 ||
-	    strcmp(source_id, "text_gdiplus") == 0) {
+	    strcmp(source_id, "text_gdiplus") == 0 ||
+	    strcmp(source_id, "text_pango_source") == 0) {
 		return TEXT_SOURCE;
 	} else if (strcmp(source_id, "scene") == 0) {
 		return SCENE_SOURCE;

@@ -241,7 +241,7 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 	vendor = obs_websocket_register_vendor("ashmanix-countdown-timer");
 
 	if (!vendor) {
-		blog(LOG_ERROR, "Error regitering vendor to websocket!");
+		blog(LOG_ERROR, "Error registering vendor to websocket!");
 		return;
 	}
 

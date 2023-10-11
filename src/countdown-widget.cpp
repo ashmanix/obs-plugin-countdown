@@ -522,7 +522,7 @@ QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
 
 	QString stringTime = "";
 
-	if (hoursState && minutesState & secondsState) {
+	if (hoursState && minutesState && secondsState) {
 		stringTime = timeToConvert->toString("hh:mm:ss");
 	} else if (!hoursState && minutesState && secondsState) {
 		stringTime = timeToConvert->toString("m:ss");

@@ -521,26 +521,16 @@ QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
 	int secondsState = ui->secondsCheckBox->checkState();
 
 	QString stringTime = "";
+	QString timeFormat = "";
 
-	if (hoursState && minutesState && secondsState) {
-		stringTime = timeToConvert->toString("hh:mm:ss");
-	} else if (!hoursState && minutesState && secondsState) {
-		stringTime = timeToConvert->toString("m:ss");
-	} else if (!hoursState && !minutesState && secondsState) {
-		stringTime = timeToConvert->toString("s");
-	} else if (!hoursState && minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("mm");
-	} else if (hoursState && !minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("h");
-	} else if (hoursState && !minutesState && secondsState) {
-		stringTime = timeToConvert->toString("h:ss");
-	} else if (hoursState && minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("h:mm");
-	} else if (!hoursState && !minutesState && !secondsState) {
-		stringTime = "Nothing selected!";
-	}
+	timeFormat += hoursState ? "hh" : "";
+	timeFormat += (timeFormat != "" && minutesState) ? ":" : "";
+	timeFormat += minutesState ? "mm" : "";
+	timeFormat += (timeFormat != "" && secondsState) ? ":" : "";
+	timeFormat += secondsState ? "ss" : "";
+	timeFormat = timeFormat == "" ? "Nothing selected!" : timeFormat;
 
-	return stringTime;
+	return (timeFormat == "") ? "Nothing selected!" : timeToConvert->toString(timeFormat);
 }
 
 void CountdownDockWidget::UpdateTimeDisplay(QTime *time)

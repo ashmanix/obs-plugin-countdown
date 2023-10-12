@@ -520,7 +520,6 @@ QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
 	int minutesState = ui->minutesCheckBox->checkState();
 	int secondsState = ui->secondsCheckBox->checkState();
 
-	QString stringTime = "";
 	QString timeFormat = "";
 
 	timeFormat += hoursState ? "hh" : "";

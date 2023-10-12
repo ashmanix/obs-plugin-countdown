@@ -528,7 +528,6 @@ QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
 	timeFormat += minutesState ? "mm" : "";
 	timeFormat += (timeFormat != "" && secondsState) ? ":" : "";
 	timeFormat += secondsState ? "ss" : "";
-	timeFormat = timeFormat == "" ? "Nothing selected!" : timeFormat;
 
 	return (timeFormat == "") ? "Nothing selected!" : timeToConvert->toString(timeFormat);
 }

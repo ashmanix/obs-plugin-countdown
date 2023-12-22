@@ -30,7 +30,7 @@
 #include <chrono>
 #include <list>
 #include <util/base.h>
-// #include <util/platform.h>
+#include <util/platform.h>
 #include <util/config-file.h>
 #include <vector>
 #include <obs.h>
@@ -44,7 +44,7 @@
 
 #define CONFIG "config.json"
 
-class CountdownDockWidget : public QDockWidget {
+class CountdownDockWidget : public QWidget {
 	Q_OBJECT
 public:
 	explicit CountdownDockWidget(QWidget *parent = nullptr);

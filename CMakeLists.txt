@@ -34,6 +34,8 @@ if(ENABLE_QT)
                AUTORCC ON)
 endif()
 
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib)
+
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/plugin-main.cpp src/countdown-widget.hpp
                                              src/countdown-widget.cpp)
 

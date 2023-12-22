@@ -30,7 +30,7 @@
 #include <chrono>
 #include <list>
 #include <util/base.h>
-#include <util/platform.h>
+// #include <util/platform.h>
 #include <util/config-file.h>
 #include <vector>
 #include <obs.h>
@@ -39,7 +39,7 @@
 #include <obs-module.h>
 #include <obs-websocket-api.h>
 
-#include "plugin-macros.generated.h"
+#include "plugin-support.h"
 #include "ui_CountdownTimer.h"
 
 #define CONFIG "config.json"

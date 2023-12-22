@@ -17,7 +17,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 */
 #include <countdown-widget.hpp>
 
-#include "plugin-macros.generated.h"
+#include "plugin-support.h"
 
 // void load_menu_option()
 // {

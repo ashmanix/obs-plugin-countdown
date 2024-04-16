@@ -236,6 +236,56 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 #undef HOTKEY_CALLBACK
 }
 
+void CountdownDockWidget::ConfigureWebSocketConnection()
+{
+	vendor = obs_websocket_register_vendor("ashmanix-countdown-timer");
+
+	if (!vendor) {
+		blog(LOG_ERROR, "Error registering vendor to websocket!");
+		return;
+	}
+
+#define WEBSOCKET_CALLBACK(method, log_action)                              \
+	[](obs_data_t *request_data, obs_data_t *response_data,             \
+	   void *incoming_data) {                                           \
+		UNUSED_PARAMETER(request_data);                             \
+		CountdownDockWidget &cdWidget =                             \
+			*static_cast<CountdownDockWidget *>(incoming_data); \
+		blog(LOG_INFO, log_action " due to websocket call");        \
+		method();                                                   \
+		obs_data_set_bool(response_data, "success", true);          \
+	}
+
+	obs_websocket_vendor_register_request(
+		vendor, "period_play",
+		WEBSOCKET_CALLBACK(cdWidget.ui->playButton->click,
+				   "Period play button pressed"),
+		this);
+	obs_websocket_vendor_register_request(
+		vendor, "period_pause",
+		WEBSOCKET_CALLBACK(cdWidget.ui->pauseButton->click,
+				   "Period pause button pressed"),
+		this);
+	obs_websocket_vendor_register_request(
+		vendor, "period_set",
+		WEBSOCKET_CALLBACK(cdWidget.ui->resetButton->click,
+				   "Period Set button pressed"),
+		this);
+
+	obs_websocket_vendor_register_request(
+		vendor, "to_time_play",
+		WEBSOCKET_CALLBACK(cdWidget.ui->toTimePlayButton->click,
+				   "To time play button pressed"),
+		this);
+	obs_websocket_vendor_register_request(
+		vendor, "to_time_stop",
+		WEBSOCKET_CALLBACK(cdWidget.ui->toTimeStopButton->click,
+				   "To time stop button pressed"),
+		this);
+
+#undef WEBSOCKET_CALLBACK
+}
+
 void CountdownDockWidget::UnregisterHotkeys()
 {
 	if (countdownTimerData->startCountdownHotkeyId)
@@ -654,7 +704,8 @@ int CountdownDockWidget::CheckSourceType(obs_source_t *source)
 {
 	const char *source_id = obs_source_get_unversioned_id(source);
 	if (strcmp(source_id, "text_ft2_source") == 0 ||
-	    strcmp(source_id, "text_gdiplus") == 0) {
+	    strcmp(source_id, "text_gdiplus") == 0 ||
+	    strcmp(source_id, "text_pango_source") == 0) {
 		return TEXT_SOURCE;
 	} else if (strcmp(source_id, "scene") == 0) {
 		return SCENE_SOURCE;

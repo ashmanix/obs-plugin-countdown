@@ -17,7 +17,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 */
 #include <countdown-widget.hpp>
 
-#include "plugin-macros.generated.h"
+#include "plugin-support.h"
 
 // void load_menu_option()
 // {
@@ -38,7 +38,9 @@ bool obs_module_load(void)
 	obs_frontend_push_ui_translation(obs_module_get_string);
 	countdownWidget = new CountdownDockWidget(main_window);
 
-	obs_frontend_add_dock(countdownWidget);
+	obs_frontend_add_dock_by_id("ashmanixCountdownWidget",
+				    obs_module_text("CountdownTimer"),
+				    countdownWidget);
 	obs_frontend_pop_ui_translation();
 
 	blog(LOG_INFO, "plugin loaded successfully (version %s)",

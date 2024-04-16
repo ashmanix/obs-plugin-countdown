@@ -39,12 +39,12 @@
 #include <obs-module.h>
 #include <obs-websocket-api.h>
 
-#include "plugin-macros.generated.h"
+#include "plugin-support.h"
 #include "ui_CountdownTimer.h"
 
 #define CONFIG "config.json"
 
-class CountdownDockWidget : public QDockWidget {
+class CountdownDockWidget : public QWidget {
 	Q_OBJECT
 public:
 	explicit CountdownDockWidget(QWidget *parent = nullptr);

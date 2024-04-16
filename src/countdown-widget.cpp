@@ -1,7 +1,8 @@
 #include "countdown-widget.hpp"
 
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
-	: QWidget(parent), ui(new Ui::CountdownTimer)
+	: QWidget(parent),
+	  ui(new Ui::CountdownTimer)
 {
 	countdownTimerData = new CountdownWidgetStruct;
 

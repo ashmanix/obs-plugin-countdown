@@ -4,8 +4,7 @@ param(
     [string] $Target = 'x64',
     [ValidateSet('Debug', 'RelWithDebInfo', 'Release', 'MinSizeRel')]
     [string] $Configuration = 'RelWithDebInfo',
-    [switch] $SkipAll,
-    [switch] $SkipBuild,
+    [switch] $BuildInstaller,
     [switch] $SkipDeps
 )
 
@@ -17,15 +16,16 @@ if ( $DebugPreference -eq 'Continue' ) {
 }
 
 if ( ! ( [System.Environment]::Is64BitOperatingSystem ) ) {
-    throw "A 64-bit system is required to build the project."
+    throw "Packaging script requires a 64-bit system to build and run."
 }
 
+
 if ( $PSVersionTable.PSVersion -lt '7.0.0' ) {
-    Write-Warning 'The obs-deps PowerShell build script requires PowerShell Core 7. Install or upgrade your PowerShell version: https://aka.ms/pscore6'
+    Write-Warning 'The packaging script requires PowerShell Core 7. Install or upgrade your PowerShell version: https://aka.ms/pscore6'
     exit 2
 }
 
-function Build {
+function Package {
     trap {
         Pop-Location -Stack BuildTemp -ErrorAction 'SilentlyContinue'
         Write-Error $_
@@ -39,7 +39,7 @@ function Build {
 
     $UtilityFunctions = Get-ChildItem -Path $PSScriptRoot/utils.pwsh/*.ps1 -Recurse
 
-    foreach($Utility in $UtilityFunctions) {
+    foreach( $Utility in $UtilityFunctions ) {
         Write-Debug "Loading $($Utility.FullName)"
         . $Utility.FullName
     }
@@ -48,58 +48,50 @@ function Build {
     $ProductName = $BuildSpec.name
     $ProductVersion = $BuildSpec.version
 
+    $OutputName = "${ProductName}-${ProductVersion}-windows-${Target}"
+
     if ( ! $SkipDeps ) {
         Install-BuildDependencies -WingetFile "${ScriptHome}/.Wingetfile"
     }
 
-    Push-Location -Stack BuildTemp
-    if ( ! ( ( $SkipAll ) -or ( $SkipBuild ) ) ) {
-        Ensure-Location $ProjectRoot
-
-        $CmakeArgs = @()
-        $CmakeBuildArgs = @()
-        $CmakeInstallArgs = @()
-
-        if ( $VerbosePreference -eq 'Continue' ) {
-            $CmakeBuildArgs += ('--verbose')
-            $CmakeInstallArgs += ('--verbose')
-        }
-
-        if ( $DebugPreference -eq 'Continue' ) {
-            $CmakeArgs += ('--debug-output')
-        }
-
-        $Preset = "windows-$(if ( $Env:CI -ne $null ) { 'ci-' })${Target}"
-
-        $CmakeArgs += @(
-            '--preset', $Preset
+    $RemoveArgs = @{
+        ErrorAction = 'SilentlyContinue'
+        Path = @(
+            "${ProjectRoot}/release/${ProductName}-*-windows-*.zip"
+            "${ProjectRoot}/release/${ProductName}-*-windows-*.exe"
         )
-
-        $CmakeBuildArgs += @(
-            '--build'
-            '--preset', $Preset
-            '--config', $Configuration
-            '--parallel'
-            '--', '/consoleLoggerParameters:Summary', '/noLogo'
-        )
-
-        $CmakeInstallArgs += @(
-            '--install', "build_${Target}"
-            '--prefix', "${ProjectRoot}/release/${Configuration}"
-            '--config', $Configuration
-        )
-
-        Log-Group "Configuring ${ProductName}..."
-        Invoke-External cmake @CmakeArgs
-
-        Log-Group "Building ${ProductName}..."
-        Invoke-External cmake @CmakeBuildArgs
     }
-    Log-Group "Install ${ProductName}..."
-    Invoke-External cmake @CmakeInstallArgs
 
-    Pop-Location -Stack BuildTemp
+    Remove-Item @RemoveArgs
+
+    Log-Group "Archiving ${ProductName}..."
+    $CompressArgs = @{
+        Path = (Get-ChildItem -Path "${ProjectRoot}/release/${Configuration}" -Exclude "${OutputName}*.*")
+        CompressionLevel = 'Optimal'
+        DestinationPath = "${ProjectRoot}/release/${OutputName}.zip"
+        Verbose = ($Env:CI -ne $null)
+    }
+    Compress-Archive -Force @CompressArgs
     Log-Group
+
+    if ( ( $BuildInstaller ) ) {
+        Log-Group "Packaging ${ProductName}..."
+
+        $IsccFile = "${ProjectRoot}/build_${Target}/installer-Windows.generated.iss"
+        if ( ! ( Test-Path -Path $IsccFile ) ) {
+            throw 'InnoSetup install script not found. Run the build script or the CMake build and install procedures first.'
+        }
+
+        Log-Information 'Creating InnoSetup installer...'
+        Push-Location -Stack BuildTemp
+        Ensure-Location -Path "${ProjectRoot}/release"
+        Copy-Item -Path ${Configuration} -Destination Package -Recurse
+        Invoke-External iscc ${IsccFile} /O"${ProjectRoot}/release" /F"${OutputName}-Installer"
+        Remove-Item -Path Package -Recurse
+        Pop-Location -Stack BuildTemp
+
+        Log-Group
+    }
 }
 
-Build
+Package

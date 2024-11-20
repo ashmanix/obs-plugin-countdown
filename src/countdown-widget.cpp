@@ -543,8 +543,8 @@ QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(
 	int minutesState = ui->minutesCheckBox->checkState();
 	int secondsState = ui->secondsCheckBox->checkState();
 
-	int days = timeInMillis / (24 * 60 * 60 * 1000);
-	int remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
+	long long days = timeInMillis / (24 * 60 * 60 * 1000);
+	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
 
 	QTime time = QTime::fromMSecsSinceStartOfDay(remainingMilliseconds);
 
@@ -579,7 +579,8 @@ CountdownDockWidget::ConvertMillisToDateTimeString(long long timeInMillis)
 	long long days = timeInMillis / (24 * 60 * 60 * 1000);
 	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
 
-	QTime time = QTime::fromMSecsSinceStartOfDay(remainingMilliseconds);
+	QTime time = QTime::fromMSecsSinceStartOfDay(
+		static_cast<int>(remainingMilliseconds));
 
 	return QString("%1:%2:%3:%4")
 		.arg(days, 2, 10, QChar('0'))        // Days with leading zeros

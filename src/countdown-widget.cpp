@@ -1,5 +1,7 @@
 #include "countdown-widget.hpp"
 
+const char CountdownDockWidget::ZEROSTRING[] = "00:00:00:00";
+
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	: QWidget(parent),
 	  ui(new Ui::CountdownTimer)
@@ -10,7 +12,7 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 
 	SetupCountdownWidgetUI(countdownTimerData);
 
-	setVisible(false);
+	// setVisible(false);
 	// setFloating(true);
 	resize(300, 380);
 
@@ -36,7 +38,16 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 {
 
 	CountdownWidgetStruct *context = countdownStruct;
-	ui->timeDisplay->display("00:00:00");
+	ui->timeDisplay->display(CountdownDockWidget::ZEROSTRING);
+
+	ui->dateTimeEdit->setMinimumDate(QDate::currentDate());
+	ui->dateTimeEdit->setMaximumDate(QDate::currentDate().addDays(999));
+
+	ui->daysCheckBox->setText(obs_module_text("DaysCheckboxLabel"));
+	ui->daysCheckBox->setCheckState(Qt::Checked);
+	ui->daysCheckBox->setToolTip(obs_module_text("DaysCheckBoxTip"));
+	ui->timerDays->setValidator(new QRegularExpressionValidator(
+		QRegularExpression("^(0|[1-9]\\d{0,2})$"), this));
 
 	ui->hoursCheckBox->setText(obs_module_text("HoursCheckboxLabel"));
 	ui->hoursCheckBox->setCheckState(Qt::Checked);
@@ -63,7 +74,7 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 	ui->countdownTypeTabWidget->setTabText(
 		0, obs_module_text("SetPeriodTabLabel"));
 	ui->countdownTypeTabWidget->setTabText(
-		1, obs_module_text("SetTimeTabLabel"));
+		1, obs_module_text("SetDatetimeTabLabel"));
 	ui->countdownTypeTabWidget->setToolTip(
 		obs_module_text("SetCountdownTypeTip"));
 
@@ -317,7 +328,8 @@ void CountdownDockWidget::PlayButtonClicked()
 	if (IsSetTimeZero(context))
 		return;
 
-	ui->timeDisplay->display(context->time->toString("hh:mm:ss"));
+	ui->timeDisplay->display(
+		ConvertMillisToDateTimeString(context->timeLeftInMillis));
 	StartTimerCounting(context);
 }
 
@@ -340,14 +352,27 @@ void CountdownDockWidget::ResetButtonClicked()
 		ui->countdownTypeTabWidget->setCurrentIndex(0);
 	}
 
-	int hours = ui->timerHours->text().toInt();
-	int minutes = ui->timerMinutes->text().toInt();
-	int seconds = ui->timerSeconds->text().toInt();
-
 	StopTimerCounting(context);
 
-	context->time->setHMS(hours, minutes, seconds);
-	UpdateTimeDisplay(context->time);
+	context->timeLeftInMillis = GetMillisFromPeriodUI();
+	UpdateDateTimeDisplay(context->timeLeftInMillis);
+}
+
+long long CountdownDockWidget::GetMillisFromPeriodUI()
+{
+	long long days_ms =
+		static_cast<long long>(ui->timerDays->text().toInt()) * 24 *
+		60 * 60 * 1000;
+	long long hours_ms =
+		static_cast<long long>(ui->timerHours->text().toInt()) * 60 *
+		60 * 1000;
+	long long minutes_ms =
+		static_cast<long long>(ui->timerMinutes->text().toInt()) * 60 *
+		1000;
+	long long seconds_ms =
+		static_cast<long long>(ui->timerSeconds->text().toInt()) * 1000;
+
+	return days_ms + hours_ms + minutes_ms + seconds_ms;
 }
 
 void CountdownDockWidget::ToTimeStopButtonClicked()
@@ -369,13 +394,11 @@ void CountdownDockWidget::ToTimePlayButtonClicked()
 		ui->countdownTypeTabWidget->setCurrentIndex(1);
 	}
 
-	CountdownDockWidget::TimeIncrements timeDifference =
-		CalculateTimeDifference(ui->timeEdit->time());
-	context->time->setHMS(timeDifference.hours, timeDifference.minutes,
-			      timeDifference.seconds,
-			      timeDifference.milliseconds);
+	context->timeLeftInMillis =
+		CalculateDateTimeDifference(ui->dateTimeEdit->dateTime());
 
-	ui->timeDisplay->display(context->time->toString("hh:mm:ss"));
+	ui->timeDisplay->display(
+		ConvertMillisToDateTimeString(context->timeLeftInMillis));
 	StartTimerCounting(context);
 }
 
@@ -390,6 +413,8 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	ui->toTimePlayButton->setEnabled(false);
 	ui->toTimeStopButton->setEnabled(true);
 
+	ui->timerDays->setEnabled(false);
+	ui->daysCheckBox->setEnabled(false);
 	ui->timerHours->setEnabled(false);
 	ui->hoursCheckBox->setEnabled(false);
 	ui->timerMinutes->setEnabled(false);
@@ -405,7 +430,7 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	ui->switchSceneCheckBox->setEnabled(false);
 
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(false);
-	ui->timeEdit->setEnabled(false);
+	ui->dateTimeEdit->setEnabled(false);
 }
 
 void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
@@ -419,6 +444,8 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	ui->toTimePlayButton->setEnabled(true);
 	ui->toTimeStopButton->setEnabled(false);
 
+	ui->timerDays->setEnabled(true);
+	ui->daysCheckBox->setEnabled(true);
 	ui->timerHours->setEnabled(true);
 	ui->hoursCheckBox->setEnabled(true);
 	ui->timerMinutes->setEnabled(true);
@@ -439,7 +466,7 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	}
 
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(true);
-	ui->timeEdit->setEnabled(true);
+	ui->dateTimeEdit->setEnabled(true);
 }
 
 void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)
@@ -447,38 +474,26 @@ void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)
 	context->timer = new QTimer();
 	QObject::connect(context->timer, SIGNAL(timeout()),
 			 SLOT(TimerDecrement()));
-	context->time = new QTime(ui->timerHours->text().toInt(),
-				  ui->timerMinutes->text().toInt(),
-				  ui->timerSeconds->text().toInt());
+
+	context->timeLeftInMillis = GetMillisFromPeriodUI();
 }
 
 void CountdownDockWidget::TimerDecrement()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
 
-	QTime *currentTime = new QTime();
-
-	// If selected tab is h/m/s
+	// If selected tab is period
 	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-		currentTime = context->time;
-
-		currentTime->setHMS(
-			currentTime->addMSecs(-COUNTDOWNPERIOD).hour(),
-			currentTime->addMSecs(-COUNTDOWNPERIOD).minute(),
-			currentTime->addMSecs(-COUNTDOWNPERIOD).second());
+		context->timeLeftInMillis -= COUNTDOWNPERIOD;
 	} else {
 		// We get the current time and compare it to the set time to countdown to
-		CountdownDockWidget::TimeIncrements timeDifference =
-			CalculateTimeDifference(ui->timeEdit->time());
-		currentTime->setHMS(timeDifference.hours,
-				    timeDifference.minutes,
-				    timeDifference.seconds);
+		context->timeLeftInMillis = CalculateDateTimeDifference(
+			ui->dateTimeEdit->dateTime());
 	}
 
-	UpdateTimeDisplay(currentTime);
+	UpdateDateTimeDisplay(context->timeLeftInMillis);
 
-	if (currentTime->hour() == 0 && currentTime->minute() == 0 &&
-	    currentTime->second() == 0) {
+	if (context->timeLeftInMillis < COUNTDOWNPERIOD) {
 		QString endMessageText = ui->endMessageLineEdit->text();
 		if (ui->endMessageCheckBox->isChecked()) {
 			SetSourceText(endMessageText.toStdString().c_str());
@@ -486,70 +501,102 @@ void CountdownDockWidget::TimerDecrement()
 		if (ui->switchSceneCheckBox->isChecked()) {
 			SetCurrentScene();
 		}
-		ui->timeDisplay->display("00:00:00");
-		currentTime->setHMS(0, 0, 0, 0);
+		ui->timeDisplay->display(CountdownDockWidget::ZEROSTRING);
+		context->timeLeftInMillis = 0;
 		StopTimerCounting(context);
 		return;
 	}
 }
 
-CountdownDockWidget::TimeIncrements
-CountdownDockWidget::CalculateTimeDifference(QTime timeToCountdownTo)
+long long
+CountdownDockWidget::CalculateDateTimeDifference(QDateTime timeToCountdownTo)
 {
-	QTime systemTime = QTime::currentTime();
-	int millisecondsDifference = systemTime.msecsTo(timeToCountdownTo);
-	int hours = 0;
-	int minutes = 0;
-	int seconds = 0;
-	int milliseconds = 0;
+	QDateTime systemTime = QDateTime::currentDateTime().toUTC();
+	long long millisecondsDifference =
+		systemTime.msecsTo(timeToCountdownTo.toUTC());
+	long long millisResult = 0;
 
 	millisecondsDifference =
 		millisecondsDifference + 1000; // Add 1 second for countdown
 
+	blog(LOG_INFO, "System Time: %s",
+	     systemTime.toString().toUtf8().constData());
+	blog(LOG_INFO, "System Time: %lld", systemTime.toMSecsSinceEpoch());
+	blog(LOG_INFO, "Time To Count To: %s",
+	     timeToCountdownTo.toString().toUtf8().constData());
+	blog(LOG_INFO, "Time To Count To: %lld",
+	     timeToCountdownTo.toMSecsSinceEpoch());
+	blog(LOG_INFO, "Time Difference: %lld", millisecondsDifference);
+
 	if (millisecondsDifference > 0) {
-		milliseconds = (int)(millisecondsDifference % 1000);
-		seconds = (int)((millisecondsDifference / 1000) % 60);
-		minutes = (int)((millisecondsDifference / (1000 * 60)) % 60);
-		hours = (int)((millisecondsDifference / (1000 * 60 * 60)) % 24);
+		millisResult = millisecondsDifference;
 	}
-	return {hours, minutes, seconds, milliseconds};
+
+	return millisResult;
 }
 
-QString CountdownDockWidget::ConvertTimeToDisplayString(QTime *timeToConvert)
+QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(
+	long long timeInMillis)
 {
+	int daysState = ui->daysCheckBox->checkState();
 	int hoursState = ui->hoursCheckBox->checkState();
 	int minutesState = ui->minutesCheckBox->checkState();
 	int secondsState = ui->secondsCheckBox->checkState();
 
-	QString stringTime = "";
+	long long days = timeInMillis / (24 * 60 * 60 * 1000);
+	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
 
-	if (hoursState && minutesState & secondsState) {
-		stringTime = timeToConvert->toString("hh:mm:ss");
-	} else if (!hoursState && minutesState && secondsState) {
-		stringTime = timeToConvert->toString("m:ss");
-	} else if (!hoursState && !minutesState && secondsState) {
-		stringTime = timeToConvert->toString("s");
-	} else if (!hoursState && minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("mm");
-	} else if (hoursState && !minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("h");
-	} else if (hoursState && !minutesState && secondsState) {
-		stringTime = timeToConvert->toString("h:ss");
-	} else if (hoursState && minutesState && !secondsState) {
-		stringTime = timeToConvert->toString("h:mm");
-	} else if (!hoursState && !minutesState && !secondsState) {
-		stringTime = "Nothing selected!";
-	}
+	QTime time = QTime::fromMSecsSinceStartOfDay(
+		static_cast<int>(remainingMilliseconds));
 
-	return stringTime;
+	QString formattedDateTimeString = "";
+	formattedDateTimeString +=
+		daysState ? QString("%1").arg(days, 2, 10, QChar('0')) : "";
+	formattedDateTimeString +=
+		(formattedDateTimeString != "" && hoursState) ? ":" : "";
+	formattedDateTimeString +=
+		hoursState ? QString("%1").arg(time.hour(), 2, 10, QChar('0'))
+			   : "";
+	formattedDateTimeString +=
+		(formattedDateTimeString != "" && minutesState) ? ":" : "";
+	formattedDateTimeString +=
+		minutesState
+			? QString("%1").arg(time.minute(), 2, 10, QChar('0'))
+			: "";
+	formattedDateTimeString +=
+		(formattedDateTimeString != "" && secondsState) ? ":" : "";
+	formattedDateTimeString +=
+		secondsState
+			? QString("%1").arg(time.second(), 2, 10, QChar('0'))
+			: "";
+
+	return (formattedDateTimeString == "") ? "Nothing selected!"
+					       : formattedDateTimeString;
 }
 
-void CountdownDockWidget::UpdateTimeDisplay(QTime *time)
+QString
+CountdownDockWidget::ConvertMillisToDateTimeString(long long timeInMillis)
 {
-	ui->timeDisplay->display(time->toString("hh:mm:ss"));
-	QString formattedDisplayTime = ConvertTimeToDisplayString(time);
-	// const char *timeToShow = ConvertToConstChar(formattedDisplayTime);
-	// blog(LOG_INFO, "Formatted time is: %s", timeToShow);
+	long long days = timeInMillis / (24 * 60 * 60 * 1000);
+	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
+
+	QTime time = QTime::fromMSecsSinceStartOfDay(
+		static_cast<int>(remainingMilliseconds));
+
+	return QString("%1:%2:%3:%4")
+		.arg(days, 2, 10, QChar('0'))        // Days with leading zeros
+		.arg(time.hour(), 2, 10, QChar('0')) // Hours with leading zeros
+		.arg(time.minute(), 2, 10,
+		     QChar('0')) // Minutes with leading zeros
+		.arg(time.second(), 2, 10,
+		     QChar('0')); // Seconds with leading zeros
+}
+
+void CountdownDockWidget::UpdateDateTimeDisplay(long long timeInMillis)
+{
+	ui->timeDisplay->display(ConvertMillisToDateTimeString(timeInMillis));
+	QString formattedDisplayTime =
+		ConvertDateTimeToFormattedDisplayString(timeInMillis);
 	SetSourceText(formattedDisplayTime);
 }
 
@@ -577,10 +624,10 @@ bool CountdownDockWidget::IsSetTimeZero(CountdownWidgetStruct *context)
 {
 	bool isZero = false;
 
-	if (context->time->hour() == 0 && context->time->minute() == 0 &&
-	    context->time->second() == 0) {
+	if (context->timeLeftInMillis == 0) {
 		isZero = true;
-	} else if (ui->timerHours->text().toInt() == 0 &&
+	} else if (ui->timerDays->text().toInt() == 0 &&
+		   ui->timerHours->text().toInt() == 0 &&
 		   ui->timerMinutes->text().toInt() == 0 &&
 		   ui->timerSeconds->text().toInt() == 0) {
 		isZero = true;
@@ -718,10 +765,8 @@ void CountdownDockWidget::EndMessageCheckBoxSelected(int state)
 {
 	if (state) {
 		ui->endMessageLineEdit->setEnabled(true);
-		// ui->timerEndLabel->setEnabled(true);
 	} else {
 		ui->endMessageLineEdit->setEnabled(false);
-		// ui->timerEndLabel->setEnabled(false);
 	}
 }
 
@@ -729,10 +774,8 @@ void CountdownDockWidget::SceneSwitchCheckBoxSelected(int state)
 {
 	if (state) {
 		ui->sceneSourceDropdownList->setEnabled(true);
-		// ui->sceneSwitchLabel->setEnabled(true);
 	} else {
 		ui->sceneSourceDropdownList->setEnabled(false);
-		// ui->sceneSwitchLabel->setEnabled(false);
 	}
 }
 
@@ -761,6 +804,10 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		// Get Save Data
 
 		// Time
+		int days = (int)obs_data_get_int(data, "days");
+		int daysCheckBoxStatus =
+			(int)obs_data_get_int(data, "daysCheckBoxStatus");
+
 		int hours = (int)obs_data_get_int(data, "hours");
 		int hoursCheckBoxStatus =
 			(int)obs_data_get_int(data, "hoursCheckBoxStatus");
@@ -800,6 +847,10 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		UNUSED_PARAMETER(selectedSceneSource);
 
 		// Apply saved data to plugin
+		ui->timerDays->setText(QString::number(days));
+		ui->daysCheckBox->setCheckState(
+			(Qt::CheckState)daysCheckBoxStatus);
+
 		ui->timerHours->setText(QString::number(hours));
 		ui->hoursCheckBox->setCheckState(
 			(Qt::CheckState)hoursCheckBoxStatus);
@@ -820,8 +871,8 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		ui->switchSceneCheckBox->setCheckState(
 			(Qt::CheckState)switchSceneCheckBoxStatus);
 
-		QTime savedTime = QTime::fromString(countdownToTime);
-		ui->timeEdit->setTime(savedTime);
+		QDateTime savedTime = QDateTime::fromString(countdownToTime);
+		ui->dateTimeEdit->setDateTime(savedTime);
 
 		int textSelectIndex = ui->textSourceDropdownList->findText(
 			selectedTextSource);
@@ -847,6 +898,11 @@ void CountdownDockWidget::SaveSettings()
 	CountdownWidgetStruct *context = countdownTimerData;
 
 	obs_data_t *obsData = obs_data_create();
+
+	int days = ui->timerDays->text().toInt();
+	obs_data_set_int(obsData, "days", days);
+	int daysCheckBoxStatus = ui->daysCheckBox->checkState();
+	obs_data_set_int(obsData, "daysCheckBoxStatus", daysCheckBoxStatus);
 
 	int hours = ui->timerHours->text().toInt();
 	obs_data_set_int(obsData, "hours", hours);
@@ -883,7 +939,7 @@ void CountdownDockWidget::SaveSettings()
 	obs_data_set_string(obsData, "selectedSceneSource",
 			    context->sceneSourceNameText.c_str());
 
-	QString countdownToTime = ui->timeEdit->time().toString();
+	QString countdownToTime = ui->dateTimeEdit->dateTime().toString();
 	obs_data_set_string(obsData, "countdownToTime",
 			    countdownToTime.toStdString().c_str());
 

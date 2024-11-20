@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>CountdownTimer</class>
- <widget class="QDockWidget" name="CountdownTimer">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>337</width>
-    <height>448</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Countdown Timer</string>
-  </property>
   <widget class="QWidget" name="mainLayout">
    <layout class="QGridLayout" name="gridLayout_2" rowstretch="1,0,0,0,0,0,0">
     <property name="leftMargin">
@@ -117,7 +105,7 @@
        <bool>false</bool>
       </property>
       <property name="digitCount">
-       <number>8</number>
+       <number>12</number>
       </property>
       <property name="mode">
        <enum>QLCDNumber::Bin</enum>
@@ -141,6 +129,19 @@
       <property name="bottomMargin">
        <number>8</number>
       </property>
+      <item alignment="Qt::AlignHCenter">
+       <widget class="QCheckBox" name="daysCheckBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>days</string>
+        </property>
+       </widget>
+      </item>
       <item alignment="Qt::AlignHCenter">
        <widget class="QCheckBox" name="hoursCheckBox">
         <property name="sizePolicy">
@@ -234,7 +235,7 @@
       </property>
       <widget class="QWidget" name="setCounterPeriod">
        <attribute name="title">
-        <string>h/m/s</string>
+        <string>period</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <property name="spacing">
@@ -277,6 +278,23 @@
             <property name="bottomMargin">
              <number>5</number>
             </property>
+            <item>
+             <widget class="QLineEdit" name="timerDays">
+              <property name="text">
+               <string>0</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="timerDaysLabel">
+              <property name="text">
+               <string>d</string>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QLineEdit" name="timerHours">
               <property name="text">
@@ -359,9 +377,9 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="setCounterToTime">
+      <widget class="QWidget" name="setCounterToDatetime">
        <attribute name="title">
-        <string>time</string>
+        <string>datetime</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <property name="leftMargin">
@@ -394,7 +412,7 @@
            <number>0</number>
           </property>
           <item row="0" column="0">
-           <widget class="QTimeEdit" name="timeEdit">
+           <widget class="QDateTimeEdit" name="dateTimeEdit">
             <property name="font">
              <font>
               <pointsize>18</pointsize>
@@ -428,10 +446,10 @@
              </datetime>
             </property>
             <property name="displayFormat">
-             <string>HH:mm:ss</string>
+             <string>dd/MM/yyyy HH:mm:ss</string>
             </property>
             <property name="calendarPopup">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -467,7 +485,6 @@
     </item>
    </layout>
   </widget>
- </widget>
  <resources/>
  <connections/>
 </ui>

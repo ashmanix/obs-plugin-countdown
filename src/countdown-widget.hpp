@@ -17,7 +17,8 @@
 #include <QRegularExpression>
 #include <QValidator>
 #include <QTimer>
-#include <QTime>
+// #include <QTime>
+#include <QDateTime>
 #include <QChar>
 #include <QIcon>
 #include <QGroupBox>
@@ -53,7 +54,8 @@ public:
 	struct CountdownWidgetStruct {
 		bool isPlaying;
 		QTimer *timer;
-		QTime *time;
+		QDateTime dateTime;
+		long long timeLeftInMillis = 0;
 
 		QTabWidget *countdownTypeTabWidget;
 
@@ -68,6 +70,7 @@ public:
 	};
 
 	struct TimeIncrements {
+		int days;
 		int hours;
 		int minutes;
 		int seconds;
@@ -77,6 +80,7 @@ public:
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	static const int COUNTDOWNPERIOD = 1000;
+	static char const ZEROSTRING[];
 	obs_websocket_vendor vendor = nullptr;
 
 	CountdownWidgetStruct *countdownTimerData;
@@ -86,18 +90,20 @@ private:
 	void StartTimerCounting(CountdownWidgetStruct *context);
 	void StopTimerCounting(CountdownWidgetStruct *context);
 	void InitialiseTimerTime(CountdownWidgetStruct *context);
-	QString ConvertTimeToDisplayString(QTime *timeToConvert);
+	QString ConvertMillisToDateTimeString(long long timeInMillis);
+	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis);
 	bool IsSetTimeZero(CountdownWidgetStruct *context);
 	void ConnectObsSignalHandlers();
 	void ConnectUISignalHandlers();
-	void UpdateTimeDisplay(QTime *time);
+	void UpdateDateTimeDisplay(long long timeInMillis);
 	void SetSourceText(QString newText);
 	void SetCurrentScene();
 	void SaveSettings();
 	void RegisterHotkeys(CountdownWidgetStruct *context);
 	void UnregisterHotkeys();
 	void ClickButton(CountdownWidgetStruct *context);
-	TimeIncrements CalculateTimeDifference(QTime timeToCountdownTo);
+	long long CalculateDateTimeDifference(QDateTime timeToCountdownTo);
+	long long GetMillisFromPeriodUI();
 
 	static void VendorRequestPlayButtonClicked(obs_data_t *request_data,
 						   obs_data_t *response_data,

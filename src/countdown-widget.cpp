@@ -546,7 +546,8 @@ QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(
 	long long days = timeInMillis / (24 * 60 * 60 * 1000);
 	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
 
-	QTime time = QTime::fromMSecsSinceStartOfDay(remainingMilliseconds);
+	QTime time = QTime::fromMSecsSinceStartOfDay(
+		static_cast<int>(remainingMilliseconds));
 
 	QString formattedDateTimeString = "";
 	formattedDateTimeString +=

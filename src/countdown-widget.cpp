@@ -328,7 +328,8 @@ void CountdownDockWidget::PlayButtonClicked()
 	if (IsSetTimeZero(context))
 		return;
 
-	ui->timeDisplay->display(ConvertMillisToDateTimeString(context->timeLeftInMillis));
+	ui->timeDisplay->display(
+		ConvertMillisToDateTimeString(context->timeLeftInMillis));
 	StartTimerCounting(context);
 }
 
@@ -353,18 +354,23 @@ void CountdownDockWidget::ResetButtonClicked()
 
 	StopTimerCounting(context);
 
-
-
 	context->timeLeftInMillis = GetMillisFromPeriodUI();
 	UpdateDateTimeDisplay(context->timeLeftInMillis);
 }
 
 long long CountdownDockWidget::GetMillisFromPeriodUI()
 {
-	long long days_ms = static_cast<long long>(ui->timerDays->text().toInt()) * 24 * 60 * 60 * 1000;
-	long long hours_ms = static_cast<long long>(ui->timerHours->text().toInt()) * 60 * 60 * 1000;
-	long long minutes_ms = static_cast<long long>(ui->timerMinutes->text().toInt()) * 60 * 1000;
-	long long seconds_ms = static_cast<long long>(ui->timerSeconds->text().toInt()) * 1000;
+	long long days_ms =
+		static_cast<long long>(ui->timerDays->text().toInt()) * 24 *
+		60 * 60 * 1000;
+	long long hours_ms =
+		static_cast<long long>(ui->timerHours->text().toInt()) * 60 *
+		60 * 1000;
+	long long minutes_ms =
+		static_cast<long long>(ui->timerMinutes->text().toInt()) * 60 *
+		1000;
+	long long seconds_ms =
+		static_cast<long long>(ui->timerSeconds->text().toInt()) * 1000;
 
 	return days_ms + hours_ms + minutes_ms + seconds_ms;
 }
@@ -388,9 +394,11 @@ void CountdownDockWidget::ToTimePlayButtonClicked()
 		ui->countdownTypeTabWidget->setCurrentIndex(1);
 	}
 
-	context->timeLeftInMillis = CalculateDateTimeDifference(ui->dateTimeEdit->dateTime());
+	context->timeLeftInMillis =
+		CalculateDateTimeDifference(ui->dateTimeEdit->dateTime());
 
-	ui->timeDisplay->display(ConvertMillisToDateTimeString(context->timeLeftInMillis));
+	ui->timeDisplay->display(
+		ConvertMillisToDateTimeString(context->timeLeftInMillis));
 	StartTimerCounting(context);
 }
 
@@ -479,7 +487,8 @@ void CountdownDockWidget::TimerDecrement()
 		context->timeLeftInMillis -= COUNTDOWNPERIOD;
 	} else {
 		// We get the current time and compare it to the set time to countdown to
-		context->timeLeftInMillis = CalculateDateTimeDifference(ui->dateTimeEdit->dateTime());
+		context->timeLeftInMillis = CalculateDateTimeDifference(
+			ui->dateTimeEdit->dateTime());
 	}
 
 	UpdateDateTimeDisplay(context->timeLeftInMillis);
@@ -499,29 +508,35 @@ void CountdownDockWidget::TimerDecrement()
 	}
 }
 
-long long CountdownDockWidget::CalculateDateTimeDifference(QDateTime timeToCountdownTo)
+long long
+CountdownDockWidget::CalculateDateTimeDifference(QDateTime timeToCountdownTo)
 {
 	QDateTime systemTime = QDateTime::currentDateTime().toUTC();
-	long long millisecondsDifference = systemTime.msecsTo(timeToCountdownTo.toUTC());
+	long long millisecondsDifference =
+		systemTime.msecsTo(timeToCountdownTo.toUTC());
 	long long millisResult = 0;
 
 	millisecondsDifference =
 		millisecondsDifference + 1000; // Add 1 second for countdown
 
-	blog(LOG_INFO, "System Time: %s", systemTime.toString().toUtf8().constData());
+	blog(LOG_INFO, "System Time: %s",
+	     systemTime.toString().toUtf8().constData());
 	blog(LOG_INFO, "System Time: %lld", systemTime.toMSecsSinceEpoch());
-	blog(LOG_INFO, "Time To Count To: %s", timeToCountdownTo.toString().toUtf8().constData());
-	blog(LOG_INFO, "Time To Count To: %lld", timeToCountdownTo.toMSecsSinceEpoch());
+	blog(LOG_INFO, "Time To Count To: %s",
+	     timeToCountdownTo.toString().toUtf8().constData());
+	blog(LOG_INFO, "Time To Count To: %lld",
+	     timeToCountdownTo.toMSecsSinceEpoch());
 	blog(LOG_INFO, "Time Difference: %lld", millisecondsDifference);
 
 	if (millisecondsDifference > 0) {
 		millisResult = millisecondsDifference;
 	}
-	
+
 	return millisResult;
 }
 
-QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(long long timeInMillis)
+QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(
+	long long timeInMillis)
 {
 	int daysState = ui->daysCheckBox->checkState();
 	int hoursState = ui->hoursCheckBox->checkState();
@@ -534,18 +549,32 @@ QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(long long t
 	QTime time = QTime::fromMSecsSinceStartOfDay(remainingMilliseconds);
 
 	QString formattedDateTimeString = "";
-	formattedDateTimeString += daysState ? QString("%1").arg(days, 2, 10, QChar('0')) : "";
-	formattedDateTimeString += (formattedDateTimeString != "" && hoursState) ? ":" : "";
-	formattedDateTimeString += hoursState ? QString("%1").arg(time.hour(), 2, 10, QChar('0')) : "";
-	formattedDateTimeString += (formattedDateTimeString != "" && minutesState) ? ":" : "";
-	formattedDateTimeString += minutesState ? QString("%1").arg(time.minute(), 2, 10, QChar('0')) : "";
-	formattedDateTimeString += (formattedDateTimeString != "" && secondsState) ? ":" : "";
-	formattedDateTimeString += secondsState ? QString("%1").arg(time.second(), 2, 10, QChar('0')) : "";
+	formattedDateTimeString +=
+		daysState ? QString("%1").arg(days, 2, 10, QChar('0')) : "";
+	formattedDateTimeString +=
+		(formattedDateTimeString != "" && hoursState) ? ":" : "";
+	formattedDateTimeString +=
+		hoursState ? QString("%1").arg(time.hour(), 2, 10, QChar('0'))
+			   : "";
+	formattedDateTimeString +=
+		(formattedDateTimeString != "" && minutesState) ? ":" : "";
+	formattedDateTimeString +=
+		minutesState
+			? QString("%1").arg(time.minute(), 2, 10, QChar('0'))
+			: "";
+	formattedDateTimeString +=
+		(formattedDateTimeString != "" && secondsState) ? ":" : "";
+	formattedDateTimeString +=
+		secondsState
+			? QString("%1").arg(time.second(), 2, 10, QChar('0'))
+			: "";
 
-	return (formattedDateTimeString == "") ? "Nothing selected!" : formattedDateTimeString;
+	return (formattedDateTimeString == "") ? "Nothing selected!"
+					       : formattedDateTimeString;
 }
 
-QString CountdownDockWidget::ConvertMillisToDateTimeString(long long timeInMillis) 
+QString
+CountdownDockWidget::ConvertMillisToDateTimeString(long long timeInMillis)
 {
 	long long days = timeInMillis / (24 * 60 * 60 * 1000);
 	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
@@ -553,16 +582,19 @@ QString CountdownDockWidget::ConvertMillisToDateTimeString(long long timeInMilli
 	QTime time = QTime::fromMSecsSinceStartOfDay(remainingMilliseconds);
 
 	return QString("%1:%2:%3:%4")
-			.arg(days, 2, 10, QChar('0')) // Days with leading zeros
-            .arg(time.hour(), 2, 10, QChar('0')) // Hours with leading zeros
-            .arg(time.minute(), 2, 10, QChar('0')) // Minutes with leading zeros
-            .arg(time.second(), 2, 10, QChar('0')); // Seconds with leading zeros
+		.arg(days, 2, 10, QChar('0'))        // Days with leading zeros
+		.arg(time.hour(), 2, 10, QChar('0')) // Hours with leading zeros
+		.arg(time.minute(), 2, 10,
+		     QChar('0')) // Minutes with leading zeros
+		.arg(time.second(), 2, 10,
+		     QChar('0')); // Seconds with leading zeros
 }
 
 void CountdownDockWidget::UpdateDateTimeDisplay(long long timeInMillis)
 {
 	ui->timeDisplay->display(ConvertMillisToDateTimeString(timeInMillis));
-	QString formattedDisplayTime = ConvertDateTimeToFormattedDisplayString(timeInMillis);
+	QString formattedDisplayTime =
+		ConvertDateTimeToFormattedDisplayString(timeInMillis);
 	SetSourceText(formattedDisplayTime);
 }
 

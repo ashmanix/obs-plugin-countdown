@@ -91,7 +91,8 @@ private:
 	void StopTimerCounting(CountdownWidgetStruct *context);
 	void InitialiseTimerTime(CountdownWidgetStruct *context);
 	QString ConvertMillisToDateTimeString(long long timeInMillis);
-	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis);
+	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis,
+							bool showLeadingZero);
 	bool IsSetTimeZero(CountdownWidgetStruct *context);
 	void ConnectObsSignalHandlers();
 	void ConnectUISignalHandlers();

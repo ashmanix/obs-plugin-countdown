@@ -2,14 +2,6 @@
 <ui version="4.0">
  <class>CountdownTimer</class>
  <widget class="QWidget" name="mainLayout">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>711</width>
-    <height>775</height>
-   </rect>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,0,0,0">
    <property name="spacing">
     <number>4</number>
@@ -228,7 +220,7 @@
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
      </property>
      <property name="formAlignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
      </property>
      <property name="horizontalSpacing">
       <number>20</number>
@@ -240,7 +232,7 @@
       <number>0</number>
      </property>
      <property name="topMargin">
-      <number>8</number>
+      <number>0</number>
      </property>
      <property name="bottomMargin">
       <number>8</number>
@@ -267,6 +259,18 @@
      </item>
      <item row="1" column="0">
       <widget class="QCheckBox" name="endMessageCheckBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
         <string>Message</string>
        </property>
@@ -286,6 +290,12 @@
       <widget class="QCheckBox" name="switchSceneCheckBox">
        <property name="enabled">
         <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
        </property>
        <property name="text">
         <string>Scene</string>

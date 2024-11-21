@@ -71,6 +71,11 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 	ui->timerSeconds->setValidator(new QRegularExpressionValidator(
 		QRegularExpression("^[1-5]?[0-9]"), this));
 
+	ui->leadZeroCheckBox->setText(obs_module_text("LeadZeroCheckboxLabel"));
+	ui->leadZeroCheckBox->setCheckState(Qt::Checked);
+	ui->leadZeroCheckBox->setToolTip(
+		obs_module_text("LeadZeroCheckBoxTip"));
+
 	ui->countdownTypeTabWidget->setTabText(
 		0, obs_module_text("SetPeriodTabLabel"));
 	ui->countdownTypeTabWidget->setTabText(
@@ -421,6 +426,7 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	ui->minutesCheckBox->setEnabled(false);
 	ui->timerSeconds->setEnabled(false);
 	ui->secondsCheckBox->setEnabled(false);
+	ui->leadZeroCheckBox->setEnabled(false);
 
 	ui->textSourceDropdownList->setEnabled(false);
 	ui->textSourceDropdownLabel->setEnabled(false);
@@ -452,6 +458,7 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	ui->minutesCheckBox->setEnabled(true);
 	ui->timerSeconds->setEnabled(true);
 	ui->secondsCheckBox->setEnabled(true);
+	ui->leadZeroCheckBox->setEnabled(true);
 
 	ui->textSourceDropdownList->setEnabled(true);
 	ui->textSourceDropdownLabel->setEnabled(true);
@@ -536,7 +543,7 @@ CountdownDockWidget::CalculateDateTimeDifference(QDateTime timeToCountdownTo)
 }
 
 QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(
-	long long timeInMillis)
+	long long timeInMillis, bool showLeadingZero)
 {
 	int daysState = ui->daysCheckBox->checkState();
 	int hoursState = ui->hoursCheckBox->checkState();
@@ -550,25 +557,34 @@ QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(
 		static_cast<int>(remainingMilliseconds));
 
 	QString formattedDateTimeString = "";
-	formattedDateTimeString +=
-		daysState ? QString("%1").arg(days, 2, 10, QChar('0')) : "";
-	formattedDateTimeString +=
-		(formattedDateTimeString != "" && hoursState) ? ":" : "";
-	formattedDateTimeString +=
-		hoursState ? QString("%1").arg(time.hour(), 2, 10, QChar('0'))
-			   : "";
-	formattedDateTimeString +=
-		(formattedDateTimeString != "" && minutesState) ? ":" : "";
-	formattedDateTimeString +=
-		minutesState
-			? QString("%1").arg(time.minute(), 2, 10, QChar('0'))
-			: "";
-	formattedDateTimeString +=
-		(formattedDateTimeString != "" && secondsState) ? ":" : "";
-	formattedDateTimeString +=
-		secondsState
-			? QString("%1").arg(time.second(), 2, 10, QChar('0'))
-			: "";
+
+	bool isFirstField = true;
+
+	auto appendField = [&](long long value, int state) {
+		if (state) {
+			if (isFirstField && !showLeadingZero) {
+				// Append without leading zero
+				formattedDateTimeString +=
+					QString::number(value);
+			} else {
+				// Append with leading zero
+				formattedDateTimeString += QString("%1").arg(
+					value, 2, 10, QChar('0'));
+			}
+			isFirstField = false;
+		}
+	};
+
+	appendField(days, daysState);
+	if (!formattedDateTimeString.isEmpty() && hoursState)
+		formattedDateTimeString += ":";
+	appendField(time.hour(), hoursState);
+	if (!formattedDateTimeString.isEmpty() && minutesState)
+		formattedDateTimeString += ":";
+	appendField(time.minute(), minutesState);
+	if (!formattedDateTimeString.isEmpty() && secondsState)
+		formattedDateTimeString += ":";
+	appendField(time.second(), secondsState);
 
 	return (formattedDateTimeString == "") ? "Nothing selected!"
 					       : formattedDateTimeString;
@@ -595,8 +611,8 @@ CountdownDockWidget::ConvertMillisToDateTimeString(long long timeInMillis)
 void CountdownDockWidget::UpdateDateTimeDisplay(long long timeInMillis)
 {
 	ui->timeDisplay->display(ConvertMillisToDateTimeString(timeInMillis));
-	QString formattedDisplayTime =
-		ConvertDateTimeToFormattedDisplayString(timeInMillis);
+	QString formattedDisplayTime = ConvertDateTimeToFormattedDisplayString(
+		timeInMillis, ui->leadZeroCheckBox->checkState());
 	SetSourceText(formattedDisplayTime);
 }
 
@@ -818,10 +834,13 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 
 		int seconds = (int)obs_data_get_int(data, "seconds");
 
-		// Selections
 		int secondsCheckBoxStatus =
 			(int)obs_data_get_int(data, "secondsCheckBoxStatus");
 
+		int leadZeroCheckBoxStatus =
+			(int)obs_data_get_int(data, "leadZeroCheckBoxStatus");
+
+		// Selections
 		const char *selectedTextSource =
 			obs_data_get_string(data, "selectedTextSource");
 
@@ -862,6 +881,9 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		ui->timerSeconds->setText(QString::number(seconds));
 		ui->secondsCheckBox->setCheckState(
 			(Qt::CheckState)secondsCheckBoxStatus);
+
+		ui->leadZeroCheckBox->setCheckState(
+			(Qt::CheckState)leadZeroCheckBoxStatus);
 
 		ui->endMessageLineEdit->setText(endMessageText);
 
@@ -920,6 +942,10 @@ void CountdownDockWidget::SaveSettings()
 	int secondsCheckBoxStatus = ui->secondsCheckBox->checkState();
 	obs_data_set_int(obsData, "secondsCheckBoxStatus",
 			 secondsCheckBoxStatus);
+
+	int leadZeroCheckBoxStatus = ui->leadZeroCheckBox->checkState();
+	obs_data_set_int(obsData, "leadZeroCheckBoxStatus",
+			 leadZeroCheckBoxStatus);
 
 	obs_data_set_string(obsData, "selectedTextSource",
 			    context->textSourceNameText.c_str());

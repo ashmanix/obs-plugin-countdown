@@ -33,12 +33,12 @@
     },
     "platformConfig": {
         "macos": {
-            "bundleId": "com.example.obs-plugin-countdown"
+            "bundleId": "com.ashmanix.obs-plugin-countdown"
         }
     },
     "name": "obs-plugin-countdown",
     "displayName": "Ashmanix Countdown Timer",
-    "version": "1.3.2",
+    "version": "1.4.1",
     "author": "Ashmanix",
     "website": "https://ashmanix.com",
     "email": "email@ashmanix.com",

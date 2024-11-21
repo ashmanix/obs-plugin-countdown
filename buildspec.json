@@ -33,7 +33,7 @@
     },
     "platformConfig": {
         "macos": {
-            "bundleId": "com.example.obs-plugin-countdown"
+            "bundleId": "com.ashmanix.obs-plugin-countdown"
         }
     },
     "name": "obs-plugin-countdown",

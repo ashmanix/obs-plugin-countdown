@@ -103,6 +103,11 @@ private:
 	void RegisterHotkeys(CountdownWidgetStruct *context);
 	void UnregisterHotkeys();
 	void ClickButton(CountdownWidgetStruct *context);
+
+	void SendWebsocketEvent(const char *eventName, obs_data_t *eventData);
+	void SendTimerTickEvent(long long timeLeftInMillis);
+	void SendTimerStateEvent(const char *state);
+
 	long long CalculateDateTimeDifference(QDateTime timeToCountdownTo);
 	long long GetMillisFromPeriodUI();
 

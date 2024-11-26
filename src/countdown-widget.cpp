@@ -9,16 +9,24 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	countdownTimerData = new CountdownWidgetStruct;
 
 	ui->setupUi(this);
-	#if __APPLE__
-		ui->hsDaysLeft->changeSize(0, 20, QSizePolicy::Fixed, QSizePolicy::Fixed);
-		ui->hsDaysRight->changeSize(0, 20, QSizePolicy::Fixed, QSizePolicy::Fixed);
-		ui->hsHoursLeft->changeSize(0, 20, QSizePolicy::Fixed, QSizePolicy::Fixed);
-		ui->hsHoursRight->changeSize(0, 20, QSizePolicy::Fixed, QSizePolicy::Fixed);
-		ui->hsMinutesLeft->changeSize(0, 20, QSizePolicy::Fixed, QSizePolicy::Fixed);
-		ui->hsMinutesRight->changeSize(0, 20, QSizePolicy::Fixed, QSizePolicy::Fixed);
-		ui->hsSecondsLeft->changeSize(0, 20, QSizePolicy::Fixed, QSizePolicy::Fixed);
-		ui->hsSecondsRight->changeSize(0, 20, QSizePolicy::Fixed, QSizePolicy::Fixed);
-	#endif
+#if __APPLE__
+	ui->hsDaysLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				   QSizePolicy::Fixed);
+	ui->hsDaysRight->changeSize(0, 20, QSizePolicy::Fixed,
+				    QSizePolicy::Fixed);
+	ui->hsHoursLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				    QSizePolicy::Fixed);
+	ui->hsHoursRight->changeSize(0, 20, QSizePolicy::Fixed,
+				     QSizePolicy::Fixed);
+	ui->hsMinutesLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				      QSizePolicy::Fixed);
+	ui->hsMinutesRight->changeSize(0, 20, QSizePolicy::Fixed,
+				       QSizePolicy::Fixed);
+	ui->hsSecondsLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				      QSizePolicy::Fixed);
+	ui->hsSecondsRight->changeSize(0, 20, QSizePolicy::Fixed,
+				       QSizePolicy::Fixed);
+#endif
 
 	SetupCountdownWidgetUI(countdownTimerData);
 	resize(300, 380);

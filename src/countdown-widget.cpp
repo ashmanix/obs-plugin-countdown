@@ -185,7 +185,7 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 		Ui::CountdownTimer &countdownUi =                              \
 			*static_cast<Ui::CountdownTimer *>(incoming_data);     \
 		if ((pred) && pressed) {                                       \
-			blog(LOG_INFO, log_action " due to hotkey");           \
+			obs_log(LOG_INFO, log_action " due to hotkey");           \
 			method();                                              \
 		}                                                              \
 	}
@@ -258,7 +258,7 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 	vendor = obs_websocket_register_vendor("ashmanix-countdown-timer");
 
 	if (!vendor) {
-		blog(LOG_ERROR, "Error registering vendor to websocket!");
+		obs_log(LOG_ERROR, "Error registering vendor to websocket!");
 		return;
 	}
 
@@ -268,7 +268,7 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 		UNUSED_PARAMETER(request_data);                             \
 		CountdownDockWidget &cdWidget =                             \
 			*static_cast<CountdownDockWidget *>(incoming_data); \
-		blog(LOG_INFO, log_action " due to websocket call");        \
+		obs_log(LOG_INFO, log_action " due to websocket call");        \
 		method();                                                   \
 		obs_data_set_bool(response_data, "success", true);          \
 	}
@@ -554,14 +554,14 @@ CountdownDockWidget::CalculateDateTimeDifference(QDateTime timeToCountdownTo)
 	millisecondsDifference =
 		millisecondsDifference + 1000; // Add 1 second for countdown
 
-	blog(LOG_INFO, "System Time: %s",
+	obs_log(LOG_INFO, "System Time: %s",
 	     systemTime.toString().toUtf8().constData());
-	blog(LOG_INFO, "System Time: %lld", systemTime.toMSecsSinceEpoch());
-	blog(LOG_INFO, "Time To Count To: %s",
+	obs_log(LOG_INFO, "System Time: %lld", systemTime.toMSecsSinceEpoch());
+	obs_log(LOG_INFO, "Time To Count To: %s",
 	     timeToCountdownTo.toString().toUtf8().constData());
-	blog(LOG_INFO, "Time To Count To: %lld",
+	obs_log(LOG_INFO, "Time To Count To: %lld",
 	     timeToCountdownTo.toMSecsSinceEpoch());
-	blog(LOG_INFO, "Time Difference: %lld", millisecondsDifference);
+	obs_log(LOG_INFO, "Time Difference: %lld", millisecondsDifference);
 
 	if (millisecondsDifference > 0) {
 		millisResult = millisecondsDifference;
@@ -1009,7 +1009,7 @@ void CountdownDockWidget::SaveSettings()
 	// Hotkeys
 	auto SaveHotkey = [](obs_data_t *sv_data, obs_hotkey_id id,
 			     const char *name) {
-		blog(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
+		obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
 		if ((int)id == -1)
 			return;
 		OBSDataArrayAutoRelease array = obs_hotkey_save(id);

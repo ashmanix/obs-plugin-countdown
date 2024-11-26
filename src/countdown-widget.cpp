@@ -318,7 +318,79 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 		},
 		this);
 
+	obs_websocket_vendor_register_request(
+		vendor, "add_time", [](obs_data_t *request_data, obs_data_t *response_data,
+		   void *priv_data) {
+			CountdownDockWidget *self =
+				static_cast<CountdownDockWidget *>(priv_data);
+			UNUSED_PARAMETER(self);
+
+			const char* time_to_add = obs_data_get_string(request_data, "time_to_add");
+
+			if(time_to_add == nullptr || strlen(time_to_add) == 0) {
+				obs_data_set_bool(response_data, "success", false);
+				obs_data_set_string(response_data, "message", "time_to_add field is missing from request!");
+			} else {
+				obs_log(LOG_INFO, "Time to add: %s", time_to_add);
+				long long timeToAddInMillis = self->AddTimeToTimer(time_to_add, self);
+
+				if(timeToAddInMillis > 0){
+					if (self->ui->countdownTypeTabWidget->currentIndex() == 0) {
+						self->countdownTimerData->timeLeftInMillis += timeToAddInMillis;
+						obs_data_set_bool(response_data, "success", true);
+					} else if(self->ui->countdownTypeTabWidget->currentIndex() == 1){
+						QDateTime updatedDateTime = self->ui->dateTimeEdit->dateTime().addMSecs(timeToAddInMillis);
+						self->ui->dateTimeEdit->setDateTime(updatedDateTime);
+						obs_data_set_bool(response_data, "success", true);
+					}	
+				} else {
+					obs_log(LOG_WARNING, "No time was added to timer from websocket request.");
+					obs_data_set_bool(response_data, "success", false);
+					obs_data_set_string(response_data, "message", "No time was added to timer. Ensure time is in format \"dd:hh:mm:ss\"");
+				}
+			}
+
+		}, this);
+
 #undef WEBSOCKET_CALLBACK
+}
+
+long long CountdownDockWidget::AddTimeToTimer(const char* time_string, CountdownDockWidget *widget) {
+	UNUSED_PARAMETER(widget);
+	int days = 0, hours = 0, minutes = 0, seconds = 0;
+
+	// Count the number of colons in the string
+    int colonCount = 0;
+    for (const char* c = time_string; *c != '\0'; ++c) {
+        if (*c == ':') ++colonCount;
+    }
+
+	switch (colonCount)
+	{
+	case 0:
+		sscanf(time_string, "%d", &seconds);
+		break;
+	case 1:
+		sscanf(time_string, "%d:%d", &minutes, &seconds);
+		break;
+	case 2:
+		sscanf(time_string, "%d:%d:%d", &hours, &minutes, &seconds);
+		break;
+	case 4:
+		sscanf(time_string, "%d:%d:%d:%d", &days, &hours, &minutes, &seconds);
+		break;
+	default:
+		sscanf(time_string, "%d:%d:%d:%d", &days, &hours, &minutes, &seconds);
+		break;
+	}
+
+	// Convert each unit into milliseconds and sum them up
+    long long totalMilliseconds = 0;
+    totalMilliseconds += static_cast<long long>(days) * 86400000; // 24 * 60 * 60 * 1000
+    totalMilliseconds += static_cast<long long>(hours) * 3600000; // 60 * 60 * 1000
+    totalMilliseconds += static_cast<long long>(minutes) * 60000; // 60 * 1000
+    totalMilliseconds += static_cast<long long>(seconds) * 1000;  // 1000
+    return totalMilliseconds;
 }
 
 void CountdownDockWidget::UnregisterHotkeys()
@@ -553,15 +625,6 @@ CountdownDockWidget::CalculateDateTimeDifference(QDateTime timeToCountdownTo)
 
 	millisecondsDifference =
 		millisecondsDifference + 1000; // Add 1 second for countdown
-
-	obs_log(LOG_INFO, "System Time: %s",
-		systemTime.toString().toUtf8().constData());
-	obs_log(LOG_INFO, "System Time: %lld", systemTime.toMSecsSinceEpoch());
-	obs_log(LOG_INFO, "Time To Count To: %s",
-		timeToCountdownTo.toString().toUtf8().constData());
-	obs_log(LOG_INFO, "Time To Count To: %lld",
-		timeToCountdownTo.toMSecsSinceEpoch());
-	obs_log(LOG_INFO, "Time Difference: %lld", millisecondsDifference);
 
 	if (millisecondsDifference > 0) {
 		millisResult = millisecondsDifference;
@@ -889,9 +952,6 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 
 		int selectedTimerTabIndex =
 			(int)obs_data_get_int(data, "selectedTimerTabIndex");
-
-		UNUSED_PARAMETER(selectedTextSource);
-		UNUSED_PARAMETER(selectedSceneSource);
 
 		// Apply saved data to plugin
 		ui->timerDays->setText(QString::number(days));

@@ -128,6 +128,8 @@ private:
 
 	static int CheckSourceType(obs_source_t *source);
 	static void LoadSavedSettings(Ui::CountdownTimer *ui);
+	static long long AddTimeToTimer(const char *time_string,
+					CountdownDockWidget *widget);
 
 private slots:
 

@@ -43,8 +43,8 @@ bool obs_module_load(void)
 				    countdownWidget);
 	obs_frontend_pop_ui_translation();
 
-	blog(LOG_INFO, "plugin loaded successfully (version %s)",
-	     PLUGIN_VERSION);
+	obs_log(LOG_INFO, "plugin loaded successfully (version %s)",
+		PLUGIN_VERSION);
 	return true;
 }
 
@@ -55,7 +55,7 @@ void obs_module_post_load(void)
 
 void obs_module_unload()
 {
-	blog(LOG_INFO, "plugin unloaded");
+	obs_log(LOG_INFO, "plugin unloaded");
 }
 
 const char *obs_module_name(void)

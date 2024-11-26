@@ -185,7 +185,7 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 		Ui::CountdownTimer &countdownUi =                              \
 			*static_cast<Ui::CountdownTimer *>(incoming_data);     \
 		if ((pred) && pressed) {                                       \
-			obs_log(LOG_INFO, log_action " due to hotkey");           \
+			obs_log(LOG_INFO, log_action " due to hotkey");        \
 			method();                                              \
 		}                                                              \
 	}
@@ -268,7 +268,7 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 		UNUSED_PARAMETER(request_data);                             \
 		CountdownDockWidget &cdWidget =                             \
 			*static_cast<CountdownDockWidget *>(incoming_data); \
-		obs_log(LOG_INFO, log_action " due to websocket call");        \
+		obs_log(LOG_INFO, log_action " due to websocket call");     \
 		method();                                                   \
 		obs_data_set_bool(response_data, "success", true);          \
 	}
@@ -555,12 +555,12 @@ CountdownDockWidget::CalculateDateTimeDifference(QDateTime timeToCountdownTo)
 		millisecondsDifference + 1000; // Add 1 second for countdown
 
 	obs_log(LOG_INFO, "System Time: %s",
-	     systemTime.toString().toUtf8().constData());
+		systemTime.toString().toUtf8().constData());
 	obs_log(LOG_INFO, "System Time: %lld", systemTime.toMSecsSinceEpoch());
 	obs_log(LOG_INFO, "Time To Count To: %s",
-	     timeToCountdownTo.toString().toUtf8().constData());
+		timeToCountdownTo.toString().toUtf8().constData());
 	obs_log(LOG_INFO, "Time To Count To: %lld",
-	     timeToCountdownTo.toMSecsSinceEpoch());
+		timeToCountdownTo.toMSecsSinceEpoch());
 	obs_log(LOG_INFO, "Time Difference: %lld", millisecondsDifference);
 
 	if (millisecondsDifference > 0) {

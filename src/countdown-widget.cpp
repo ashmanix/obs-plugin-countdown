@@ -300,6 +300,24 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 				   "To time stop button pressed"),
 		this);
 
+	obs_websocket_vendor_register_request(
+		vendor, "get_timer_state",
+		[](obs_data_t *request_data, obs_data_t *response_data,
+		   void *priv_data) {
+			UNUSED_PARAMETER(request_data);
+			CountdownDockWidget *self =
+				static_cast<CountdownDockWidget *>(priv_data);
+
+			obs_data_set_bool(response_data, "is_running",
+					  self->countdownTimerData->isPlaying);
+			obs_data_set_int(
+				response_data, "time_left_ms",
+				self->countdownTimerData->timeLeftInMillis);
+
+			obs_data_set_bool(response_data, "success", true);
+		},
+		this);
+
 #undef WEBSOCKET_CALLBACK
 }
 
@@ -347,6 +365,7 @@ void CountdownDockWidget::PauseButtonClicked()
 	}
 
 	StopTimerCounting(context);
+	SendTimerStateEvent("paused");
 }
 
 void CountdownDockWidget::ResetButtonClicked()
@@ -437,6 +456,8 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(false);
 	ui->dateTimeEdit->setEnabled(false);
+
+	SendTimerStateEvent("started");
 }
 
 void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
@@ -474,6 +495,8 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(true);
 	ui->dateTimeEdit->setEnabled(true);
+
+	SendTimerStateEvent("stopped");
 }
 
 void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)
@@ -500,6 +523,9 @@ void CountdownDockWidget::TimerDecrement()
 
 	UpdateDateTimeDisplay(context->timeLeftInMillis);
 
+	// Send tick event
+	SendTimerTickEvent(context->timeLeftInMillis);
+
 	if (context->timeLeftInMillis < COUNTDOWNPERIOD) {
 		QString endMessageText = ui->endMessageLineEdit->text();
 		if (ui->endMessageCheckBox->isChecked()) {
@@ -510,6 +536,8 @@ void CountdownDockWidget::TimerDecrement()
 		}
 		ui->timeDisplay->display(CountdownDockWidget::ZEROSTRING);
 		context->timeLeftInMillis = 0;
+		// Send completion event
+		SendTimerStateEvent("completed");
 		StopTimerCounting(context);
 		return;
 	}
@@ -1054,4 +1082,45 @@ void CountdownDockWidget::HandleSceneSourceChange(QString newText)
 {
 	std::string sceneSourceSelected = newText.toStdString();
 	countdownTimerData->sceneSourceNameText = sceneSourceSelected;
+}
+
+void CountdownDockWidget::SendWebsocketEvent(const char *eventName,
+					     obs_data_t *eventData)
+{
+	if (!vendor)
+		return;
+
+	obs_websocket_vendor_emit_event(vendor, eventName, eventData);
+}
+
+void CountdownDockWidget::SendTimerTickEvent(long long timeLeftInMillis)
+{
+	obs_data_t *eventData = obs_data_create();
+
+	// Convert milliseconds to readable format
+	QString timeString = ConvertDateTimeToFormattedDisplayString(
+		timeLeftInMillis, ui->leadZeroCheckBox->checkState());
+
+	obs_data_set_string(eventData, "time_display",
+			    timeString.toStdString().c_str());
+	obs_data_set_int(eventData, "time_left_ms", timeLeftInMillis);
+
+	SendWebsocketEvent("timer_tick", eventData);
+	obs_data_release(eventData);
+}
+
+void CountdownDockWidget::SendTimerStateEvent(const char *state)
+{
+	obs_data_t *eventData = obs_data_create();
+	obs_data_set_string(eventData, "state", state);
+
+	if (ui->textSourceDropdownList->currentText().length() > 0) {
+		obs_data_set_string(eventData, "text_source",
+				    ui->textSourceDropdownList->currentText()
+					    .toStdString()
+					    .c_str());
+	}
+
+	SendWebsocketEvent("timer_state_changed", eventData);
+	obs_data_release(eventData);
 }

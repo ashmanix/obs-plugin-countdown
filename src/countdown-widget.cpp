@@ -24,8 +24,8 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 				       QSizePolicy::Fixed);
 	ui->hsSecondsLeft->changeSize(0, 20, QSizePolicy::Fixed,
 				      QSizePolicy::Fixed);
-	ui->hsSecondsRight->changeSize(0, 20, QSizePolicy::Fixed,
-				       QSizePolicy::Fixed);
+	ui->hsSecondsRight->changeSize(0, 20, QSizePolicy::MinimumExpanding,
+				       QSizePolicy::MinimumExpanding);
 #endif
 
 	SetupCountdownWidgetUI(countdownTimerData);

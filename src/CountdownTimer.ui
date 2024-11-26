@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>643</width>
-    <height>298</height>
+    <width>818</width>
+    <height>499</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,0,0,0">
@@ -366,15 +366,12 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QGridLayout" name="gridLayout_4">
+        <layout class="QVBoxLayout" name="verticalLayout">
          <property name="bottomMargin">
           <number>0</number>
          </property>
-         <property name="verticalSpacing">
-          <number>0</number>
-         </property>
-         <item row="0" column="0">
-          <layout class="QHBoxLayout" name="timerLayout" stretch="0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0">
+         <item>
+          <layout class="QHBoxLayout" name="timerLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
            <property name="spacing">
             <number>-1</number>
            </property>
@@ -388,10 +385,16 @@
             <number>10</number>
            </property>
            <property name="bottomMargin">
-            <number>5</number>
+            <number>0</number>
            </property>
            <item>
             <widget class="QLineEdit" name="timerDays">
+             <property name="maximumSize">
+              <size>
+               <width>50</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
               <string>0</string>
              </property>
@@ -418,6 +421,12 @@
            </item>
            <item>
             <widget class="QLabel" name="timerDaysLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>d</string>
              </property>
@@ -433,7 +442,7 @@
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>5</width>
+               <width>15</width>
                <height>20</height>
               </size>
              </property>
@@ -441,6 +450,12 @@
            </item>
            <item>
             <widget class="QLineEdit" name="timerHours">
+             <property name="maximumSize">
+              <size>
+               <width>50</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
               <string>0</string>
              </property>
@@ -467,6 +482,12 @@
            </item>
            <item>
             <widget class="QLabel" name="timerHoursLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>h</string>
              </property>
@@ -482,7 +503,7 @@
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>5</width>
+               <width>15</width>
                <height>20</height>
               </size>
              </property>
@@ -490,6 +511,12 @@
            </item>
            <item>
             <widget class="QLineEdit" name="timerMinutes">
+             <property name="maximumSize">
+              <size>
+               <width>50</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
               <string>0</string>
              </property>
@@ -516,6 +543,12 @@
            </item>
            <item>
             <widget class="QLabel" name="timerMinutesLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>m</string>
              </property>
@@ -531,7 +564,7 @@
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>5</width>
+               <width>15</width>
                <height>20</height>
               </size>
              </property>
@@ -539,6 +572,12 @@
            </item>
            <item>
             <widget class="QLineEdit" name="timerSeconds">
+             <property name="maximumSize">
+              <size>
+               <width>50</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
               <string>0</string>
              </property>
@@ -565,6 +604,12 @@
            </item>
            <item>
             <widget class="QLabel" name="timerSecondsLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>s</string>
              </property>
@@ -576,11 +621,11 @@
               <enum>Qt::Horizontal</enum>
              </property>
              <property name="sizeType">
-              <enum>QSizePolicy::Fixed</enum>
+              <enum>QSizePolicy::MinimumExpanding</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>5</width>
+               <width>15</width>
                <height>20</height>
               </size>
              </property>
@@ -588,10 +633,16 @@
            </item>
           </layout>
          </item>
-         <item row="1" column="0">
+         <item>
           <layout class="QHBoxLayout" name="buttonLayout">
            <item>
             <widget class="QPushButton" name="resetButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string/>
              </property>
@@ -615,6 +666,12 @@
            </item>
            <item>
             <widget class="QPushButton" name="pauseButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string/>
              </property>
@@ -638,6 +695,12 @@
            </item>
            <item>
             <widget class="QPushButton" name="playButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string/>
              </property>

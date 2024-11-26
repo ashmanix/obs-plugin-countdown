@@ -9,11 +9,26 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	countdownTimerData = new CountdownWidgetStruct;
 
 	ui->setupUi(this);
+#if __APPLE__
+	ui->hsDaysLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				   QSizePolicy::Fixed);
+	ui->hsDaysRight->changeSize(0, 20, QSizePolicy::Fixed,
+				    QSizePolicy::Fixed);
+	ui->hsHoursLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				    QSizePolicy::Fixed);
+	ui->hsHoursRight->changeSize(0, 20, QSizePolicy::Fixed,
+				     QSizePolicy::Fixed);
+	ui->hsMinutesLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				      QSizePolicy::Fixed);
+	ui->hsMinutesRight->changeSize(0, 20, QSizePolicy::Fixed,
+				       QSizePolicy::Fixed);
+	ui->hsSecondsLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				      QSizePolicy::Fixed);
+	ui->hsSecondsRight->changeSize(0, 20, QSizePolicy::MinimumExpanding,
+				       QSizePolicy::MinimumExpanding);
+#endif
 
 	SetupCountdownWidgetUI(countdownTimerData);
-
-	// setVisible(false);
-	// setFloating(true);
 	resize(300, 380);
 
 	obs_frontend_add_event_callback(OBSFrontendEventHandler, ui);

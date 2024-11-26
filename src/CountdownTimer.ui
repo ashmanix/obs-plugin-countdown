@@ -53,11 +53,14 @@
      <property name="spacing">
       <number>-1</number>
      </property>
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
      <property name="topMargin">
       <number>0</number>
      </property>
      <property name="rightMargin">
-      <number>0</number>
+      <number>10</number>
      </property>
      <property name="bottomMargin">
       <number>0</number>
@@ -182,11 +185,14 @@
      <property name="spacing">
       <number>-1</number>
      </property>
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
      <property name="topMargin">
       <number>0</number>
      </property>
      <property name="rightMargin">
-      <number>0</number>
+      <number>10</number>
      </property>
      <property name="bottomMargin">
       <number>0</number>
@@ -237,10 +243,13 @@
       <number>-1</number>
      </property>
      <property name="leftMargin">
-      <number>0</number>
+      <number>10</number>
      </property>
      <property name="topMargin">
       <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>10</number>
      </property>
      <property name="bottomMargin">
       <number>8</number>
@@ -365,7 +374,7 @@
           <number>0</number>
          </property>
          <item row="0" column="0">
-          <layout class="QHBoxLayout" name="timerLayout">
+          <layout class="QHBoxLayout" name="timerLayout" stretch="0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0">
            <property name="spacing">
             <number>-1</number>
            </property>
@@ -392,7 +401,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer">
+            <spacer name="hsDaysLeft">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -401,7 +410,7 @@
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>2</width>
+               <width>10</width>
                <height>20</height>
               </size>
              </property>
@@ -415,13 +424,16 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_2">
+            <spacer name="hsDaysRight">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>40</width>
+               <width>5</width>
                <height>20</height>
               </size>
              </property>
@@ -438,7 +450,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_3">
+            <spacer name="hsHoursLeft">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -447,7 +459,7 @@
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>2</width>
+               <width>10</width>
                <height>20</height>
               </size>
              </property>
@@ -461,13 +473,16 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_9">
+            <spacer name="hsHoursRight">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>40</width>
+               <width>5</width>
                <height>20</height>
               </size>
              </property>
@@ -484,7 +499,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_10">
+            <spacer name="hsMinutesLeft">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -493,7 +508,7 @@
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>2</width>
+               <width>10</width>
                <height>20</height>
               </size>
              </property>
@@ -507,13 +522,16 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_11">
+            <spacer name="hsMinutesRight">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>40</width>
+               <width>5</width>
                <height>20</height>
               </size>
              </property>
@@ -530,7 +548,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_15">
+            <spacer name="hsSecondsLeft">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -539,7 +557,7 @@
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>2</width>
+               <width>10</width>
                <height>20</height>
               </size>
              </property>
@@ -553,13 +571,16 @@
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_16">
+            <spacer name="hsSecondsRight">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Fixed</enum>
+             </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>40</width>
+               <width>5</width>
                <height>20</height>
               </size>
              </property>

@@ -53,6 +53,7 @@ public:
 	void ConfigureWebSocketConnection();
 	struct CountdownWidgetStruct {
 		bool isPlaying;
+		bool shouldCountUp = false;
 		QTimer *timer;
 		QDateTime dateTime;
 		long long timeLeftInMillis = 0;
@@ -72,8 +73,8 @@ public:
 	enum WebsocketRequestType { ADD_TIME = 1, SET_TIME = 2 };
 	struct WebsocketCallbackData {
 		CountdownDockWidget *instance;
-		WebsocketRequestType request_type;
-		const char *request_data_key;
+		WebsocketRequestType requestType;
+		const char *requestDataKey;
 	};
 
 private:

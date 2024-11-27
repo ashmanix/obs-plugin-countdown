@@ -91,6 +91,11 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 	ui->leadZeroCheckBox->setToolTip(
 		obs_module_text("LeadZeroCheckBoxTip"));
 
+	ui->countUpCheckBox->setText(obs_module_text("CountUpCheckBoxLabel"));
+	ui->countUpCheckBox->setCheckState(Qt::Checked);
+	ui->countUpCheckBox->setToolTip(
+		obs_module_text("CountUpCheckBoxTip"));
+
 	ui->countdownTypeTabWidget->setTabText(
 		0, obs_module_text("SetPeriodTabLabel"));
 	ui->countdownTypeTabWidget->setTabText(
@@ -351,17 +356,17 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 						      void *priv_data)
 {
 	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
-	WebsocketRequestType request_type = callback_data->request_type;
-	const char *request_data_time_key = callback_data->request_data_key;
+	WebsocketRequestType requestType = callback_data->requestType;
+	const char *requestDataTimeKey = callback_data->requestDataKey;
 
-	const char *websocket_data_time =
-		obs_data_get_string(request_data, request_data_time_key);
+	const char *websocketDataTime =
+		obs_data_get_string(request_data, requestDataTimeKey);
 
-	if (websocket_data_time == nullptr ||
-	    strlen(websocket_data_time) == 0) {
+	if (websocketDataTime == nullptr ||
+	    strlen(websocketDataTime) == 0) {
 		obs_data_set_bool(response_data, "success", false);
 		std::string error_message =
-			request_data_time_key +
+			requestDataTimeKey +
 			std::string(" field is missing from request!");
 		obs_data_set_string(response_data, "message",
 				    error_message.c_str());
@@ -369,12 +374,12 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 		CountdownDockWidget *timer_widget = callback_data->instance;
 		UNUSED_PARAMETER(timer_widget);
 		long long timeInMillis =
-			ConvertStringPeriodToMillis(websocket_data_time);
+			ConvertStringPeriodToMillis(websocketDataTime);
 
 		if (timeInMillis > 0) {
 			if (timer_widget->ui->countdownTypeTabWidget
 				    ->currentIndex() == 0) {
-				switch (request_type) {
+				switch (requestType) {
 				case ADD_TIME:
 					timer_widget->countdownTimerData
 						->timeLeftInMillis +=
@@ -395,7 +400,7 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 					   ->currentIndex() == 1) {
 				QDateTime updatedDateTime;
 
-				switch (request_type) {
+				switch (requestType) {
 				case ADD_TIME:
 					updatedDateTime =
 						timer_widget->ui->dateTimeEdit
@@ -421,9 +426,9 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 						  true);
 			}
 			const char *type_string =
-				request_type == ADD_TIME ? "added" : "set";
+				requestType == ADD_TIME ? "added" : "set";
 			obs_log(LOG_INFO, "Time %s due to websocket call: %s",
-				type_string, websocket_data_time);
+				type_string, websocketDataTime);
 			emit timer_widget->RequestTimerReset();
 		} else {
 			obs_log(LOG_WARNING,
@@ -561,6 +566,7 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	ui->timerSeconds->setEnabled(false);
 	ui->secondsCheckBox->setEnabled(false);
 	ui->leadZeroCheckBox->setEnabled(false);
+	ui->countUpCheckBox->setEnabled(false);
 
 	ui->textSourceDropdownList->setEnabled(false);
 	ui->textSourceDropdownLabel->setEnabled(false);
@@ -595,6 +601,7 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	ui->timerSeconds->setEnabled(true);
 	ui->secondsCheckBox->setEnabled(true);
 	ui->leadZeroCheckBox->setEnabled(true);
+	ui->countUpCheckBox->setEnabled(true);
 
 	ui->textSourceDropdownList->setEnabled(true);
 	ui->textSourceDropdownLabel->setEnabled(true);
@@ -906,6 +913,9 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		int leadZeroCheckBoxStatus =
 			(int)obs_data_get_int(data, "leadZeroCheckBoxStatus");
 
+		int countUpCheckBoxStatus =
+			(int)obs_data_get_int(data, "countUpCheckBoxStatus");
+
 		// Selections
 		const char *selectedTextSource =
 			obs_data_get_string(data, "selectedTextSource");
@@ -947,6 +957,9 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 
 		ui->leadZeroCheckBox->setCheckState(
 			(Qt::CheckState)leadZeroCheckBoxStatus);
+
+		ui->countUpCheckBox->setCheckState(
+			(Qt::CheckState)countUpCheckBoxStatus);
 
 		ui->endMessageLineEdit->setText(endMessageText);
 
@@ -1009,6 +1022,10 @@ void CountdownDockWidget::SaveSettings()
 	int leadZeroCheckBoxStatus = ui->leadZeroCheckBox->checkState();
 	obs_data_set_int(obsData, "leadZeroCheckBoxStatus",
 			 leadZeroCheckBoxStatus);
+
+	int countUpCheckBoxStatus = ui->countUpCheckBox->checkState();
+	obs_data_set_int(obsData, "countUpCheckBoxStatus",
+			 countUpCheckBoxStatus);
 
 	obs_data_set_string(obsData, "selectedTextSource",
 			    context->textSourceNameText.c_str());
@@ -1073,18 +1090,6 @@ void CountdownDockWidget::SaveSettings()
 		   "Ashmanix_Countdown_Timer_To_Time_Start");
 	SaveHotkey(obsData, context->stopCountdownToTimeHotkeyId,
 		   "Ashmanix_Countdown_Timer_To_Time_Stop");
-
-	// obs_data_array_t *start_to_time_countdown_hotkey_save_array =
-	// 	obs_hotkey_save(context->startCountdownToTimeHotkeyId);
-	// obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Start",
-	// 		   start_to_time_countdown_hotkey_save_array);
-	// obs_data_array_release(start_to_time_countdown_hotkey_save_array);
-
-	// obs_data_array_t *stop_to_time_countdown_hotkey_save_array =
-	// 	obs_hotkey_save(context->stopCountdownToTimeHotkeyId);
-	// obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Stop",
-	// 		   stop_to_time_countdown_hotkey_save_array);
-	// obs_data_array_release(stop_to_time_countdown_hotkey_save_array);
 
 	char *file = obs_module_config_path(CONFIG);
 	if (!obs_data_save_json(obsData, file)) {

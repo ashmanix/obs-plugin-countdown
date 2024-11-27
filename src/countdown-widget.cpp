@@ -704,7 +704,8 @@ void CountdownDockWidget::TimerAdjust()
 			context->timeLeftInMillis = 0;
 		} else {
 			if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-				context->timeLeftInMillis = GetMillisFromPeriodUI();
+				context->timeLeftInMillis =
+					GetMillisFromPeriodUI();
 			} else {
 				context->timeLeftInMillis =
 					context->timeToCountUpToStart.msecsTo(

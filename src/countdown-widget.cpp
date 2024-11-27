@@ -9,11 +9,26 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	countdownTimerData = new CountdownWidgetStruct;
 
 	ui->setupUi(this);
+#if __APPLE__
+	ui->hsDaysLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				   QSizePolicy::Fixed);
+	ui->hsDaysRight->changeSize(0, 20, QSizePolicy::Fixed,
+				    QSizePolicy::Fixed);
+	ui->hsHoursLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				    QSizePolicy::Fixed);
+	ui->hsHoursRight->changeSize(0, 20, QSizePolicy::Fixed,
+				     QSizePolicy::Fixed);
+	ui->hsMinutesLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				      QSizePolicy::Fixed);
+	ui->hsMinutesRight->changeSize(0, 20, QSizePolicy::Fixed,
+				       QSizePolicy::Fixed);
+	ui->hsSecondsLeft->changeSize(0, 20, QSizePolicy::Fixed,
+				      QSizePolicy::Fixed);
+	ui->hsSecondsRight->changeSize(0, 20, QSizePolicy::MinimumExpanding,
+				       QSizePolicy::MinimumExpanding);
+#endif
 
 	SetupCountdownWidgetUI(countdownTimerData);
-
-	// setVisible(false);
-	// setFloating(true);
 	resize(300, 380);
 
 	obs_frontend_add_event_callback(OBSFrontendEventHandler, ui);
@@ -157,6 +172,9 @@ void CountdownDockWidget::ConnectUISignalHandlers()
 	QObject::connect(ui->sceneSourceDropdownList,
 			 SIGNAL(currentTextChanged(QString)),
 			 SLOT(HandleSceneSourceChange(QString)));
+
+	QObject::connect(this, SIGNAL(&CountdownDockWidget::RequestTimerReset),
+			 this, SLOT(&CountdownDockWidget::HandleTimerReset));
 }
 
 void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
@@ -185,7 +203,7 @@ void CountdownDockWidget::RegisterHotkeys(CountdownWidgetStruct *context)
 		Ui::CountdownTimer &countdownUi =                              \
 			*static_cast<Ui::CountdownTimer *>(incoming_data);     \
 		if ((pred) && pressed) {                                       \
-			blog(LOG_INFO, log_action " due to hotkey");           \
+			obs_log(LOG_INFO, log_action " due to hotkey");        \
 			method();                                              \
 		}                                                              \
 	}
@@ -258,7 +276,7 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 	vendor = obs_websocket_register_vendor("ashmanix-countdown-timer");
 
 	if (!vendor) {
-		blog(LOG_ERROR, "Error registering vendor to websocket!");
+		obs_log(LOG_ERROR, "Error registering vendor to websocket!");
 		return;
 	}
 
@@ -268,7 +286,7 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 		UNUSED_PARAMETER(request_data);                             \
 		CountdownDockWidget &cdWidget =                             \
 			*static_cast<CountdownDockWidget *>(incoming_data); \
-		blog(LOG_INFO, log_action " due to websocket call");        \
+		obs_log(LOG_INFO, log_action " due to websocket call");     \
 		method();                                                   \
 		obs_data_set_bool(response_data, "success", true);          \
 	}
@@ -300,7 +318,122 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 				   "To time stop button pressed"),
 		this);
 
+	obs_websocket_vendor_register_request(
+		vendor, "get_timer_state",
+		[](obs_data_t *request_data, obs_data_t *response_data,
+		   void *priv_data) {
+			UNUSED_PARAMETER(request_data);
+			CountdownDockWidget *self =
+				static_cast<CountdownDockWidget *>(priv_data);
+
+			obs_data_set_bool(response_data, "is_running",
+					  self->countdownTimerData->isPlaying);
+			obs_data_set_int(
+				response_data, "time_left_ms",
+				self->countdownTimerData->timeLeftInMillis);
+
+			obs_data_set_bool(response_data, "success", true);
+		},
+		this);
 #undef WEBSOCKET_CALLBACK
+
+	obs_websocket_vendor_register_request(
+		vendor, "add_time", ChangeTimerTimeViaWebsocket,
+		new WebsocketCallbackData{this, ADD_TIME, "time_to_add"});
+
+	obs_websocket_vendor_register_request(
+		vendor, "set_time", ChangeTimerTimeViaWebsocket,
+		new WebsocketCallbackData{this, SET_TIME, "time_to_set"});
+}
+
+void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
+						      obs_data_t *response_data,
+						      void *priv_data)
+{
+	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
+	WebsocketRequestType request_type = callback_data->request_type;
+	const char *request_data_time_key = callback_data->request_data_key;
+
+	const char *websocket_data_time =
+		obs_data_get_string(request_data, request_data_time_key);
+
+	if (websocket_data_time == nullptr ||
+	    strlen(websocket_data_time) == 0) {
+		obs_data_set_bool(response_data, "success", false);
+		std::string error_message =
+			request_data_time_key +
+			std::string(" field is missing from request!");
+		obs_data_set_string(response_data, "message",
+				    error_message.c_str());
+	} else {
+		CountdownDockWidget *timer_widget = callback_data->instance;
+		UNUSED_PARAMETER(timer_widget);
+		long long timeInMillis =
+			ConvertStringPeriodToMillis(websocket_data_time);
+
+		if (timeInMillis > 0) {
+			if (timer_widget->ui->countdownTypeTabWidget
+				    ->currentIndex() == 0) {
+				switch (request_type) {
+				case ADD_TIME:
+					timer_widget->countdownTimerData
+						->timeLeftInMillis +=
+						timeInMillis;
+					break;
+				case SET_TIME:
+					timer_widget->countdownTimerData
+						->timeLeftInMillis =
+						timeInMillis;
+					break;
+				}
+				timer_widget->UpdateDateTimeDisplay(
+					timer_widget->countdownTimerData
+						->timeLeftInMillis);
+				obs_data_set_bool(response_data, "success",
+						  true);
+			} else if (timer_widget->ui->countdownTypeTabWidget
+					   ->currentIndex() == 1) {
+				QDateTime updatedDateTime;
+
+				switch (request_type) {
+				case ADD_TIME:
+					updatedDateTime =
+						timer_widget->ui->dateTimeEdit
+							->dateTime()
+							.addMSecs(timeInMillis);
+					timer_widget->ui->dateTimeEdit
+						->setDateTime(updatedDateTime);
+					break;
+				case SET_TIME:
+					updatedDateTime =
+						QDateTime::currentDateTime()
+							.addMSecs(timeInMillis);
+					timer_widget->ui->dateTimeEdit
+						->setDateTime(updatedDateTime);
+					break;
+				}
+				long long new_time =
+					CalculateDateTimeDifference(
+						timer_widget->ui->dateTimeEdit
+							->dateTime());
+				timer_widget->UpdateDateTimeDisplay(new_time);
+				obs_data_set_bool(response_data, "success",
+						  true);
+			}
+			const char *type_string =
+				request_type == ADD_TIME ? "added" : "set";
+			obs_log(LOG_INFO, "Time %s due to websocket call: %s",
+				type_string, websocket_data_time);
+			emit timer_widget->RequestTimerReset();
+		} else {
+			obs_log(LOG_WARNING,
+				"Timer time NOT changed from websocket request.");
+			obs_data_set_bool(response_data, "success", false);
+			obs_data_set_string(
+				response_data, "message",
+				"Timer time wasn't changed. Ensure time is in format \"dd:hh:mm:ss\"");
+		}
+	}
 }
 
 void CountdownDockWidget::UnregisterHotkeys()
@@ -347,6 +480,7 @@ void CountdownDockWidget::PauseButtonClicked()
 	}
 
 	StopTimerCounting(context);
+	SendTimerStateEvent("paused");
 }
 
 void CountdownDockWidget::ResetButtonClicked()
@@ -437,6 +571,8 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(false);
 	ui->dateTimeEdit->setEnabled(false);
+
+	SendTimerStateEvent("started");
 }
 
 void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
@@ -474,6 +610,8 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(true);
 	ui->dateTimeEdit->setEnabled(true);
+
+	SendTimerStateEvent("stopped");
 }
 
 void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)
@@ -500,6 +638,9 @@ void CountdownDockWidget::TimerDecrement()
 
 	UpdateDateTimeDisplay(context->timeLeftInMillis);
 
+	// Send tick event
+	SendTimerTickEvent(context->timeLeftInMillis);
+
 	if (context->timeLeftInMillis < COUNTDOWNPERIOD) {
 		QString endMessageText = ui->endMessageLineEdit->text();
 		if (ui->endMessageCheckBox->isChecked()) {
@@ -510,36 +651,11 @@ void CountdownDockWidget::TimerDecrement()
 		}
 		ui->timeDisplay->display(CountdownDockWidget::ZEROSTRING);
 		context->timeLeftInMillis = 0;
+		// Send completion event
+		SendTimerStateEvent("completed");
 		StopTimerCounting(context);
 		return;
 	}
-}
-
-long long
-CountdownDockWidget::CalculateDateTimeDifference(QDateTime timeToCountdownTo)
-{
-	QDateTime systemTime = QDateTime::currentDateTime().toUTC();
-	long long millisecondsDifference =
-		systemTime.msecsTo(timeToCountdownTo.toUTC());
-	long long millisResult = 0;
-
-	millisecondsDifference =
-		millisecondsDifference + 1000; // Add 1 second for countdown
-
-	blog(LOG_INFO, "System Time: %s",
-	     systemTime.toString().toUtf8().constData());
-	blog(LOG_INFO, "System Time: %lld", systemTime.toMSecsSinceEpoch());
-	blog(LOG_INFO, "Time To Count To: %s",
-	     timeToCountdownTo.toString().toUtf8().constData());
-	blog(LOG_INFO, "Time To Count To: %lld",
-	     timeToCountdownTo.toMSecsSinceEpoch());
-	blog(LOG_INFO, "Time Difference: %lld", millisecondsDifference);
-
-	if (millisecondsDifference > 0) {
-		millisResult = millisecondsDifference;
-	}
-
-	return millisResult;
 }
 
 QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(
@@ -550,62 +666,12 @@ QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(
 	int minutesState = ui->minutesCheckBox->checkState();
 	int secondsState = ui->secondsCheckBox->checkState();
 
-	long long days = timeInMillis / (24 * 60 * 60 * 1000);
-	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
-
-	QTime time = QTime::fromMSecsSinceStartOfDay(
-		static_cast<int>(remainingMilliseconds));
-
-	QString formattedDateTimeString = "";
-
-	bool isFirstField = true;
-
-	auto appendField = [&](long long value, int state) {
-		if (state) {
-			if (isFirstField && !showLeadingZero) {
-				// Append without leading zero
-				formattedDateTimeString +=
-					QString::number(value);
-			} else {
-				// Append with leading zero
-				formattedDateTimeString += QString("%1").arg(
-					value, 2, 10, QChar('0'));
-			}
-			isFirstField = false;
-		}
-	};
-
-	appendField(days, daysState);
-	if (!formattedDateTimeString.isEmpty() && hoursState)
-		formattedDateTimeString += ":";
-	appendField(time.hour(), hoursState);
-	if (!formattedDateTimeString.isEmpty() && minutesState)
-		formattedDateTimeString += ":";
-	appendField(time.minute(), minutesState);
-	if (!formattedDateTimeString.isEmpty() && secondsState)
-		formattedDateTimeString += ":";
-	appendField(time.second(), secondsState);
+	QString formattedDateTimeString = GetFormattedTimerString(
+		daysState, hoursState, minutesState, secondsState,
+		showLeadingZero, timeInMillis);
 
 	return (formattedDateTimeString == "") ? "Nothing selected!"
 					       : formattedDateTimeString;
-}
-
-QString
-CountdownDockWidget::ConvertMillisToDateTimeString(long long timeInMillis)
-{
-	long long days = timeInMillis / (24 * 60 * 60 * 1000);
-	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
-
-	QTime time = QTime::fromMSecsSinceStartOfDay(
-		static_cast<int>(remainingMilliseconds));
-
-	return QString("%1:%2:%3:%4")
-		.arg(days, 2, 10, QChar('0'))        // Days with leading zeros
-		.arg(time.hour(), 2, 10, QChar('0')) // Hours with leading zeros
-		.arg(time.minute(), 2, 10,
-		     QChar('0')) // Minutes with leading zeros
-		.arg(time.second(), 2, 10,
-		     QChar('0')); // Seconds with leading zeros
 }
 
 void CountdownDockWidget::UpdateDateTimeDisplay(long long timeInMillis)
@@ -862,9 +928,6 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		int selectedTimerTabIndex =
 			(int)obs_data_get_int(data, "selectedTimerTabIndex");
 
-		UNUSED_PARAMETER(selectedTextSource);
-		UNUSED_PARAMETER(selectedSceneSource);
-
 		// Apply saved data to plugin
 		ui->timerDays->setText(QString::number(days));
 		ui->daysCheckBox->setCheckState(
@@ -981,7 +1044,7 @@ void CountdownDockWidget::SaveSettings()
 	// Hotkeys
 	auto SaveHotkey = [](obs_data_t *sv_data, obs_hotkey_id id,
 			     const char *name) {
-		blog(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
+		obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
 		if ((int)id == -1)
 			return;
 		OBSDataArrayAutoRelease array = obs_hotkey_save(id);
@@ -1037,13 +1100,6 @@ void CountdownDockWidget::SaveSettings()
 	deleteLater();
 }
 
-const char *CountdownDockWidget::ConvertToConstChar(QString value)
-{
-	QByteArray ba = value.toLocal8Bit();
-	const char *cString = ba.data();
-	return cString;
-}
-
 void CountdownDockWidget::HandleTextSourceChange(QString newText)
 {
 	std::string textSourceSelected = newText.toStdString();
@@ -1054,4 +1110,51 @@ void CountdownDockWidget::HandleSceneSourceChange(QString newText)
 {
 	std::string sceneSourceSelected = newText.toStdString();
 	countdownTimerData->sceneSourceNameText = sceneSourceSelected;
+}
+
+void CountdownDockWidget::SendWebsocketEvent(const char *eventName,
+					     obs_data_t *eventData)
+{
+	if (!vendor)
+		return;
+
+	obs_websocket_vendor_emit_event(vendor, eventName, eventData);
+}
+
+void CountdownDockWidget::SendTimerTickEvent(long long timeLeftInMillis)
+{
+	obs_data_t *eventData = obs_data_create();
+
+	// Convert milliseconds to readable format
+	QString timeString = ConvertDateTimeToFormattedDisplayString(
+		timeLeftInMillis, ui->leadZeroCheckBox->checkState());
+
+	obs_data_set_string(eventData, "time_display",
+			    timeString.toStdString().c_str());
+	obs_data_set_int(eventData, "time_left_ms", timeLeftInMillis);
+
+	SendWebsocketEvent("timer_tick", eventData);
+	obs_data_release(eventData);
+}
+
+void CountdownDockWidget::SendTimerStateEvent(const char *state)
+{
+	obs_data_t *eventData = obs_data_create();
+	obs_data_set_string(eventData, "state", state);
+
+	if (ui->textSourceDropdownList->currentText().length() > 0) {
+		obs_data_set_string(eventData, "text_source",
+				    ui->textSourceDropdownList->currentText()
+					    .toStdString()
+					    .c_str());
+	}
+
+	SendWebsocketEvent("timer_state_changed", eventData);
+	obs_data_release(eventData);
+}
+
+void CountdownDockWidget::HandleTimerReset()
+{
+	countdownTimerData->timer->stop();
+	countdownTimerData->timer->start(COUNTDOWNPERIOD);
 }

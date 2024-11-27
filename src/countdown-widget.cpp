@@ -339,15 +339,11 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 
 	obs_websocket_vendor_register_request(
 		vendor, "add_time", ChangeTimerTimeViaWebsocket,
-		new WebsocketCallbackData{.instance = this,
-					  .request_type = ADD_TIME,
-					  .request_data_key = "time_to_add"});
+		new WebsocketCallbackData{this, ADD_TIME, "time_to_add"});
 
 	obs_websocket_vendor_register_request(
 		vendor, "set_time", ChangeTimerTimeViaWebsocket,
-		new WebsocketCallbackData{.instance = this,
-					  .request_type = SET_TIME,
-					  .request_data_key = "time_to_set"});
+		new WebsocketCallbackData{this, SET_TIME, "time_to_set"});
 }
 
 void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,

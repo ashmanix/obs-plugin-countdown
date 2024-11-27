@@ -93,8 +93,7 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 
 	ui->countUpCheckBox->setText(obs_module_text("CountUpCheckBoxLabel"));
 	ui->countUpCheckBox->setCheckState(Qt::Checked);
-	ui->countUpCheckBox->setToolTip(
-		obs_module_text("CountUpCheckBoxTip"));
+	ui->countUpCheckBox->setToolTip(obs_module_text("CountUpCheckBoxTip"));
 
 	ui->countdownTypeTabWidget->setTabText(
 		0, obs_module_text("SetPeriodTabLabel"));
@@ -362,8 +361,7 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 	const char *websocketDataTime =
 		obs_data_get_string(request_data, requestDataTimeKey);
 
-	if (websocketDataTime == nullptr ||
-	    strlen(websocketDataTime) == 0) {
+	if (websocketDataTime == nullptr || strlen(websocketDataTime) == 0) {
 		obs_data_set_bool(response_data, "success", false);
 		std::string error_message =
 			requestDataTimeKey +
@@ -418,9 +416,10 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 					break;
 				}
 				long long new_time =
-					CalculateDateTimeDifference(
+					CalcToCurrentDateTimeInMillis(
 						timer_widget->ui->dateTimeEdit
-							->dateTime());
+							->dateTime(),
+						COUNTDOWNPERIOD);
 				timer_widget->UpdateDateTimeDisplay(new_time);
 				obs_data_set_bool(response_data, "success",
 						  true);
@@ -468,7 +467,9 @@ void CountdownDockWidget::PlayButtonClicked()
 		ui->countdownTypeTabWidget->setCurrentIndex(0);
 	}
 
-	if (IsSetTimeZero(context))
+	if ((!ui->countUpCheckBox->isChecked() && IsSetTimeZero(context)) ||
+	    (ui->countUpCheckBox->isChecked() &&
+	     context->timeLeftInMillis >= GetMillisFromPeriodUI()))
 		return;
 
 	ui->timeDisplay->display(
@@ -497,8 +498,10 @@ void CountdownDockWidget::ResetButtonClicked()
 	}
 
 	StopTimerCounting(context);
+	ui->countUpCheckBox->isChecked()
+		? context->timeLeftInMillis = 0
+		: context->timeLeftInMillis = GetMillisFromPeriodUI();
 
-	context->timeLeftInMillis = GetMillisFromPeriodUI();
 	UpdateDateTimeDisplay(context->timeLeftInMillis);
 }
 
@@ -538,8 +541,17 @@ void CountdownDockWidget::ToTimePlayButtonClicked()
 		ui->countdownTypeTabWidget->setCurrentIndex(1);
 	}
 
-	context->timeLeftInMillis =
-		CalculateDateTimeDifference(ui->dateTimeEdit->dateTime());
+	if (ui->countUpCheckBox->isChecked()) {
+		context->timeToCountUpToStart = QDateTime::currentDateTime();
+		obs_log(LOG_INFO, "Time to count up to start millis: %s",
+			context->timeToCountUpToStart.toString()
+				.toUtf8()
+				.constData());
+		context->timeLeftInMillis = 0;
+	} else {
+		context->timeLeftInMillis = CalcToCurrentDateTimeInMillis(
+			ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
+	}
 
 	ui->timeDisplay->display(
 		ConvertMillisToDateTimeString(context->timeLeftInMillis));
@@ -625,30 +637,60 @@ void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)
 {
 	context->timer = new QTimer();
 	QObject::connect(context->timer, SIGNAL(timeout()),
-			 SLOT(TimerDecrement()));
+			 SLOT(TimerAdjust()));
 
 	context->timeLeftInMillis = GetMillisFromPeriodUI();
 }
 
-void CountdownDockWidget::TimerDecrement()
+void CountdownDockWidget::TimerAdjust()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
+	// Flag for ending timer
+	bool endTimer = false;
+	bool isCountingDown = !ui->countUpCheckBox->isChecked();
+	long long timerPeriodMillis = context->timeLeftInMillis;
 
-	// If selected tab is period
-	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-		context->timeLeftInMillis -= COUNTDOWNPERIOD;
+	if (isCountingDown) {
+		// Counting down
+		if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+			// If selected tab is period
+			timerPeriodMillis -= COUNTDOWNPERIOD;
+		} else {
+			// If selected tab is datetime
+			timerPeriodMillis = CalcToCurrentDateTimeInMillis(
+				ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
+		}
+		if (timerPeriodMillis < COUNTDOWNPERIOD)
+			endTimer = true;
 	} else {
-		// We get the current time and compare it to the set time to countdown to
-		context->timeLeftInMillis = CalculateDateTimeDifference(
-			ui->dateTimeEdit->dateTime());
+		// When counting up always add to current timer
+
+		// Check if we need to end timer
+		if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+			timerPeriodMillis += COUNTDOWNPERIOD;
+			// If selected tab is period
+			if (timerPeriodMillis >= GetMillisFromPeriodUI())
+				endTimer = true;
+		} else {
+			timerPeriodMillis =
+				context->timeToCountUpToStart.msecsTo(
+					QDateTime::currentDateTime());
+			// If selected tab is datetime
+			if ((context->timeToCountUpToStart.msecsTo(
+				    ui->dateTimeEdit->dateTime())) -
+				    timerPeriodMillis <=
+			    COUNTDOWNPERIOD)
+				endTimer = true;
+		}
 	}
 
+	context->timeLeftInMillis = timerPeriodMillis;
 	UpdateDateTimeDisplay(context->timeLeftInMillis);
 
 	// Send tick event
 	SendTimerTickEvent(context->timeLeftInMillis);
 
-	if (context->timeLeftInMillis < COUNTDOWNPERIOD) {
+	if (endTimer == true) {
 		QString endMessageText = ui->endMessageLineEdit->text();
 		if (ui->endMessageCheckBox->isChecked()) {
 			SetSourceText(endMessageText.toStdString().c_str());
@@ -656,8 +698,20 @@ void CountdownDockWidget::TimerDecrement()
 		if (ui->switchSceneCheckBox->isChecked()) {
 			SetCurrentScene();
 		}
-		ui->timeDisplay->display(CountdownDockWidget::ZEROSTRING);
-		context->timeLeftInMillis = 0;
+		if (isCountingDown) {
+			ui->timeDisplay->display(
+				CountdownDockWidget::ZEROSTRING);
+			context->timeLeftInMillis = 0;
+		} else {
+			if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+				context->timeLeftInMillis = GetMillisFromPeriodUI();
+			} else {
+				context->timeLeftInMillis =
+					context->timeToCountUpToStart.msecsTo(
+						ui->dateTimeEdit->dateTime());
+			}
+			UpdateDateTimeDisplay(context->timeLeftInMillis);
+		}
 		// Send completion event
 		SendTimerStateEvent("completed");
 		StopTimerCounting(context);

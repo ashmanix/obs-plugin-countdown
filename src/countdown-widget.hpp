@@ -57,6 +57,7 @@ public:
 		QTimer *timer;
 		QDateTime dateTime;
 		long long timeLeftInMillis = 0;
+		QDateTime timeToCountUpToStart;
 
 		QTabWidget *countdownTypeTabWidget;
 
@@ -138,7 +139,7 @@ private slots:
 	void SceneSwitchCheckBoxSelected(int state);
 	void HandleTextSourceChange(QString newText);
 	void HandleSceneSourceChange(QString newText);
-	void TimerDecrement();
+	void TimerAdjust();
 	void HandleTimerReset();
 };
 

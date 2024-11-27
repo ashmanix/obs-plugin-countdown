@@ -110,7 +110,7 @@ QString GetFormattedTimerString(int daysState, int hoursState, int minutesState,
 	return formattedDateTimeString;
 }
 
-long long CalculateDateTimeDifference(QDateTime timeToCountdownTo)
+long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdownPeriod)
 {
 	QDateTime systemTime = QDateTime::currentDateTime().toUTC();
 	long long millisecondsDifference =
@@ -118,7 +118,7 @@ long long CalculateDateTimeDifference(QDateTime timeToCountdownTo)
 	long long millisResult = 0;
 
 	millisecondsDifference =
-		millisecondsDifference + 1000; // Add 1 second for countdown
+		millisecondsDifference + countdownPeriod; // Add 1 second for countdown
 
 	if (millisecondsDifference > 0) {
 		millisResult = millisecondsDifference;

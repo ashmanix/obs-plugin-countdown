@@ -543,10 +543,6 @@ void CountdownDockWidget::ToTimePlayButtonClicked()
 
 	if (ui->countUpCheckBox->isChecked()) {
 		context->timeToCountUpToStart = QDateTime::currentDateTime();
-		obs_log(LOG_INFO, "Time to count up to start millis: %s",
-			context->timeToCountUpToStart.toString()
-				.toUtf8()
-				.constData());
 		context->timeLeftInMillis = 0;
 	} else {
 		context->timeLeftInMillis = CalcToCurrentDateTimeInMillis(

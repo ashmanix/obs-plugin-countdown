@@ -1028,9 +1028,10 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		// If saved date is before current date then set date to today (while keeping same time)
 		QDateTime currentTime = QDateTime::currentDateTime();
 
-		if(currentTime > savedTime) {
+		if (currentTime > savedTime) {
 			savedTime = savedTime.addDays(1);
-			if(currentTime > savedTime) savedTime = savedTime.addDays(1);
+			if (currentTime > savedTime)
+				savedTime = savedTime.addDays(1);
 		}
 
 		ui->dateTimeEdit->setDateTime(savedTime);

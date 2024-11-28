@@ -11,6 +11,7 @@ QString ConvertMillisToDateTimeString(long long timeInMillis);
 QString GetFormattedTimerString(int daysState, int hoursState, int minutesState,
 				int secondsState, bool showLeadingZero,
 				long long timeInMillis);
-long long CalculateDateTimeDifference(QDateTime timeToCountdownTo);
+long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo,
+					int countdownPeriod = 1000);
 
 #endif // TIMERUTILS_H

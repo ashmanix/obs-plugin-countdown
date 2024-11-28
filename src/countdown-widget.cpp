@@ -91,6 +91,10 @@ void CountdownDockWidget::SetupCountdownWidgetUI(
 	ui->leadZeroCheckBox->setToolTip(
 		obs_module_text("LeadZeroCheckBoxTip"));
 
+	ui->countUpCheckBox->setText(obs_module_text("CountUpCheckBoxLabel"));
+	ui->countUpCheckBox->setCheckState(Qt::Checked);
+	ui->countUpCheckBox->setToolTip(obs_module_text("CountUpCheckBoxTip"));
+
 	ui->countdownTypeTabWidget->setTabText(
 		0, obs_module_text("SetPeriodTabLabel"));
 	ui->countdownTypeTabWidget->setTabText(
@@ -351,17 +355,16 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 						      void *priv_data)
 {
 	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
-	WebsocketRequestType request_type = callback_data->request_type;
-	const char *request_data_time_key = callback_data->request_data_key;
+	WebsocketRequestType requestType = callback_data->requestType;
+	const char *requestDataTimeKey = callback_data->requestDataKey;
 
-	const char *websocket_data_time =
-		obs_data_get_string(request_data, request_data_time_key);
+	const char *websocketDataTime =
+		obs_data_get_string(request_data, requestDataTimeKey);
 
-	if (websocket_data_time == nullptr ||
-	    strlen(websocket_data_time) == 0) {
+	if (websocketDataTime == nullptr || strlen(websocketDataTime) == 0) {
 		obs_data_set_bool(response_data, "success", false);
 		std::string error_message =
-			request_data_time_key +
+			requestDataTimeKey +
 			std::string(" field is missing from request!");
 		obs_data_set_string(response_data, "message",
 				    error_message.c_str());
@@ -369,12 +372,12 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 		CountdownDockWidget *timer_widget = callback_data->instance;
 		UNUSED_PARAMETER(timer_widget);
 		long long timeInMillis =
-			ConvertStringPeriodToMillis(websocket_data_time);
+			ConvertStringPeriodToMillis(websocketDataTime);
 
 		if (timeInMillis > 0) {
 			if (timer_widget->ui->countdownTypeTabWidget
 				    ->currentIndex() == 0) {
-				switch (request_type) {
+				switch (requestType) {
 				case ADD_TIME:
 					timer_widget->countdownTimerData
 						->timeLeftInMillis +=
@@ -395,7 +398,7 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 					   ->currentIndex() == 1) {
 				QDateTime updatedDateTime;
 
-				switch (request_type) {
+				switch (requestType) {
 				case ADD_TIME:
 					updatedDateTime =
 						timer_widget->ui->dateTimeEdit
@@ -413,17 +416,18 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 					break;
 				}
 				long long new_time =
-					CalculateDateTimeDifference(
+					CalcToCurrentDateTimeInMillis(
 						timer_widget->ui->dateTimeEdit
-							->dateTime());
+							->dateTime(),
+						COUNTDOWNPERIOD);
 				timer_widget->UpdateDateTimeDisplay(new_time);
 				obs_data_set_bool(response_data, "success",
 						  true);
 			}
 			const char *type_string =
-				request_type == ADD_TIME ? "added" : "set";
+				requestType == ADD_TIME ? "added" : "set";
 			obs_log(LOG_INFO, "Time %s due to websocket call: %s",
-				type_string, websocket_data_time);
+				type_string, websocketDataTime);
 			emit timer_widget->RequestTimerReset();
 		} else {
 			obs_log(LOG_WARNING,
@@ -463,7 +467,9 @@ void CountdownDockWidget::PlayButtonClicked()
 		ui->countdownTypeTabWidget->setCurrentIndex(0);
 	}
 
-	if (IsSetTimeZero(context))
+	if ((!ui->countUpCheckBox->isChecked() && IsSetTimeZero(context)) ||
+	    (ui->countUpCheckBox->isChecked() &&
+	     context->timeLeftInMillis >= GetMillisFromPeriodUI()))
 		return;
 
 	ui->timeDisplay->display(
@@ -492,8 +498,10 @@ void CountdownDockWidget::ResetButtonClicked()
 	}
 
 	StopTimerCounting(context);
+	ui->countUpCheckBox->isChecked()
+		? context->timeLeftInMillis = 0
+		: context->timeLeftInMillis = GetMillisFromPeriodUI();
 
-	context->timeLeftInMillis = GetMillisFromPeriodUI();
 	UpdateDateTimeDisplay(context->timeLeftInMillis);
 }
 
@@ -533,8 +541,13 @@ void CountdownDockWidget::ToTimePlayButtonClicked()
 		ui->countdownTypeTabWidget->setCurrentIndex(1);
 	}
 
-	context->timeLeftInMillis =
-		CalculateDateTimeDifference(ui->dateTimeEdit->dateTime());
+	if (ui->countUpCheckBox->isChecked()) {
+		context->timeToCountUpToStart = QDateTime::currentDateTime();
+		context->timeLeftInMillis = 0;
+	} else {
+		context->timeLeftInMillis = CalcToCurrentDateTimeInMillis(
+			ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
+	}
 
 	ui->timeDisplay->display(
 		ConvertMillisToDateTimeString(context->timeLeftInMillis));
@@ -561,6 +574,7 @@ void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
 	ui->timerSeconds->setEnabled(false);
 	ui->secondsCheckBox->setEnabled(false);
 	ui->leadZeroCheckBox->setEnabled(false);
+	ui->countUpCheckBox->setEnabled(false);
 
 	ui->textSourceDropdownList->setEnabled(false);
 	ui->textSourceDropdownLabel->setEnabled(false);
@@ -595,6 +609,7 @@ void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
 	ui->timerSeconds->setEnabled(true);
 	ui->secondsCheckBox->setEnabled(true);
 	ui->leadZeroCheckBox->setEnabled(true);
+	ui->countUpCheckBox->setEnabled(true);
 
 	ui->textSourceDropdownList->setEnabled(true);
 	ui->textSourceDropdownLabel->setEnabled(true);
@@ -618,30 +633,60 @@ void CountdownDockWidget::InitialiseTimerTime(CountdownWidgetStruct *context)
 {
 	context->timer = new QTimer();
 	QObject::connect(context->timer, SIGNAL(timeout()),
-			 SLOT(TimerDecrement()));
+			 SLOT(TimerAdjust()));
 
 	context->timeLeftInMillis = GetMillisFromPeriodUI();
 }
 
-void CountdownDockWidget::TimerDecrement()
+void CountdownDockWidget::TimerAdjust()
 {
 	CountdownWidgetStruct *context = countdownTimerData;
+	// Flag for ending timer
+	bool endTimer = false;
+	bool isCountingDown = !ui->countUpCheckBox->isChecked();
+	long long timerPeriodMillis = context->timeLeftInMillis;
 
-	// If selected tab is period
-	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-		context->timeLeftInMillis -= COUNTDOWNPERIOD;
+	if (isCountingDown) {
+		// Counting down
+		if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+			// If selected tab is period
+			timerPeriodMillis -= COUNTDOWNPERIOD;
+		} else {
+			// If selected tab is datetime
+			timerPeriodMillis = CalcToCurrentDateTimeInMillis(
+				ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
+		}
+		if (timerPeriodMillis < COUNTDOWNPERIOD)
+			endTimer = true;
 	} else {
-		// We get the current time and compare it to the set time to countdown to
-		context->timeLeftInMillis = CalculateDateTimeDifference(
-			ui->dateTimeEdit->dateTime());
+		// When counting up always add to current timer
+
+		// Check if we need to end timer
+		if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+			timerPeriodMillis += COUNTDOWNPERIOD;
+			// If selected tab is period
+			if (timerPeriodMillis >= GetMillisFromPeriodUI())
+				endTimer = true;
+		} else {
+			timerPeriodMillis =
+				context->timeToCountUpToStart.msecsTo(
+					QDateTime::currentDateTime());
+			// If selected tab is datetime
+			if ((context->timeToCountUpToStart.msecsTo(
+				    ui->dateTimeEdit->dateTime())) -
+				    timerPeriodMillis <=
+			    COUNTDOWNPERIOD)
+				endTimer = true;
+		}
 	}
 
+	context->timeLeftInMillis = timerPeriodMillis;
 	UpdateDateTimeDisplay(context->timeLeftInMillis);
 
 	// Send tick event
 	SendTimerTickEvent(context->timeLeftInMillis);
 
-	if (context->timeLeftInMillis < COUNTDOWNPERIOD) {
+	if (endTimer == true) {
 		QString endMessageText = ui->endMessageLineEdit->text();
 		if (ui->endMessageCheckBox->isChecked()) {
 			SetSourceText(endMessageText.toStdString().c_str());
@@ -649,8 +694,21 @@ void CountdownDockWidget::TimerDecrement()
 		if (ui->switchSceneCheckBox->isChecked()) {
 			SetCurrentScene();
 		}
-		ui->timeDisplay->display(CountdownDockWidget::ZEROSTRING);
-		context->timeLeftInMillis = 0;
+		if (isCountingDown) {
+			ui->timeDisplay->display(
+				CountdownDockWidget::ZEROSTRING);
+			context->timeLeftInMillis = 0;
+		} else {
+			if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+				context->timeLeftInMillis =
+					GetMillisFromPeriodUI();
+			} else {
+				context->timeLeftInMillis =
+					context->timeToCountUpToStart.msecsTo(
+						ui->dateTimeEdit->dateTime());
+			}
+			UpdateDateTimeDisplay(context->timeLeftInMillis);
+		}
 		// Send completion event
 		SendTimerStateEvent("completed");
 		StopTimerCounting(context);
@@ -906,6 +964,9 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		int leadZeroCheckBoxStatus =
 			(int)obs_data_get_int(data, "leadZeroCheckBoxStatus");
 
+		int countUpCheckBoxStatus =
+			(int)obs_data_get_int(data, "countUpCheckBoxStatus");
+
 		// Selections
 		const char *selectedTextSource =
 			obs_data_get_string(data, "selectedTextSource");
@@ -948,6 +1009,9 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 		ui->leadZeroCheckBox->setCheckState(
 			(Qt::CheckState)leadZeroCheckBoxStatus);
 
+		ui->countUpCheckBox->setCheckState(
+			(Qt::CheckState)countUpCheckBoxStatus);
+
 		ui->endMessageLineEdit->setText(endMessageText);
 
 		ui->endMessageCheckBox->setCheckState(
@@ -957,6 +1021,15 @@ void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
 			(Qt::CheckState)switchSceneCheckBoxStatus);
 
 		QDateTime savedTime = QDateTime::fromString(countdownToTime);
+		// If saved date is before current date then set date to today (while keeping same time)
+		QDateTime currentTime = QDateTime::currentDateTime();
+
+		if (currentTime > savedTime) {
+			savedTime = savedTime.addDays(1);
+			if (currentTime > savedTime)
+				savedTime = savedTime.addDays(1);
+		}
+
 		ui->dateTimeEdit->setDateTime(savedTime);
 
 		int textSelectIndex = ui->textSourceDropdownList->findText(
@@ -1009,6 +1082,10 @@ void CountdownDockWidget::SaveSettings()
 	int leadZeroCheckBoxStatus = ui->leadZeroCheckBox->checkState();
 	obs_data_set_int(obsData, "leadZeroCheckBoxStatus",
 			 leadZeroCheckBoxStatus);
+
+	int countUpCheckBoxStatus = ui->countUpCheckBox->checkState();
+	obs_data_set_int(obsData, "countUpCheckBoxStatus",
+			 countUpCheckBoxStatus);
 
 	obs_data_set_string(obsData, "selectedTextSource",
 			    context->textSourceNameText.c_str());
@@ -1073,18 +1150,6 @@ void CountdownDockWidget::SaveSettings()
 		   "Ashmanix_Countdown_Timer_To_Time_Start");
 	SaveHotkey(obsData, context->stopCountdownToTimeHotkeyId,
 		   "Ashmanix_Countdown_Timer_To_Time_Stop");
-
-	// obs_data_array_t *start_to_time_countdown_hotkey_save_array =
-	// 	obs_hotkey_save(context->startCountdownToTimeHotkeyId);
-	// obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Start",
-	// 		   start_to_time_countdown_hotkey_save_array);
-	// obs_data_array_release(start_to_time_countdown_hotkey_save_array);
-
-	// obs_data_array_t *stop_to_time_countdown_hotkey_save_array =
-	// 	obs_hotkey_save(context->stopCountdownToTimeHotkeyId);
-	// obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_To_Time_Stop",
-	// 		   stop_to_time_countdown_hotkey_save_array);
-	// obs_data_array_release(stop_to_time_countdown_hotkey_save_array);
 
 	char *file = obs_module_config_path(CONFIG);
 	if (!obs_data_save_json(obsData, file)) {

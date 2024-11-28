@@ -181,7 +181,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="selectTimeFormatLayout" stretch="0,0">
+    <layout class="QHBoxLayout" name="selectTimeFormatLayout" stretch="0,0,0,0">
      <property name="spacing">
       <number>-1</number>
      </property>
@@ -207,6 +207,29 @@
        </property>
        <property name="text">
         <string>leading zero</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="countUpCheckBox">
+       <property name="text">
+        <string>count up</string>
        </property>
       </widget>
      </item>

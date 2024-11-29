@@ -36,7 +36,16 @@ endif()
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/plugin-main.cpp src/countdown-widget.hpp src/countdown-widget.cpp
-                                             src/utils/timer-utils.cpp src/utils/timer-utils.hpp)
+target_sources(
+  ${CMAKE_PROJECT_NAME}
+  PRIVATE src/plugin-main.cpp
+          src/countdown-widget.hpp
+          src/countdown-widget.cpp
+          src/widgets/ashmanix-timer.hpp
+          src/widgets/ashmanix-timer.cpp
+          src/widgets/settings-dialog.hpp
+          src/widgets/settings-dialog.cpp
+          src/utils/timer-utils.cpp
+          src/utils/timer-utils.hpp)
 
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})

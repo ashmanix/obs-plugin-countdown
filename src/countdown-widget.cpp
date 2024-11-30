@@ -94,7 +94,7 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 
 	obs_websocket_vendor_register_request(
 		vendor, "get_timer_state", GetTimerStateViaWebsocket,
-		new WebsocketCallbackData{this,GET_TIME, NULL, "timer_id"});
+		new WebsocketCallbackData{this, GET_TIME, NULL, "timer_id"});
 
 	obs_websocket_vendor_register_request(
 		vendor, "add_time", ChangeTimerTimeViaWebsocket,
@@ -544,7 +544,7 @@ void CountdownDockWidget::GetTimerStateViaWebsocket(obs_data_t *request_data,
 				 timerData->timeLeftInMillis);
 
 		obs_data_set_string(response_data, "timer_id",
-				 timerData->timerId.toStdString().c_str());
+				    timerData->timerId.toStdString().c_str());
 
 		obs_data_set_bool(response_data, "success", true);
 

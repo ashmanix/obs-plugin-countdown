@@ -33,7 +33,8 @@ public:
 	QPushButton *GetDeleteButton();
 	TimerWidgetStruct *GetTimerData();
 	void SetTimerData(TimerWidgetStruct newData);
-	bool AlterTime(WebsocketRequestType requestType, long long timeInMillis);
+	bool AlterTime(WebsocketRequestType requestType,
+		       long long timeInMillis);
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
@@ -47,14 +48,14 @@ private:
 
 	void SetupTimerWidgetUI();
 	void ConnectUISignalHandlers();
-	
+
 	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis,
 							bool showLeadingZero);
 	void StartTimerCounting();
 	void StopTimerCounting();
 	void InitialiseTimerTime();
 	bool IsSetTimeZero();
-	
+
 	void UpdateDateTimeDisplay(long long timeInMillis);
 	void SetSourceText(QString newText);
 	void SetCurrentScene();
@@ -66,12 +67,11 @@ private:
 	void SendTimerTickEvent(QString timerId, long long timeLeftInMillis);
 	void SendTimerStateEvent(QString timerId, const char *state);
 
-
-
 signals:
 	void RequestTimerReset();
 	void RequestDelete(QString id);
-	void RequestSendWebsocketEvent(const char *eventName, obs_data_t *eventData);
+	void RequestSendWebsocketEvent(const char *eventName,
+				       obs_data_t *eventData);
 
 public slots:
 	void PlayButtonClicked();

@@ -10,7 +10,7 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, QString id,
 	ui->setupUi(this);
 	countdownTimerData.timerId = id;
 	this->setProperty("id", countdownTimerData.timerId);
-	vendor = vendor;
+	vendor = &vendor;
 
 #if __APPLE__
 	// ui->hsDaysLeft->changeSize(0, 20, QSizePolicy::Fixed,
@@ -81,6 +81,54 @@ void AshmanixTimer::SetTimerData(TimerWidgetStruct newData)
 	ui->timerNameLabel->setText(
 		QString("Timer: %1").arg(countdownTimerData.timerId));
 	InitialiseTimerTime();
+}
+
+bool AshmanixTimer::AlterTime(WebsocketRequestType requestType,
+			      long long timeInMillis)
+{
+	bool result = false;
+
+	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+		switch (requestType) {
+		case ADD_TIME:
+			countdownTimerData.timeLeftInMillis += timeInMillis;
+			break;
+		case SET_TIME:
+			countdownTimerData.timeLeftInMillis = timeInMillis;
+			break;
+			break;
+		default:
+			return false;
+			break;
+		}
+
+		UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
+		result = true;
+	} else if (ui->countdownTypeTabWidget->currentIndex() == 1) {
+		QDateTime updatedDateTime;
+
+		switch (requestType) {
+		case ADD_TIME:
+			updatedDateTime = ui->dateTimeEdit->dateTime().addMSecs(
+				timeInMillis);
+			ui->dateTimeEdit->setDateTime(updatedDateTime);
+			break;
+		case SET_TIME:
+			updatedDateTime = QDateTime::currentDateTime().addMSecs(
+				timeInMillis);
+			ui->dateTimeEdit->setDateTime(updatedDateTime);
+			break;
+		default:
+			return false;
+			break;
+		}
+		long long new_time = CalcToCurrentDateTimeInMillis(
+			ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
+		UpdateDateTimeDisplay(new_time);
+		result = true;
+	}
+	emit RequestTimerReset();
+	return result;
 }
 
 void AshmanixTimer::SetupTimerWidgetUI()
@@ -340,14 +388,18 @@ long long AshmanixTimer::GetMillisFromPeriodUI()
 	return days_ms + hours_ms + minutes_ms + seconds_ms;
 }
 
-void AshmanixTimer::SendWebsocketEvent(const char *eventName,
-				       obs_data_t *eventData)
+void AshmanixTimer::RegisterWebsocketRequests()
 {
-	if (!vendor)
-		return;
+	// obs_websocket_vendor_register_request(
+	// 	vendor, "add_time", ChangeTimerTimeViaWebsocket,
+	// 	new WebsocketCallbackData{this, ADD_TIME, "time_to_add"});
 
-	obs_websocket_vendor_emit_event(vendor, eventName, eventData);
+	// obs_websocket_vendor_register_request(
+	// 	vendor, "set_time", ChangeTimerTimeViaWebsocket,
+	// 	new WebsocketCallbackData{this, SET_TIME, "time_to_set"});
 }
+
+void AshmanixTimer::UnregisterWebsocketRequests() {}
 
 void AshmanixTimer::SendTimerTickEvent(QString timerId,
 				       long long timeLeftInMillis)
@@ -364,7 +416,7 @@ void AshmanixTimer::SendTimerTickEvent(QString timerId,
 			    timeString.toStdString().c_str());
 	obs_data_set_int(eventData, "time_left_ms", timeLeftInMillis);
 
-	SendWebsocketEvent("timer_tick", eventData);
+	emit RequestSendWebsocketEvent("const char *eventName", eventData);
 	obs_data_release(eventData);
 }
 
@@ -381,9 +433,11 @@ void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
 			countdownTimerData.selectedSource.toStdString().c_str());
 	}
 
-	SendWebsocketEvent("timer_state_changed", eventData);
+	emit RequestSendWebsocketEvent("timer_state_changed", eventData);
 	obs_data_release(eventData);
 }
+
+// --------------------------------- Public Slots ----------------------------------
 
 void AshmanixTimer::PlayButtonClicked()
 {
@@ -455,6 +509,8 @@ void AshmanixTimer::ToTimeStopButtonClicked()
 	StopTimerCounting();
 }
 
+// ------------------------------- Private Slots ----------------------------------
+
 void AshmanixTimer::CountdownTypeTabChanged(int index)
 {
 	countdownTimerData.countdownTypeSelectedTab = index;
@@ -478,10 +534,6 @@ void AshmanixTimer::SettingsButtonClicked()
 
 void AshmanixTimer::DeleteButtonClicked()
 {
-	// obs_log(LOG_INFO, (QString("Delete button clicked for Timer %1")
-	// 			   .arg(countdownTimerData.timerId))
-	// 			  .toStdString()
-	// 			  .c_str());
 	emit RequestDelete(countdownTimerData.timerId);
 }
 

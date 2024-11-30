@@ -29,11 +29,11 @@ public:
 			       obs_websocket_vendor vendor = nullptr);
 	~AshmanixTimer();
 
-	enum WebsocketRequestType { ADD_TIME = 1, SET_TIME = 2 };
 	QString GetTimerID();
 	QPushButton *GetDeleteButton();
 	TimerWidgetStruct *GetTimerData();
 	void SetTimerData(TimerWidgetStruct newData);
+	bool AlterTime(WebsocketRequestType requestType, long long timeInMillis);
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
@@ -46,29 +46,34 @@ private:
 	SettingsDialog *settingsDialogUi = nullptr;
 
 	void SetupTimerWidgetUI();
+	void ConnectUISignalHandlers();
+	
+	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis,
+							bool showLeadingZero);
 	void StartTimerCounting();
 	void StopTimerCounting();
 	void InitialiseTimerTime();
-	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis,
-							bool showLeadingZero);
 	bool IsSetTimeZero();
+	
 	void UpdateDateTimeDisplay(long long timeInMillis);
 	void SetSourceText(QString newText);
 	void SetCurrentScene();
 	long long GetMillisFromPeriodUI();
 
-	void SendWebsocketEvent(const char *eventName, obs_data_t *eventData);
+	void RegisterWebsocketRequests();
+	void UnregisterWebsocketRequests();
+
 	void SendTimerTickEvent(QString timerId, long long timeLeftInMillis);
 	void SendTimerStateEvent(QString timerId, const char *state);
 
-	void ConnectUISignalHandlers();
+
 
 signals:
 	void RequestTimerReset();
 	void RequestDelete(QString id);
+	void RequestSendWebsocketEvent(const char *eventName, obs_data_t *eventData);
 
-private slots:
-	// void DeleteRequested();
+public slots:
 	void PlayButtonClicked();
 	void PauseButtonClicked();
 	void ResetButtonClicked();
@@ -76,6 +81,7 @@ private slots:
 	void ToTimePlayButtonClicked();
 	void ToTimeStopButtonClicked();
 
+private slots:
 	void CountdownTypeTabChanged(int index);
 
 	void SettingsButtonClicked();

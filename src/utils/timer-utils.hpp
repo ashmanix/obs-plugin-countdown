@@ -42,6 +42,8 @@ struct TimerWidgetStruct {
 	int stopCountdownToTimeHotkeyId = -1;
 };
 
+enum WebsocketRequestType { ADD_TIME = 1, SET_TIME = 2, GET_TIME = 3 };
+
 const char *ConvertToConstChar(QString value);
 long long ConvertStringPeriodToMillis(const char *time_string);
 QString ConvertMillisToDateTimeString(long long timeInMillis);

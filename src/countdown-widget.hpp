@@ -56,18 +56,19 @@ public:
 	~CountdownDockWidget();
 	void ConfigureWebSocketConnection();
 
-	enum WebsocketRequestType { ADD_TIME = 1, SET_TIME = 2 };
 	struct WebsocketCallbackData {
 		CountdownDockWidget *instance;
 		WebsocketRequestType requestType;
 		const char *requestDataKey;
+		const char *requestTimerIdKey;
 	};
 
 private:
 	QMap<QString, AshmanixTimer *> timerWidgetMap;
 	QVBoxLayout *timerListLayout;
 
-	// enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
+	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
+
 	static const int COUNTDOWNPERIOD = 1000;
 	static char const ZEROSTRING[];
 	static inline const char *VENDORNAME = "ashmanix-countdown-timer";
@@ -77,21 +78,24 @@ private:
 
 	void SetupCountdownWidgetUI();
 	void ConnectUISignalHandlers();
+	void ConnectTimerSignalHandlers(AshmanixTimer *timerWidget);
 	void SaveSettings();
 	void RegisterHotkeys();
 	void UnregisterHotkeys();
 	void AddTimer(TimerWidgetStruct timerData);
 
-	void SendWebsocketEvent(const char *eventName, obs_data_t *eventData);
-	void SendTimerTickEvent(long long timeLeftInMillis);
-	void SendTimerStateEvent(const char *state);
+	// void SendWebsocketEvent(const char *eventName, obs_data_t *eventData);
 
 	static void OBSFrontendEventHandler(enum obs_frontend_event event,
 					    void *private_data);
 	static void LoadSavedSettings(CountdownDockWidget *timerWidgetMap);
-	// static void ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
-	// obs_data_t *response_data,
-	// void *priv_data);
+	static void ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
+						obs_data_t *response_data,
+						void *priv_data);
+	static void GetTimerStateViaWebsocket(obs_data_t *request_data,
+					      obs_data_t *response_data,
+					      void *priv_data);
+
 signals:
 	void RequestTimerReset();
 
@@ -100,6 +104,8 @@ private slots:
 	void RemoveTimerButtonClicked(QString id);
 
 	void HandleTimerReset();
+	void HandleWebsocketSendEvent(const char *eventName,
+				      obs_data_t *eventData);
 };
 
 #endif // COUNTDOWNWIDGET_H

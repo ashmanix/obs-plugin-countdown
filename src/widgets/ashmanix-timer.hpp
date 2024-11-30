@@ -29,42 +29,11 @@ public:
 			       obs_websocket_vendor vendor = nullptr);
 	~AshmanixTimer();
 
-	struct TimerWidgetStruct {
-		QString timerId;
-		bool isPlaying;
-		bool shouldCountUp = false;
-		bool showLeadingZero = true;
-		QString selectedSource = "";
-		QString selectedScene = "";
-		QString endMessage = "";
-		QTimer *timer;
-		QDateTime dateTime;
-
-		bool showDays = true;
-		bool showHours = true;
-		bool showMinutes = true;
-		bool showSeconds = true;
-		bool showEndMessage = false;
-		bool showEndSource = false;
-
-		long long timeLeftInMillis = 0;
-		QDateTime timeToCountUpToStart;
-
-		QTabWidget *countdownTypeTabWidget;
-
-		std::string textSourceNameText;
-		std::string sceneSourceNameText;
-
-		int startCountdownHotkeyId = -1;
-		int pauseCountdownHotkeyId = -1;
-		int setCountdownHotkeyId = -1;
-		int startCountdownToTimeHotkeyId = -1;
-		int stopCountdownToTimeHotkeyId = -1;
-	};
-
 	enum WebsocketRequestType { ADD_TIME = 1, SET_TIME = 2 };
 	QString GetTimerID();
 	QPushButton *GetDeleteButton();
+	TimerWidgetStruct *GetTimerData();
+	void SetTimerData(TimerWidgetStruct newData);
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
@@ -72,17 +41,17 @@ private:
 	static inline const char *ZEROSTRING = "00:00:00:00";
 	obs_websocket_vendor vendor = nullptr;
 
-	TimerWidgetStruct *countdownTimerData;
+	TimerWidgetStruct countdownTimerData;
 	Ui::AshmanixTimer *ui;
 	SettingsDialog *settingsDialogUi = nullptr;
 
-	void SetupTimerWidgetUI(TimerWidgetStruct *context);
-	void StartTimerCounting(TimerWidgetStruct *context);
-	void StopTimerCounting(TimerWidgetStruct *context);
-	void InitialiseTimerTime(TimerWidgetStruct *context);
+	void SetupTimerWidgetUI();
+	void StartTimerCounting();
+	void StopTimerCounting();
+	void InitialiseTimerTime();
 	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis,
 							bool showLeadingZero);
-	bool IsSetTimeZero(TimerWidgetStruct *context);
+	bool IsSetTimeZero();
 	void UpdateDateTimeDisplay(long long timeInMillis);
 	void SetSourceText(QString newText);
 	void SetCurrentScene();
@@ -107,11 +76,19 @@ private slots:
 	void ToTimePlayButtonClicked();
 	void ToTimeStopButtonClicked();
 
+	void CountdownTypeTabChanged(int index);
+
 	void SettingsButtonClicked();
 	void DeleteButtonClicked();
 
 	void TimerAdjust();
 	void HandleTimerReset();
+
+	void DaysChanged(QString newText);
+	void HoursChanged(QString newText);
+	void MinutesChanged(QString newText);
+	void SecondsChanged(QString newText);
+	void DateTimeChanged(QDateTime newDateTime);
 };
 
 #endif // ASHMANIXTIMER_H

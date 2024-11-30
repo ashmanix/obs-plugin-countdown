@@ -13,13 +13,9 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	SetupCountdownWidgetUI();
 	resize(300, 380);
 
-	obs_frontend_add_event_callback(OBSFrontendEventHandler, ui);
+	obs_frontend_add_event_callback(OBSFrontendEventHandler, this);
 
 	ConnectUISignalHandlers();
-
-	ConnectObsSignalHandlers();
-
-	// InitialiseTimerTime(countdownTimerData);
 
 	RegisterHotkeys();
 }
@@ -448,552 +444,139 @@ void CountdownDockWidget::UnregisterHotkeys()
 	// 		countdownTimerData->stopCountdownToTimeHotkeyId);
 }
 
-// void CountdownDockWidget::StartTimerCounting(CountdownWidgetStruct *context)
-// {
-// 	context->isPlaying = true;
-// 	context->timer->start(COUNTDOWNPERIOD);
-// 	ui->playButton->setEnabled(false);
-// 	ui->pauseButton->setEnabled(true);
-// 	ui->resetButton->setEnabled(false);
+void CountdownDockWidget::AddTimer(
+	TimerWidgetStruct timerData = TimerWidgetStruct())
+{
+	QString newId;
 
-// 	ui->toTimePlayButton->setEnabled(false);
-// 	ui->toTimeStopButton->setEnabled(true);
+	if (!timerData.timerId.isEmpty()) {
+		newId = timerData.timerId;
+	} else {
+		// Create a unique ID for the timer
+		QUuid uuid = QUuid::createUuid();
+		QByteArray hash = QCryptographicHash::hash(
+			uuid.toByteArray(), QCryptographicHash::Md5);
+		newId = QString(hash.toHex().left(
+			8)); // We take the first 8 characters of the hash
+	}
 
-// 	ui->timerDays->setEnabled(false);
-// 	ui->daysCheckBox->setEnabled(false);
-// 	ui->timerHours->setEnabled(false);
-// 	ui->hoursCheckBox->setEnabled(false);
-// 	ui->timerMinutes->setEnabled(false);
-// 	ui->minutesCheckBox->setEnabled(false);
-// 	ui->timerSeconds->setEnabled(false);
-// 	ui->secondsCheckBox->setEnabled(false);
-// 	ui->leadZeroCheckBox->setEnabled(false);
-// 	ui->countUpCheckBox->setEnabled(false);
+	AshmanixTimer *newTimer = new AshmanixTimer(this, newId, vendor);
 
-// 	ui->textSourceDropdownList->setEnabled(false);
-// 	ui->textSourceDropdownLabel->setEnabled(false);
-// 	ui->endMessageLineEdit->setEnabled(false);
-// 	ui->sceneSourceDropdownList->setEnabled(false);
-// 	ui->endMessageCheckBox->setEnabled(false);
-// 	ui->switchSceneCheckBox->setEnabled(false);
+	// Set timer data if provided
+	newTimer->SetTimerData(timerData);
 
-// 	ui->countdownTypeTabWidget->tabBar()->setEnabled(false);
-// 	ui->dateTimeEdit->setEnabled(false);
+	timerWidgetMap.insert(newId, newTimer);
+	connect(newTimer, &AshmanixTimer::RequestDelete, this,
+		&CountdownDockWidget::RemoveTimerButtonClicked);
 
-// 	SendTimerStateEvent("started");
-// }
-
-// void CountdownDockWidget::StopTimerCounting(CountdownWidgetStruct *context)
-// {
-// 	context->isPlaying = false;
-// 	context->timer->stop();
-// 	ui->playButton->setEnabled(true);
-// 	ui->pauseButton->setEnabled(false);
-// 	ui->resetButton->setEnabled(true);
-
-// 	ui->toTimePlayButton->setEnabled(true);
-// 	ui->toTimeStopButton->setEnabled(false);
-
-// 	ui->timerDays->setEnabled(true);
-// 	ui->daysCheckBox->setEnabled(true);
-// 	ui->timerHours->setEnabled(true);
-// 	ui->hoursCheckBox->setEnabled(true);
-// 	ui->timerMinutes->setEnabled(true);
-// 	ui->minutesCheckBox->setEnabled(true);
-// 	ui->timerSeconds->setEnabled(true);
-// 	ui->secondsCheckBox->setEnabled(true);
-// 	ui->leadZeroCheckBox->setEnabled(true);
-// 	ui->countUpCheckBox->setEnabled(true);
-
-// 	ui->textSourceDropdownList->setEnabled(true);
-// 	ui->textSourceDropdownLabel->setEnabled(true);
-
-// 	ui->endMessageCheckBox->setEnabled(true);
-// 	if (ui->endMessageCheckBox->isChecked()) {
-// 		ui->endMessageLineEdit->setEnabled(true);
-// 	}
-// 	ui->switchSceneCheckBox->setEnabled(true);
-// 	if (ui->switchSceneCheckBox->isChecked()) {
-// 		ui->sceneSourceDropdownList->setEnabled(true);
-// 	}
-
-// 	ui->countdownTypeTabWidget->tabBar()->setEnabled(true);
-// 	ui->dateTimeEdit->setEnabled(true);
-
-// 	SendTimerStateEvent("stopped");
-// }
-
-// void CountdownDockWidget::TimerAdjust()
-// {
-// 	CountdownWidgetStruct *context = countdownTimerData;
-// 	// Flag for ending timer
-// 	bool endTimer = false;
-// 	bool isCountingDown = !ui->countUpCheckBox->isChecked();
-// 	long long timerPeriodMillis = context->timeLeftInMillis;
-
-// 	if (isCountingDown) {
-// 		// Counting down
-// 		if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-// 			// If selected tab is period
-// 			timerPeriodMillis -= COUNTDOWNPERIOD;
-// 		} else {
-// 			// If selected tab is datetime
-// 			timerPeriodMillis = CalcToCurrentDateTimeInMillis(
-// 				ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
-// 		}
-// 		if (timerPeriodMillis < COUNTDOWNPERIOD)
-// 			endTimer = true;
-// 	} else {
-// 		// When counting up always add to current timer
-
-// 		// Check if we need to end timer
-// 		if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-// 			timerPeriodMillis += COUNTDOWNPERIOD;
-// 			// If selected tab is period
-// 			if (timerPeriodMillis >= GetMillisFromPeriodUI())
-// 				endTimer = true;
-// 		} else {
-// 			timerPeriodMillis =
-// 				context->timeToCountUpToStart.msecsTo(
-// 					QDateTime::currentDateTime());
-// 			// If selected tab is datetime
-// 			if ((context->timeToCountUpToStart.msecsTo(
-// 				    ui->dateTimeEdit->dateTime())) -
-// 				    timerPeriodMillis <=
-// 			    COUNTDOWNPERIOD)
-// 				endTimer = true;
-// 		}
-// 	}
-
-// 	context->timeLeftInMillis = timerPeriodMillis;
-// 	UpdateDateTimeDisplay(context->timeLeftInMillis);
-
-// 	// Send tick event
-// 	SendTimerTickEvent(context->timeLeftInMillis);
-
-// 	if (endTimer == true) {
-// 		QString endMessageText = ui->endMessageLineEdit->text();
-// 		if (ui->endMessageCheckBox->isChecked()) {
-// 			SetSourceText(endMessageText.toStdString().c_str());
-// 		}
-// 		if (ui->switchSceneCheckBox->isChecked()) {
-// 			SetCurrentScene();
-// 		}
-// 		if (isCountingDown) {
-// 			ui->timeDisplay->display(
-// 				CountdownDockWidget::ZEROSTRING);
-// 			context->timeLeftInMillis = 0;
-// 		} else {
-// 			if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-// 				context->timeLeftInMillis =
-// 					GetMillisFromPeriodUI();
-// 			} else {
-// 				context->timeLeftInMillis =
-// 					context->timeToCountUpToStart.msecsTo(
-// 						ui->dateTimeEdit->dateTime());
-// 			}
-// 			UpdateDateTimeDisplay(context->timeLeftInMillis);
-// 		}
-// 		// Send completion event
-// 		SendTimerStateEvent("completed");
-// 		StopTimerCounting(context);
-// 		return;
-// 	}
-// }
-
-// QString CountdownDockWidget::ConvertDateTimeToFormattedDisplayString(
-// 	long long timeInMillis, bool showLeadingZero)
-// {
-// 	int daysState = ui->daysCheckBox->checkState();
-// 	int hoursState = ui->hoursCheckBox->checkState();
-// 	int minutesState = ui->minutesCheckBox->checkState();
-// 	int secondsState = ui->secondsCheckBox->checkState();
-
-// 	QString formattedDateTimeString = GetFormattedTimerString(
-// 		daysState, hoursState, minutesState, secondsState,
-// 		showLeadingZero, timeInMillis);
-
-// 	return (formattedDateTimeString == "") ? "Nothing selected!"
-// 					       : formattedDateTimeString;
-// }
-
-// void CountdownDockWidget::UpdateDateTimeDisplay(long long timeInMillis)
-// {
-// 	ui->timeDisplay->display(ConvertMillisToDateTimeString(timeInMillis));
-// 	QString formattedDisplayTime = ConvertDateTimeToFormattedDisplayString(
-// 		timeInMillis, ui->leadZeroCheckBox->checkState());
-// 	SetSourceText(formattedDisplayTime);
-// }
-
-// void CountdownDockWidget::SetSourceText(QString newText)
-// {
-
-// 	QString currentSourceNameString =
-// 		ui->textSourceDropdownList->currentText();
-
-// 	obs_source_t *selectedSource = obs_get_source_by_name(
-// 		currentSourceNameString.toStdString().c_str());
-
-// 	if (selectedSource != NULL) {
-// 		obs_data_t *sourceSettings =
-// 			obs_source_get_settings(selectedSource);
-// 		obs_data_set_string(sourceSettings, "text",
-// 				    newText.toStdString().c_str());
-// 		obs_source_update(selectedSource, sourceSettings);
-// 		obs_data_release(sourceSettings);
-// 		obs_source_release(selectedSource);
-// 	}
-// }
+	timerListLayout->addWidget(newTimer);
+}
 
 void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
 						  void *private_data)
 {
 
-	Ui::CountdownTimer *ui = (Ui::CountdownTimer *)private_data;
+	CountdownDockWidget *countdownDockWidget =
+		(CountdownDockWidget *)private_data;
 
 	switch (event) {
 	case OBS_FRONTEND_EVENT_FINISHED_LOADING: {
 		// CountdownDockWidget::ConnectUISignalHandlers(context);
-		CountdownDockWidget::LoadSavedSettings(ui);
+		CountdownDockWidget::LoadSavedSettings(countdownDockWidget);
 	} break;
 	default:
 		break;
 	}
 }
 
-void CountdownDockWidget::ConnectObsSignalHandlers()
+void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 {
-	// Source Signals
-	signal_handler_connect(obs_get_signal_handler(), "source_create",
-			       OBSSourceCreated, ui);
+	UNUSED_PARAMETER(dockWidget);
+	char *file = obs_module_config_path(CONFIG);
+	obs_data_t *data = nullptr;
+	if (file) {
+		data = obs_data_create_from_json_file(file);
+		bfree(file);
+	}
+	if (data) {
+		// Get Save Data
+		obs_data_array_t *timersArray =
+			obs_data_get_array(data, "timer_widgets");
+		if (timersArray) {
+			int count = obs_data_array_count(timersArray);
+			for (int i = 0; i < count; ++i) {
+				obs_data_t *timerDataObj =
+					obs_data_array_item(timersArray, i);
+				TimerWidgetStruct timerWidgetData =
+					TimerWidgetStruct();
+				LoadTimerWidgetDataFromOBSSaveData(
+					timerDataObj, &timerWidgetData);
+				dockWidget->AddTimer(timerWidgetData);
+			}
+		}
+		// 	const char *jsonString =
+		// 		obs_data_get_string(data, "timer_data");
+		// 	if (jsonString) {
+		// 		QJsonDocument jsonDoc =
+		// 			QJsonDocument::fromJson(QByteArray(jsonString));
+		// 		QJsonArray jsonArray = jsonDoc.array();
 
-	signal_handler_connect(obs_get_signal_handler(), "source_destroy",
-			       OBSSourceDeleted, ui);
+		// 		for (const QJsonValue value : jsonArray) {
+		// 			QJsonObject obj = value.toObject();
+		// 			QString widgetKey = obj["key"].toString();
 
-	signal_handler_connect(obs_get_signal_handler(), "source_rename",
-			       OBSSourceRenamed, ui);
-}
-
-void CountdownDockWidget::OBSSourceCreated(void *param, calldata_t *calldata)
-{
-	UNUSED_PARAMETER(param);
-	UNUSED_PARAMETER(calldata);
-	// auto ui = static_cast<Ui::CountdownTimer *>(param);
-	// obs_source_t *source;
-	// calldata_get_ptr(calldata, "source", &source);
-
-	// if (!source)
-	// 	return;
-	// int sourceType = CheckSourceType(source);
-	// // If not sourceType we need;
-	// if (!sourceType)
-	// 	return;
-
-	// const char *name = obs_source_get_name(source);
-
-	// if (sourceType == TEXT_SOURCE) {
-	// 	ui->textSourceDropdownList->addItem(name);
-	// } else if (sourceType == SCENE_SOURCE) {
-	// 	ui->sceneSourceDropdownList->addItem(name);
-	// }
-};
-
-void CountdownDockWidget::OBSSourceDeleted(void *param, calldata_t *calldata)
-{
-	UNUSED_PARAMETER(param);
-	UNUSED_PARAMETER(calldata);
-	// auto ui = static_cast<Ui::CountdownTimer *>(param);
-
-	// obs_source_t *source;
-
-	// calldata_get_ptr(calldata, "source", &source);
-
-	// if (!source)
-	// 	return;
-	// int sourceType = CheckSourceType(source);
-	// // If not sourceType we need;
-	// if (!sourceType)
-	// 	return;
-
-	// const char *name = obs_source_get_name(source);
-
-	// if (sourceType == TEXT_SOURCE) {
-	// 	int textIndexToRemove =
-	// 		ui->textSourceDropdownList->findText(name);
-	// 	ui->textSourceDropdownList->removeItem(textIndexToRemove);
-	// } else if (sourceType == SCENE_SOURCE) {
-	// 	int sceneIndexToRemove =
-	// 		ui->sceneSourceDropdownList->findText(name);
-	// 	ui->sceneSourceDropdownList->removeItem(sceneIndexToRemove);
-	// }
-};
-
-void CountdownDockWidget::OBSSourceRenamed(void *param, calldata_t *calldata)
-{
-	UNUSED_PARAMETER(param);
-	UNUSED_PARAMETER(calldata);
-	// auto ui = static_cast<Ui::CountdownTimer *>(param);
-
-	// obs_source_t *source;
-	// calldata_get_ptr(calldata, "source", &source);
-
-	// if (!source)
-	// 	return;
-	// int sourceType = CheckSourceType(source);
-	// // If not sourceType we need;
-	// if (!sourceType)
-	// 	return;
-
-	// const char *newName = calldata_string(calldata, "new_name");
-	// const char *oldName = calldata_string(calldata, "prev_name");
-
-	// if (sourceType == TEXT_SOURCE) {
-	// 	int textListIndex =
-	// 		ui->textSourceDropdownList->findText(oldName);
-	// 	if (textListIndex == -1)
-	// 		return;
-	// 	ui->textSourceDropdownList->setItemText(textListIndex, newName);
-	// } else if (sourceType == SCENE_SOURCE) {
-	// 	int sceneListIndex =
-	// 		ui->sceneSourceDropdownList->findText(oldName);
-	// 	if (sceneListIndex == -1)
-	// 		return;
-	// 	ui->sceneSourceDropdownList->setItemText(sceneListIndex,
-	// 						 newName);
-	// }
-};
-
-int CountdownDockWidget::CheckSourceType(obs_source_t *source)
-{
-	UNUSED_PARAMETER(source);
-	// const char *source_id = obs_source_get_unversioned_id(source);
-	// if (strcmp(source_id, "text_ft2_source") == 0 ||
-	//     strcmp(source_id, "text_gdiplus") == 0 ||
-	//     strcmp(source_id, "text_pango_source") == 0) {
-	// 	return TEXT_SOURCE;
-	// } else if (strcmp(source_id, "scene") == 0) {
-	// 	return SCENE_SOURCE;
-	// }
-	return 0;
-}
-
-// void CountdownDockWidget::EndMessageCheckBoxSelected(int state)
-// {
-// 	if (state) {
-// 		ui->endMessageLineEdit->setEnabled(true);
-// 	} else {
-// 		ui->endMessageLineEdit->setEnabled(false);
-// 	}
-// }
-
-// void CountdownDockWidget::SceneSwitchCheckBoxSelected(int state)
-// {
-// 	if (state) {
-// 		ui->sceneSourceDropdownList->setEnabled(true);
-// 	} else {
-// 		ui->sceneSourceDropdownList->setEnabled(false);
-// 	}
-// }
-
-void CountdownDockWidget::SetCurrentScene()
-{
-	// QString selectedScene = ui->sceneSourceDropdownList->currentText();
-	// if (selectedScene.length()) {
-	// 	obs_source_t *source = obs_get_source_by_name(
-	// 		selectedScene.toStdString().c_str());
-	// 	if (source != NULL) {
-	// 		obs_frontend_set_current_scene(source);
-	// 		obs_source_release(source);
-	// 	}
-	// }
-}
-
-void CountdownDockWidget::LoadSavedSettings(Ui::CountdownTimer *ui)
-{
-	UNUSED_PARAMETER(ui);
-	// char *file = obs_module_config_path(CONFIG);
-	// obs_data_t *data = nullptr;
-	// if (file) {
-	// 	data = obs_data_create_from_json_file(file);
-	// 	bfree(file);
-	// }
-	// if (data) {
-	// 	// Get Save Data
-
-	// 	// Time
-	// 	int days = (int)obs_data_get_int(data, "days");
-	// 	int daysCheckBoxStatus =
-	// 		(int)obs_data_get_int(data, "daysCheckBoxStatus");
-
-	// 	int hours = (int)obs_data_get_int(data, "hours");
-	// 	int hoursCheckBoxStatus =
-	// 		(int)obs_data_get_int(data, "hoursCheckBoxStatus");
-
-	// 	int minutes = (int)obs_data_get_int(data, "minutes");
-	// 	int minutesCheckBoxStatus =
-	// 		(int)obs_data_get_int(data, "minutesCheckBoxStatus");
-
-	// 	int seconds = (int)obs_data_get_int(data, "seconds");
-
-	// 	int secondsCheckBoxStatus =
-	// 		(int)obs_data_get_int(data, "secondsCheckBoxStatus");
-
-	// 	int leadZeroCheckBoxStatus =
-	// 		(int)obs_data_get_int(data, "leadZeroCheckBoxStatus");
-
-	// 	int countUpCheckBoxStatus =
-	// 		(int)obs_data_get_int(data, "countUpCheckBoxStatus");
-
-	// 	// Selections
-	// 	const char *selectedTextSource =
-	// 		obs_data_get_string(data, "selectedTextSource");
-
-	// 	int endMessageCheckBoxStatus =
-	// 		(int)obs_data_get_int(data, "endMessageCheckBoxStatus");
-
-	// 	const char *endMessageText =
-	// 		obs_data_get_string(data, "endMessageText");
-
-	// 	int switchSceneCheckBoxStatus = (int)obs_data_get_int(
-	// 		data, "switchSceneCheckBoxStatus");
-
-	// 	const char *selectedSceneSource =
-	// 		obs_data_get_string(data, "selectedSceneSource");
-
-	// 	const char *countdownToTime =
-	// 		obs_data_get_string(data, "countdownToTime");
-
-	// 	int selectedTimerTabIndex =
-	// 		(int)obs_data_get_int(data, "selectedTimerTabIndex");
-
-	// 	// Apply saved data to plugin
-	// 	ui->timerDays->setText(QString::number(days));
-	// 	ui->daysCheckBox->setCheckState(
-	// 		(Qt::CheckState)daysCheckBoxStatus);
-
-	// 	ui->timerHours->setText(QString::number(hours));
-	// 	ui->hoursCheckBox->setCheckState(
-	// 		(Qt::CheckState)hoursCheckBoxStatus);
-
-	// 	ui->timerMinutes->setText(QString::number(minutes));
-	// 	ui->minutesCheckBox->setCheckState(
-	// 		(Qt::CheckState)minutesCheckBoxStatus);
-
-	// 	ui->timerSeconds->setText(QString::number(seconds));
-	// 	ui->secondsCheckBox->setCheckState(
-	// 		(Qt::CheckState)secondsCheckBoxStatus);
-
-	// 	ui->leadZeroCheckBox->setCheckState(
-	// 		(Qt::CheckState)leadZeroCheckBoxStatus);
-
-	// 	ui->countUpCheckBox->setCheckState(
-	// 		(Qt::CheckState)countUpCheckBoxStatus);
-
-	// 	ui->endMessageLineEdit->setText(endMessageText);
-
-	// 	ui->endMessageCheckBox->setCheckState(
-	// 		(Qt::CheckState)endMessageCheckBoxStatus);
-
-	// 	ui->switchSceneCheckBox->setCheckState(
-	// 		(Qt::CheckState)switchSceneCheckBoxStatus);
-
-	// 	QDateTime savedTime = QDateTime::fromString(countdownToTime);
-	// 	// If saved date is before current date then set date to today (while keeping same time)
-	// 	QDateTime currentTime = QDateTime::currentDateTime();
-
-	// 	if (currentTime > savedTime) {
-	// 		savedTime = savedTime.addDays(1);
-	// 		if (currentTime > savedTime)
-	// 			savedTime = savedTime.addDays(1);
-	// 	}
-
-	// 	ui->dateTimeEdit->setDateTime(savedTime);
-
-	// 	int textSelectIndex = ui->textSourceDropdownList->findText(
-	// 		selectedTextSource);
-	// 	if (textSelectIndex != -1)
-	// 		ui->textSourceDropdownList->setCurrentIndex(
-	// 			textSelectIndex);
-
-	// 	int sceneSelectIndex = ui->sceneSourceDropdownList->findText(
-	// 		selectedSceneSource);
-	// 	if (sceneSelectIndex != -1)
-	// 		ui->sceneSourceDropdownList->setCurrentIndex(
-	// 			sceneSelectIndex);
-	// 	if (selectedTimerTabIndex != -1)
-	// 		ui->countdownTypeTabWidget->setCurrentIndex(
-	// 			selectedTimerTabIndex);
-
-	// 	obs_data_release(data);
-	// }
+		// 			TimerWidgetStruct timerWidgetData =
+		// 				JsonToTimerWidgetStruct(obj);
+		// 			dockWidget->AddTimer(timerWidgetData);
+		// 		}
+		// }
+		obs_data_release(data);
+	}
 }
 
 void CountdownDockWidget::SaveSettings()
 {
-	// CountdownWidgetStruct *context = countdownTimerData;
+	obs_data_t *settings = obs_data_create();
+	obs_data_array_t *obsDataArray = obs_data_array_create();
 
-	// obs_data_t *obsData = obs_data_create();
+	QVBoxLayout *mainLayout = ui->timerMainLayout;
+	for (int i = 0; i < mainLayout->count(); ++i) {
+		QLayoutItem *item = mainLayout->itemAt(i);
+		if (item) {
+			AshmanixTimer *timerWidget =
+				qobject_cast<AshmanixTimer *>(item->widget());
+			if (timerWidget) {
+				TimerWidgetStruct *timerData =
+					timerWidget->GetTimerData();
+				if (timerData) {
+					obs_data_t *dataObject =
+						obs_data_create();
+					SaveTimerWidgetDataToOBSSaveData(
+						dataObject, timerData);
+					obs_data_array_push_back(obsDataArray,
+								 dataObject);
+					obs_data_release(dataObject);
+				}
+			}
+		}
+	}
 
-	// int days = ui->timerDays->text().toInt();
-	// obs_data_set_int(obsData, "days", days);
-	// int daysCheckBoxStatus = ui->daysCheckBox->checkState();
-	// obs_data_set_int(obsData, "daysCheckBoxStatus", daysCheckBoxStatus);
-
-	// int hours = ui->timerHours->text().toInt();
-	// obs_data_set_int(obsData, "hours", hours);
-	// int hoursCheckBoxStatus = ui->hoursCheckBox->checkState();
-	// obs_data_set_int(obsData, "hoursCheckBoxStatus", hoursCheckBoxStatus);
-
-	// int minutes = ui->timerMinutes->text().toInt();
-	// obs_data_set_int(obsData, "minutes", minutes);
-	// int minutesCheckBoxStatus = ui->minutesCheckBox->checkState();
-	// obs_data_set_int(obsData, "minutesCheckBoxStatus",
-	// 		 minutesCheckBoxStatus);
-
-	// int seconds = ui->timerSeconds->text().toInt();
-	// obs_data_set_int(obsData, "seconds", seconds);
-	// int secondsCheckBoxStatus = ui->secondsCheckBox->checkState();
-	// obs_data_set_int(obsData, "secondsCheckBoxStatus",
-	// 		 secondsCheckBoxStatus);
-
-	// int leadZeroCheckBoxStatus = ui->leadZeroCheckBox->checkState();
-	// obs_data_set_int(obsData, "leadZeroCheckBoxStatus",
-	// 		 leadZeroCheckBoxStatus);
-
-	// int countUpCheckBoxStatus = ui->countUpCheckBox->checkState();
-	// obs_data_set_int(obsData, "countUpCheckBoxStatus",
-	// 		 countUpCheckBoxStatus);
-
-	// obs_data_set_string(obsData, "selectedTextSource",
-	// 		    context->textSourceNameText.c_str());
-
-	// int endMessageCheckBoxStatus = ui->endMessageCheckBox->checkState();
-	// obs_data_set_int(obsData, "endMessageCheckBoxStatus",
-	// 		 endMessageCheckBoxStatus);
-
-	// QString endMessageLineEdit = ui->endMessageLineEdit->text();
-	// obs_data_set_string(obsData, "endMessageText",
-	// 		    endMessageLineEdit.toStdString().c_str());
-
-	// int switchSceneCheckBoxStatus = ui->switchSceneCheckBox->checkState();
-	// obs_data_set_int(obsData, "switchSceneCheckBoxStatus",
-	// 		 switchSceneCheckBoxStatus);
-
-	// obs_data_set_string(obsData, "selectedSceneSource",
-	// 		    context->sceneSourceNameText.c_str());
-
-	// QString countdownToTime = ui->dateTimeEdit->dateTime().toString();
-	// obs_data_set_string(obsData, "countdownToTime",
-	// 		    countdownToTime.toStdString().c_str());
-
-	// int selectedTimerTabIndex = ui->countdownTypeTabWidget->currentIndex();
-	// if (selectedTimerTabIndex != -1) {
-	// 	obs_data_set_int(obsData, "selectedTimerTabIndex",
-	// 			 selectedTimerTabIndex);
-	// };
-
-	// obs_data_set_int(obsData, "endMessageCheckBoxStatus",
-	// 		 endMessageCheckBoxStatus);
+	// Iterate over map of timers
+	// for (auto it = timerWidgetMap.cbegin(); it != timerWidgetMap.cend();
+	//      ++it) {
+	// 	AshmanixTimer *timerWidget = it.value();
+	// 	if (timerWidget) {
+	// 		TimerWidgetStruct *timerData =
+	// 			timerWidget->GetTimerData();
+	// 		if (timerData) {
+	// 			obs_data_t *dataObject = obs_data_create();
+	// 			SaveTimerWidgetDataToOBSSaveData(dataObject, timerData);
+	// 			obs_data_array_push_back(obsDataArray,
+	// 						 dataObject);
+	// 			obs_data_release(dataObject);
+	// 		}
+	// 	}
+	// }
 
 	// // Hotkeys
 	// auto SaveHotkey = [](obs_data_t *sv_data, obs_hotkey_id id,
@@ -1028,18 +611,18 @@ void CountdownDockWidget::SaveSettings()
 	// SaveHotkey(obsData, context->stopCountdownToTimeHotkeyId,
 	// 	   "Ashmanix_Countdown_Timer_To_Time_Stop");
 
-	// char *file = obs_module_config_path(CONFIG);
-	// if (!obs_data_save_json(obsData, file)) {
-	// 	char *path = obs_module_config_path("");
-	// 	if (path) {
-	// 		os_mkdirs(path);
-	// 		bfree(path);
-	// 	}
-	// 	obs_data_save_json(obsData, file);
-	// }
-	// obs_data_release(obsData);
-	// bfree(file);
-	// deleteLater();
+	obs_data_set_array(settings, "timer_widgets", obsDataArray);
+	char *file = obs_module_config_path(CONFIG);
+	if (!obs_data_save_json(settings, file)) {
+		char *path = obs_module_config_path("");
+		if (path) {
+			os_mkdirs(path);
+			bfree(path);
+		}
+		obs_data_save_json(settings, file);
+	}
+	obs_data_array_release(obsDataArray);
+	bfree(file);
 }
 
 void CountdownDockWidget::SendWebsocketEvent(const char *eventName,
@@ -1095,7 +678,7 @@ void CountdownDockWidget::AddTimerButtonClicked()
 		8)); // We take the first 8 characters of the hash
 
 	AshmanixTimer *newTimer = new AshmanixTimer(nullptr, newId, vendor);
-	timerWidgetMap.insert(newId, newTimer);
+	// timerWidgetMap.insert(newId, newTimer);
 	connect(newTimer, &AshmanixTimer::RequestDelete, this,
 		&CountdownDockWidget::RemoveTimerButtonClicked);
 
@@ -1113,20 +696,6 @@ void CountdownDockWidget::RemoveTimerButtonClicked(QString id)
 					  .toStdString()
 					  .c_str());
 	}
-}
-
-void CountdownDockWidget::HandleTextSourceChange(QString newText)
-{
-	UNUSED_PARAMETER(newText);
-	// std::string textSourceSelected = newText.toStdString();
-	// countdownTimerData->textSourceNameText = textSourceSelected;
-}
-
-void CountdownDockWidget::HandleSceneSourceChange(QString newText)
-{
-	UNUSED_PARAMETER(newText);
-	// std::string sceneSourceSelected = newText.toStdString();
-	// countdownTimerData->sceneSourceNameText = sceneSourceSelected;
 }
 
 void CountdownDockWidget::HandleTimerReset()

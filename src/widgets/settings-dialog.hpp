@@ -8,6 +8,7 @@
 #include <obs-module.h>
 
 #include "../plugin-support.h"
+#include "../utils/timer-utils.hpp"
 #include "../ui/ui_SettingsDialog.h"
 
 class SettingsDialog : public QDialog {
@@ -15,17 +16,22 @@ class SettingsDialog : public QDialog {
 
 public:
 	explicit SettingsDialog(QWidget *parent = nullptr,
-				QString timerId = "");
+				TimerWidgetStruct *tData = nullptr);
 	~SettingsDialog();
+
+	void SetCountUpCheckBoxEnabled(bool isEnabled);
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	Ui::SettingsDialog *ui;
+	TimerWidgetStruct *timerData;
 
-	void SetupDialogUI();
+	void SetupDialogUI(TimerWidgetStruct *timerData);
 	void GetOBSSourceList();
 	void ConnectUISignalHandlers();
 	void ConnectObsSignalHandlers();
+	void ApplyFormChanges();
+	void SetFormDetails(TimerWidgetStruct *timerData);
 
 	static bool GetTextSources(void *list_property, obs_source_t *source);
 	static void OBSSourceCreated(void *param, calldata_t *calldata);
@@ -37,6 +43,7 @@ private:
 signals:
 
 private slots:
+	void FormChangeDetected();
 	void EndMessageCheckBoxSelected(int state);
 	void SceneSwitchCheckBoxSelected(int state);
 	void ApplyButtonClicked();

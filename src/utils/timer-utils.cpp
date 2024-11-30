@@ -127,3 +127,110 @@ long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo,
 
 	return millisResult;
 }
+
+void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject,
+				      TimerWidgetStruct *timerData)
+{
+	obs_data_set_string(dataObject, "timerId",
+			    timerData->timerId.toStdString().c_str());
+	obs_data_set_bool(dataObject, "shouldCountUp",
+			  timerData->shouldCountUp);
+	obs_data_set_bool(dataObject, "showLeadingZero",
+			  timerData->showLeadingZero);
+
+	obs_data_set_string(dataObject, "selectedSource",
+			    timerData->selectedSource.toStdString().c_str());
+	obs_data_set_string(dataObject, "selectedScene",
+			    timerData->selectedScene.toStdString().c_str());
+	obs_data_set_string(dataObject, "endMessage",
+			    timerData->endMessage.toStdString().c_str());
+	obs_data_set_string(
+		dataObject, "dateTime",
+		timerData->dateTime.toString().toStdString().c_str());
+
+	obs_data_set_int(dataObject, "periodDays", timerData->periodDays);
+	obs_data_set_int(dataObject, "periodHours", timerData->periodHours);
+	obs_data_set_int(dataObject, "periodMinutes", timerData->periodMinutes);
+	obs_data_set_int(dataObject, "periodSeconds", timerData->periodSeconds);
+
+	obs_data_set_bool(dataObject, "showDays", timerData->showDays);
+	obs_data_set_bool(dataObject, "showHours", timerData->showHours);
+	obs_data_set_bool(dataObject, "showMinutes", timerData->showMinutes);
+	obs_data_set_bool(dataObject, "showSeconds", timerData->showSeconds);
+	obs_data_set_bool(dataObject, "showEndMessage",
+			  timerData->showEndMessage);
+	obs_data_set_bool(dataObject, "showEndScene", timerData->showEndScene);
+
+	obs_data_set_int(dataObject, "countdownTypeSelectedTab",
+			 timerData->countdownTypeSelectedTab);
+
+	obs_data_set_int(dataObject, "startCountdownHotkeyId",
+			 timerData->startCountdownHotkeyId);
+	obs_data_set_int(dataObject, "pauseCountdownHotkeyId",
+			 timerData->pauseCountdownHotkeyId);
+	obs_data_set_int(dataObject, "setCountdownHotkeyId",
+			 timerData->setCountdownHotkeyId);
+	obs_data_set_int(dataObject, "startCountdownToTimeHotkeyId",
+			 timerData->startCountdownToTimeHotkeyId);
+	obs_data_set_int(dataObject, "stopCountdownToTimeHotkeyId",
+			 timerData->stopCountdownToTimeHotkeyId);
+}
+
+void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject,
+					TimerWidgetStruct *timerData)
+{
+
+	timerData->timerId = (char *)obs_data_get_string(dataObject, "timerId");
+	timerData->shouldCountUp =
+		(bool)obs_data_get_bool(dataObject, "shouldCountUp");
+	timerData->showLeadingZero =
+		(bool)obs_data_get_bool(dataObject, "showLeadingZero");
+	timerData->selectedSource =
+		(char *)obs_data_get_string(dataObject, "selectedSource");
+	timerData->selectedScene =
+		(char *)obs_data_get_string(dataObject, "selectedScene");
+	timerData->endMessage =
+		(char *)obs_data_get_string(dataObject, "endMessage");
+
+	QDateTime savedTime = QDateTime::fromString(
+		(char *)obs_data_get_string(dataObject, "dateTime"));
+	QDateTime currentTime = QDateTime::currentDateTime();
+	if (currentTime > savedTime) {
+		savedTime = savedTime.addDays(1);
+		if (currentTime > savedTime)
+			savedTime = savedTime.addDays(1);
+	}
+	timerData->dateTime = savedTime;
+
+	timerData->periodDays = (int)obs_data_get_int(dataObject, "periodDays");
+	timerData->periodHours =
+		(int)obs_data_get_int(dataObject, "periodHours");
+	timerData->periodMinutes =
+		(int)obs_data_get_int(dataObject, "periodMinutes");
+	timerData->periodSeconds =
+		(int)obs_data_get_int(dataObject, "periodSeconds");
+
+	timerData->showDays = (bool)obs_data_get_bool(dataObject, "showDays");
+	timerData->showHours = (bool)obs_data_get_bool(dataObject, "showHours");
+	timerData->showMinutes =
+		(bool)obs_data_get_bool(dataObject, "showMinutes");
+	timerData->showSeconds =
+		(bool)obs_data_get_bool(dataObject, "showSeconds");
+	timerData->showEndMessage =
+		(bool)obs_data_get_bool(dataObject, "showEndMessage");
+	timerData->showEndScene =
+		(bool)obs_data_get_bool(dataObject, "showEndScene");
+	timerData->countdownTypeSelectedTab =
+		(int)obs_data_get_int(dataObject, "countdownTypeSelectedTab");
+
+	timerData->startCountdownHotkeyId =
+		(int)obs_data_get_int(dataObject, "startCountdownHotkeyId");
+	timerData->pauseCountdownHotkeyId =
+		(int)obs_data_get_int(dataObject, "pauseCountdownHotkeyId");
+	timerData->setCountdownHotkeyId =
+		(int)obs_data_get_int(dataObject, "setCountdownHotkeyId");
+	timerData->startCountdownToTimeHotkeyId = (int)obs_data_get_int(
+		dataObject, "startCountdownToTimeHotkeyId");
+	timerData->stopCountdownToTimeHotkeyId = (int)obs_data_get_int(
+		dataObject, "stopCountdownToTimeHotkeyId");
+}

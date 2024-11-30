@@ -5,11 +5,11 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, QString id,
 	: QWidget(parent),
 	  ui(new Ui::AshmanixTimer)
 {
-	countdownTimerData = new TimerWidgetStruct;
+	countdownTimerData = TimerWidgetStruct();
 
 	ui->setupUi(this);
-	countdownTimerData->timerId = id;
-	this->setProperty("id", countdownTimerData->timerId);
+	countdownTimerData.timerId = id;
+	this->setProperty("id", countdownTimerData.timerId);
 	vendor = vendor;
 
 #if __APPLE__
@@ -31,11 +31,11 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, QString id,
 	// 			       QSizePolicy::MinimumExpanding);
 #endif
 
-	SetupTimerWidgetUI(countdownTimerData);
+	SetupTimerWidgetUI();
 
 	ConnectUISignalHandlers();
 
-	InitialiseTimerTime(countdownTimerData);
+	InitialiseTimerTime();
 }
 
 AshmanixTimer::~AshmanixTimer()
@@ -45,7 +45,7 @@ AshmanixTimer::~AshmanixTimer()
 
 QString AshmanixTimer::GetTimerID()
 {
-	return countdownTimerData->timerId;
+	return countdownTimerData.timerId;
 }
 
 QPushButton *AshmanixTimer::GetDeleteButton()
@@ -53,11 +53,40 @@ QPushButton *AshmanixTimer::GetDeleteButton()
 	return ui->deleteButton;
 }
 
-void AshmanixTimer::SetupTimerWidgetUI(TimerWidgetStruct *countdownStruct)
+TimerWidgetStruct *AshmanixTimer::GetTimerData()
 {
-	TimerWidgetStruct *context = countdownStruct;
+	return &countdownTimerData;
+}
+
+void AshmanixTimer::SetTimerData(TimerWidgetStruct newData)
+{
+	ui->timerNameLabel->setText(QString("Timer: %1").arg(newData.timerId));
+
+	ui->dateTimeEdit->setDateTime(newData.dateTime);
+
+	ui->timerDays->setText(QString::number(newData.periodDays));
+	ui->timerHours->setText(QString::number(newData.periodHours));
+	ui->timerMinutes->setText(QString::number(newData.periodMinutes));
+	ui->timerSeconds->setText(QString::number(newData.periodSeconds));
+
+	obs_log(LOG_INFO, "Timer %s tab set to %d",
+		newData.timerId.toStdString().c_str(),
+		newData.countdownTypeSelectedTab);
+
+	ui->countdownTypeTabWidget->setCurrentIndex(
+		newData.countdownTypeSelectedTab);
+
+	countdownTimerData = newData;
+
 	ui->timerNameLabel->setText(
-		QString("Timer: %1").arg(countdownStruct->timerId));
+		QString("Timer: %1").arg(countdownTimerData.timerId));
+	InitialiseTimerTime();
+}
+
+void AshmanixTimer::SetupTimerWidgetUI()
+{
+	ui->timerNameLabel->setText(
+		QString("Timer: %1").arg(countdownTimerData.timerId));
 
 	ui->settingsButton->setProperty("themeID", "propertiesIconSmall");
 	ui->settingsButton->setText("");
@@ -123,7 +152,7 @@ void AshmanixTimer::SetupTimerWidgetUI(TimerWidgetStruct *countdownStruct)
 	ui->toTimeStopButton->setToolTip(
 		obs_module_text("ToTimeStopButtonTip"));
 
-	context->isPlaying = false;
+	countdownTimerData.isPlaying = false;
 }
 
 void AshmanixTimer::ConnectUISignalHandlers()
@@ -148,6 +177,25 @@ void AshmanixTimer::ConnectUISignalHandlers()
 
 	QObject::connect(ui->settingsButton, SIGNAL(clicked()),
 			 SLOT(SettingsButtonClicked()));
+
+	QObject::connect(ui->countdownTypeTabWidget,
+			 SIGNAL(currentChanged(int)),
+			 SLOT(CountdownTypeTabChanged(int)));
+
+	QObject::connect(ui->timerDays, SIGNAL(textEdited(QString)),
+			 SLOT(DaysChanged(QString)));
+
+	QObject::connect(ui->timerHours, SIGNAL(textEdited(QString)),
+			 SLOT(HoursChanged(QString)));
+
+	QObject::connect(ui->timerMinutes, SIGNAL(textEdited(QString)),
+			 SLOT(MinutesChanged(QString)));
+
+	QObject::connect(ui->timerSeconds, SIGNAL(textEdited(QString)),
+			 SLOT(SecondsChanged(QString)));
+
+	QObject::connect(ui->dateTimeEdit, SIGNAL(dateTimeChanged(QDateTime)),
+			 SLOT(DateTimeChanged(QDateTime)));
 }
 
 QString
@@ -156,18 +204,18 @@ AshmanixTimer::ConvertDateTimeToFormattedDisplayString(long long timeInMillis,
 {
 
 	QString formattedDateTimeString = GetFormattedTimerString(
-		countdownTimerData->showDays, countdownTimerData->showHours,
-		countdownTimerData->showMinutes,
-		countdownTimerData->showSeconds, showLeadingZero, timeInMillis);
+		countdownTimerData.showDays, countdownTimerData.showHours,
+		countdownTimerData.showMinutes, countdownTimerData.showSeconds,
+		showLeadingZero, timeInMillis);
 
 	return (formattedDateTimeString == "") ? "Nothing selected!"
 					       : formattedDateTimeString;
 }
 
-void AshmanixTimer::StartTimerCounting(TimerWidgetStruct *context)
+void AshmanixTimer::StartTimerCounting()
 {
-	context->isPlaying = true;
-	context->timer->start(COUNTDOWNPERIOD);
+	countdownTimerData.isPlaying = true;
+	countdownTimerData.timer->start(COUNTDOWNPERIOD);
 	ui->playButton->setEnabled(false);
 	ui->pauseButton->setEnabled(true);
 	ui->resetButton->setEnabled(false);
@@ -183,13 +231,16 @@ void AshmanixTimer::StartTimerCounting(TimerWidgetStruct *context)
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(false);
 	ui->dateTimeEdit->setEnabled(false);
 
-	SendTimerStateEvent(context->timerId, "started");
+	if (settingsDialogUi)
+		settingsDialogUi->SetCountUpCheckBoxEnabled(false);
+
+	SendTimerStateEvent(countdownTimerData.timerId, "started");
 }
 
-void AshmanixTimer::StopTimerCounting(TimerWidgetStruct *context)
+void AshmanixTimer::StopTimerCounting()
 {
-	context->isPlaying = false;
-	context->timer->stop();
+	countdownTimerData.isPlaying = false;
+	countdownTimerData.timer->stop();
 	ui->playButton->setEnabled(true);
 	ui->pauseButton->setEnabled(false);
 	ui->resetButton->setEnabled(true);
@@ -205,23 +256,26 @@ void AshmanixTimer::StopTimerCounting(TimerWidgetStruct *context)
 	ui->countdownTypeTabWidget->tabBar()->setEnabled(true);
 	ui->dateTimeEdit->setEnabled(true);
 
-	SendTimerStateEvent(context->timerId, "stopped");
+	if (settingsDialogUi)
+		settingsDialogUi->SetCountUpCheckBoxEnabled(true);
+
+	SendTimerStateEvent(countdownTimerData.timerId, "stopped");
 }
 
-void AshmanixTimer::InitialiseTimerTime(TimerWidgetStruct *context)
+void AshmanixTimer::InitialiseTimerTime()
 {
-	context->timer = new QTimer();
-	QObject::connect(context->timer, SIGNAL(timeout()),
+	countdownTimerData.timer = new QTimer();
+	QObject::connect(countdownTimerData.timer, SIGNAL(timeout()),
 			 SLOT(TimerAdjust()));
 
-	context->timeLeftInMillis = GetMillisFromPeriodUI();
+	countdownTimerData.timeLeftInMillis = GetMillisFromPeriodUI();
 }
 
-bool AshmanixTimer::IsSetTimeZero(TimerWidgetStruct *context)
+bool AshmanixTimer::IsSetTimeZero()
 {
 	bool isZero = false;
 
-	if (context->timeLeftInMillis == 0) {
+	if (countdownTimerData.timeLeftInMillis == 0) {
 		isZero = true;
 	} else if (ui->timerDays->text().toInt() == 0 &&
 		   ui->timerHours->text().toInt() == 0 &&
@@ -237,14 +291,14 @@ void AshmanixTimer::UpdateDateTimeDisplay(long long timeInMillis)
 {
 	ui->timeDisplay->display(ConvertMillisToDateTimeString(timeInMillis));
 	QString formattedDisplayTime = ConvertDateTimeToFormattedDisplayString(
-		timeInMillis, countdownTimerData->showLeadingZero);
+		timeInMillis, countdownTimerData.showLeadingZero);
 	SetSourceText(formattedDisplayTime);
 }
 
 void AshmanixTimer::SetSourceText(QString newText)
 {
 	obs_source_t *selectedSource = obs_get_source_by_name(
-		countdownTimerData->selectedSource.toStdString().c_str());
+		countdownTimerData.selectedSource.toStdString().c_str());
 
 	if (selectedSource != NULL) {
 		obs_data_t *sourceSettings =
@@ -259,9 +313,9 @@ void AshmanixTimer::SetSourceText(QString newText)
 
 void AshmanixTimer::SetCurrentScene()
 {
-	if (countdownTimerData->selectedScene.length()) {
+	if (countdownTimerData.selectedScene.length()) {
 		obs_source_t *source = obs_get_source_by_name(
-			countdownTimerData->selectedScene.toStdString().c_str());
+			countdownTimerData.selectedScene.toStdString().c_str());
 		if (source != NULL) {
 			obs_frontend_set_current_scene(source);
 			obs_source_release(source);
@@ -302,7 +356,7 @@ void AshmanixTimer::SendTimerTickEvent(QString timerId,
 
 	// Convert milliseconds to readable format
 	QString timeString = ConvertDateTimeToFormattedDisplayString(
-		timeLeftInMillis, countdownTimerData->showLeadingZero);
+		timeLeftInMillis, countdownTimerData.showLeadingZero);
 
 	obs_data_set_string(eventData, "timer_id",
 			    timerId.toStdString().c_str());
@@ -321,126 +375,122 @@ void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
 			    timerId.toStdString().c_str());
 	obs_data_set_string(eventData, "state", state);
 
-	if (countdownTimerData->selectedSource.length() > 0) {
-		obs_data_set_string(eventData, "text_source",
-				    countdownTimerData->selectedSource
-					    .toStdString()
-					    .c_str());
+	if (countdownTimerData.selectedSource.length() > 0) {
+		obs_data_set_string(
+			eventData, "text_source",
+			countdownTimerData.selectedSource.toStdString().c_str());
 	}
 
 	SendWebsocketEvent("timer_state_changed", eventData);
 	obs_data_release(eventData);
 }
 
-// void AshmanixTimer::DeleteRequested() {
-//     emit RequestDelete(countdownTimerData->timerId);
-// }
-
 void AshmanixTimer::PlayButtonClicked()
 {
-	TimerWidgetStruct *context = countdownTimerData;
-
 	if (ui->countdownTypeTabWidget->currentIndex() == 1) {
 		ui->countdownTypeTabWidget->setCurrentIndex(0);
 	}
 
-	if ((!context->shouldCountUp && IsSetTimeZero(context)) ||
-	    (context->shouldCountUp &&
-	     context->timeLeftInMillis >= GetMillisFromPeriodUI()))
+	if ((!countdownTimerData.shouldCountUp && IsSetTimeZero()) ||
+	    (countdownTimerData.shouldCountUp &&
+	     countdownTimerData.timeLeftInMillis >= GetMillisFromPeriodUI()))
 		return;
 
-	ui->timeDisplay->display(
-		ConvertMillisToDateTimeString(context->timeLeftInMillis));
-	StartTimerCounting(context);
+	ui->timeDisplay->display(ConvertMillisToDateTimeString(
+		countdownTimerData.timeLeftInMillis));
+	StartTimerCounting();
 }
 
 void AshmanixTimer::PauseButtonClicked()
 {
-	TimerWidgetStruct *context = countdownTimerData;
-
 	if (ui->countdownTypeTabWidget->currentIndex() == 1) {
 		ui->countdownTypeTabWidget->setCurrentIndex(0);
 	}
 
-	StopTimerCounting(context);
-	SendTimerStateEvent(context->timerId, "paused");
+	StopTimerCounting();
+	SendTimerStateEvent(countdownTimerData.timerId, "paused");
 }
 
 void AshmanixTimer::ResetButtonClicked()
 {
-	TimerWidgetStruct *context = countdownTimerData;
-
 	if (ui->countdownTypeTabWidget->currentIndex() == 1) {
 		ui->countdownTypeTabWidget->setCurrentIndex(0);
 	}
 
-	StopTimerCounting(context);
-	countdownTimerData->shouldCountUp
-		? context->timeLeftInMillis = 0
-		: context->timeLeftInMillis = GetMillisFromPeriodUI();
+	StopTimerCounting();
+	countdownTimerData.shouldCountUp
+		? countdownTimerData.timeLeftInMillis = 0
+		: countdownTimerData.timeLeftInMillis = GetMillisFromPeriodUI();
 
-	UpdateDateTimeDisplay(context->timeLeftInMillis);
-}
-
-void AshmanixTimer::ToTimeStopButtonClicked()
-{
-	TimerWidgetStruct *context = countdownTimerData;
-
-	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-		ui->countdownTypeTabWidget->setCurrentIndex(1);
-	}
-
-	StopTimerCounting(context);
+	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
 }
 
 void AshmanixTimer::ToTimePlayButtonClicked()
 {
-	TimerWidgetStruct *context = countdownTimerData;
-
 	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
 		ui->countdownTypeTabWidget->setCurrentIndex(1);
 	}
 
-	if (context->shouldCountUp) {
-		context->timeToCountUpToStart = QDateTime::currentDateTime();
-		context->timeLeftInMillis = 0;
+	if (countdownTimerData.shouldCountUp) {
+		countdownTimerData.timeToCountUpToStart =
+			QDateTime::currentDateTime();
+		countdownTimerData.timeLeftInMillis = 0;
 	} else {
-		context->timeLeftInMillis = CalcToCurrentDateTimeInMillis(
-			ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
+		countdownTimerData.timeLeftInMillis =
+			CalcToCurrentDateTimeInMillis(
+				ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
 	}
 
-	ui->timeDisplay->display(
-		ConvertMillisToDateTimeString(context->timeLeftInMillis));
-	StartTimerCounting(context);
+	ui->timeDisplay->display(ConvertMillisToDateTimeString(
+		countdownTimerData.timeLeftInMillis));
+	StartTimerCounting();
+}
+
+void AshmanixTimer::ToTimeStopButtonClicked()
+{
+	if (ui->countdownTypeTabWidget->currentIndex() == 0) {
+		ui->countdownTypeTabWidget->setCurrentIndex(1);
+	}
+
+	StopTimerCounting();
+}
+
+void AshmanixTimer::CountdownTypeTabChanged(int index)
+{
+	countdownTimerData.countdownTypeSelectedTab = index;
 }
 
 void AshmanixTimer::SettingsButtonClicked()
 {
 	obs_log(LOG_INFO, "Settings button clicked for Timer %s",
-		(countdownTimerData->timerId).toStdString().c_str());
+		(countdownTimerData.timerId).toStdString().c_str());
 	if (!settingsDialogUi) {
 		settingsDialogUi =
-			new SettingsDialog(this, countdownTimerData->timerId);
+			new SettingsDialog(this, &countdownTimerData);
 	}
-	settingsDialogUi->setVisible(true);
+	if (settingsDialogUi->isVisible()) {
+		settingsDialogUi->raise();
+		settingsDialogUi->activateWindow();
+	} else {
+		settingsDialogUi->setVisible(true);
+	}
 }
 
 void AshmanixTimer::DeleteButtonClicked()
 {
 	// obs_log(LOG_INFO, (QString("Delete button clicked for Timer %1")
-	// 			   .arg(countdownTimerData->timerId))
+	// 			   .arg(countdownTimerData.timerId))
 	// 			  .toStdString()
 	// 			  .c_str());
-	emit RequestDelete(countdownTimerData->timerId);
+	emit RequestDelete(countdownTimerData.timerId);
 }
 
 void AshmanixTimer::TimerAdjust()
 {
-	TimerWidgetStruct *context = countdownTimerData;
 	// Flag for ending timer
 	bool endTimer = false;
-	bool isCountingDown = !context->shouldCountUp;
-	long long timerPeriodMillis = context->timeLeftInMillis;
+	bool isCountingDown = !countdownTimerData.shouldCountUp;
+	long long timerPeriodMillis = countdownTimerData.timeLeftInMillis;
 
 	if (isCountingDown) {
 		// Counting down
@@ -465,10 +515,10 @@ void AshmanixTimer::TimerAdjust()
 				endTimer = true;
 		} else {
 			timerPeriodMillis =
-				context->timeToCountUpToStart.msecsTo(
+				countdownTimerData.timeToCountUpToStart.msecsTo(
 					QDateTime::currentDateTime());
 			// If selected tab is datetime
-			if ((context->timeToCountUpToStart.msecsTo(
+			if ((countdownTimerData.timeToCountUpToStart.msecsTo(
 				    ui->dateTimeEdit->dateTime())) -
 				    timerPeriodMillis <=
 			    COUNTDOWNPERIOD)
@@ -476,43 +526,72 @@ void AshmanixTimer::TimerAdjust()
 		}
 	}
 
-	context->timeLeftInMillis = timerPeriodMillis;
-	UpdateDateTimeDisplay(context->timeLeftInMillis);
+	countdownTimerData.timeLeftInMillis = timerPeriodMillis;
+	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
 
 	// Send tick event
-	SendTimerTickEvent(context->timerId, context->timeLeftInMillis);
+	SendTimerTickEvent(countdownTimerData.timerId,
+			   countdownTimerData.timeLeftInMillis);
 
 	if (endTimer == true) {
-		if (context->showEndMessage) {
+		if (countdownTimerData.showEndMessage) {
 			SetSourceText(
-				context->endMessage.toStdString().c_str());
+				countdownTimerData.endMessage.toStdString()
+					.c_str());
 		}
-		if (context->showEndSource) {
+		if (countdownTimerData.showEndScene) {
 			SetCurrentScene();
 		}
 		if (isCountingDown) {
 			ui->timeDisplay->display(AshmanixTimer::ZEROSTRING);
-			context->timeLeftInMillis = 0;
+			countdownTimerData.timeLeftInMillis = 0;
 		} else {
 			if (ui->countdownTypeTabWidget->currentIndex() == 0) {
-				context->timeLeftInMillis =
+				countdownTimerData.timeLeftInMillis =
 					GetMillisFromPeriodUI();
 			} else {
-				context->timeLeftInMillis =
-					context->timeToCountUpToStart.msecsTo(
-						ui->dateTimeEdit->dateTime());
+				countdownTimerData.timeLeftInMillis =
+					countdownTimerData.timeToCountUpToStart
+						.msecsTo(ui->dateTimeEdit
+								 ->dateTime());
 			}
-			UpdateDateTimeDisplay(context->timeLeftInMillis);
+			UpdateDateTimeDisplay(
+				countdownTimerData.timeLeftInMillis);
 		}
 		// Send completion event
-		SendTimerStateEvent(context->timerId, "completed");
-		StopTimerCounting(context);
+		SendTimerStateEvent(countdownTimerData.timerId, "completed");
+		StopTimerCounting();
 		return;
 	}
 }
 
 void AshmanixTimer::HandleTimerReset()
 {
-	countdownTimerData->timer->stop();
-	countdownTimerData->timer->start(COUNTDOWNPERIOD);
+	countdownTimerData.timer->stop();
+	countdownTimerData.timer->start(COUNTDOWNPERIOD);
+}
+
+void AshmanixTimer::DaysChanged(QString newText)
+{
+	countdownTimerData.periodDays = newText.toInt();
+}
+
+void AshmanixTimer::HoursChanged(QString newText)
+{
+	countdownTimerData.periodHours = newText.toInt();
+}
+
+void AshmanixTimer::MinutesChanged(QString newText)
+{
+	countdownTimerData.periodMinutes = newText.toInt();
+}
+
+void AshmanixTimer::SecondsChanged(QString newText)
+{
+	countdownTimerData.periodSeconds = newText.toInt();
+}
+
+void AshmanixTimer::DateTimeChanged(QDateTime newDateTime)
+{
+	countdownTimerData.dateTime = newDateTime;
 }

@@ -2,14 +2,6 @@
 <ui version="4.0">
  <class>CountdownTimer</class>
  <widget class="QWidget" name="CountdownTimer">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>435</width>
-    <height>365</height>
-   </rect>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
    <property name="spacing">
     <number>4</number>

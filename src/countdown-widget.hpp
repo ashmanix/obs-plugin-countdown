@@ -25,6 +25,8 @@
 #include <QTabWidget>
 #include <Qt>
 #include <QMap>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 #include <string>
 #include <iostream>
@@ -53,25 +55,6 @@ public:
 	explicit CountdownDockWidget(QWidget *parent = nullptr);
 	~CountdownDockWidget();
 	void ConfigureWebSocketConnection();
-	// struct CountdownWidgetStruct {
-	// 	bool isPlaying;
-	// 	bool shouldCountUp = false;
-	// 	QTimer *timer;
-	// 	QDateTime dateTime;
-	// 	long long timeLeftInMillis = 0;
-	// 	QDateTime timeToCountUpToStart;
-
-	// 	QTabWidget *countdownTypeTabWidget;
-
-	// 	std::string textSourceNameText;
-	// 	std::string sceneSourceNameText;
-
-	// 	int startCountdownHotkeyId = -1;
-	// 	int pauseCountdownHotkeyId = -1;
-	// 	int setCountdownHotkeyId = -1;
-	// 	int startCountdownToTimeHotkeyId = -1;
-	// 	int stopCountdownToTimeHotkeyId = -1;
-	// };
 
 	enum WebsocketRequestType { ADD_TIME = 1, SET_TIME = 2 };
 	struct WebsocketCallbackData {
@@ -90,38 +73,22 @@ private:
 	static inline const char *VENDORNAME = "ashmanix-countdown-timer";
 	obs_websocket_vendor vendor = nullptr;
 
-	// CountdownWidgetStruct *countdownTimerData;
 	Ui::CountdownTimer *ui;
 
 	void SetupCountdownWidgetUI();
-	// void StartTimerCounting(CountdownWidgetStruct *context);
-	// void StopTimerCounting(CountdownWidgetStruct *context);
-	// void InitialiseTimerTime(CountdownWidgetStruct *context);
-	// QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis,
-	// 						bool showLeadingZero);
-	// bool IsSetTimeZero(CountdownWidgetStruct *context);
-	void ConnectObsSignalHandlers();
 	void ConnectUISignalHandlers();
-	// void UpdateDateTimeDisplay(long long timeInMillis);
-	// void SetSourceText(QString newText);
-	void SetCurrentScene();
 	void SaveSettings();
 	void RegisterHotkeys();
 	void UnregisterHotkeys();
+	void AddTimer(TimerWidgetStruct timerData);
 
 	void SendWebsocketEvent(const char *eventName, obs_data_t *eventData);
 	void SendTimerTickEvent(long long timeLeftInMillis);
 	void SendTimerStateEvent(const char *state);
 
-	long long GetMillisFromPeriodUI();
-
-	static void OBSSourceCreated(void *param, calldata_t *calldata);
-	static void OBSSourceDeleted(void *param, calldata_t *calldata);
-	static void OBSSourceRenamed(void *param, calldata_t *calldata);
 	static void OBSFrontendEventHandler(enum obs_frontend_event event,
 					    void *private_data);
-	static int CheckSourceType(obs_source_t *source);
-	static void LoadSavedSettings(Ui::CountdownTimer *ui);
+	static void LoadSavedSettings(CountdownDockWidget *timerWidgetMap);
 	// static void ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 	// obs_data_t *response_data,
 	// void *priv_data);
@@ -132,11 +99,6 @@ private slots:
 	void AddTimerButtonClicked();
 	void RemoveTimerButtonClicked(QString id);
 
-	// void EndMessageCheckBoxSelected(int state);
-	// void SceneSwitchCheckBoxSelected(int state);
-	void HandleTextSourceChange(QString newText);
-	void HandleSceneSourceChange(QString newText);
-	// void TimerAdjust();
 	void HandleTimerReset();
 };
 

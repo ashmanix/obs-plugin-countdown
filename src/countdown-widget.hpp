@@ -45,7 +45,6 @@
 #include "plugin-support.h"
 #include "ui/ui_CountdownTimer.h"
 #include "utils/timer-utils.hpp"
-#include "utils/general-utils.hpp"
 #include "widgets/ashmanix-timer.hpp"
 
 #define CONFIG "config.json"
@@ -91,7 +90,7 @@ private:
 	static void OBSFrontendEventHandler(enum obs_frontend_event event,
 					    void *private_data);
 	static void LoadSavedSettings(CountdownDockWidget *timerWidgetMap);
-	static AshmanixTimer*
+	static AshmanixTimer *
 	AttemptToGetTimerWidgetById(CountdownDockWidget *countdownWidget,
 				    const char *websocketTimerID);
 	static void ChangeTimerTimeViaWebsocket(obs_data_t *request_data,

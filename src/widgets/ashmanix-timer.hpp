@@ -36,6 +36,12 @@ public:
 	bool AlterTime(WebsocketRequestType requestType,
 		       long long timeInMillis);
 
+	void PressPlayButton();
+	void PressResetButton();
+	void PressStopButton();
+	void PressToTimePlayButton();
+	void PressToTimeStopButton();
+
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	static const int COUNTDOWNPERIOD = 1000;

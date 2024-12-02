@@ -35,17 +35,6 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 		return;
 	}
 
-	// #define WEBSOCKET_CALLBACK(method, log_action)                              \
-// 	[](obs_data_t *request_data, obs_data_t *response_data,             \
-// 	   void *incoming_data) {                                           \
-// 		UNUSED_PARAMETER(request_data);                             \
-// 		CountdownDockWidget &cdWidget =                             \
-// 			*static_cast<CountdownDockWidget *>(incoming_data); \
-// 		obs_log(LOG_INFO, log_action " due to websocket call");     \
-// 		method();                                                   \
-// 		obs_data_set_bool(response_data, "success", true);          \
-// 	}
-
 	obs_websocket_vendor_register_request(
 		vendor, "period_play", HandleWebsocketButtonPressRequest,
 		new WebsocketCallbackData{this, PERIOD_PLAY, NULL, TIMERIDKEY});
@@ -65,7 +54,6 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 		vendor, "to_time_stop", HandleWebsocketButtonPressRequest,
 		new WebsocketCallbackData{this, TO_TIME_STOP, NULL,
 					  TIMERIDKEY});
-	// #undef WEBSOCKET_CALLBACK
 
 	obs_websocket_vendor_register_request(
 		vendor, "get_timer_state", GetTimerStateViaWebsocket,
@@ -544,31 +532,31 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(
 	if (timer != nullptr) {
 		switch (requestType) {
 		case PERIOD_PLAY:
-			timer->PlayButtonClicked();
+			timer->PressPlayButton();
 			obs_data_set_bool(response_data, "success", true);
 			obs_data_set_bool(response_data, "message",
 					  "Play button pressed");
 			break;
 		case PERIOD_PAUSE:
-			timer->PauseButtonClicked();
+			timer->PressStopButton();
 			obs_data_set_bool(response_data, "success", true);
 			obs_data_set_bool(response_data, "message",
 					  "Pause button pressed");
 			break;
 		case PERIOD_SET:
-			timer->ResetButtonClicked();
+			timer->PressResetButton();
 			obs_data_set_bool(response_data, "success", true);
 			obs_data_set_bool(response_data, "message",
 					  "Reset button pressed");
 			break;
 		case TO_TIME_PLAY:
-			timer->ToTimePlayButtonClicked();
+			timer->PressToTimePlayButton();
 			obs_data_set_bool(response_data, "success", true);
 			obs_data_set_bool(response_data, "message",
 					  "To Time play button pressed");
 			break;
 		case TO_TIME_STOP:
-			timer->ToTimeStopButtonClicked();
+			timer->PressToTimeStopButton();
 			obs_data_set_bool(response_data, "success", true);
 			obs_data_set_bool(response_data, "message",
 					  "To Time stop button pressed");

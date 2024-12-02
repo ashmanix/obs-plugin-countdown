@@ -437,6 +437,27 @@ void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
 	obs_data_release(eventData);
 }
 
+void AshmanixTimer::PressPlayButton()
+{
+	ui->playButton->click();
+}
+void AshmanixTimer::PressResetButton()
+{
+	ui->resetButton->click();
+}
+void AshmanixTimer::PressStopButton()
+{
+	ui->pauseButton->click();
+}
+void AshmanixTimer::PressToTimePlayButton()
+{
+	ui->toTimePlayButton->click();
+}
+void AshmanixTimer::PressToTimeStopButton()
+{
+	ui->toTimeStopButton->click();
+}
+
 // --------------------------------- Public Slots ----------------------------------
 
 void AshmanixTimer::PlayButtonClicked()

@@ -45,6 +45,7 @@
 #include "plugin-support.h"
 #include "ui/ui_CountdownTimer.h"
 #include "utils/timer-utils.hpp"
+#include "utils/general-utils.hpp"
 #include "widgets/ashmanix-timer.hpp"
 
 #define CONFIG "config.json"
@@ -72,6 +73,7 @@ private:
 	static const int COUNTDOWNPERIOD = 1000;
 	static char const ZEROSTRING[];
 	static inline const char *VENDORNAME = "ashmanix-countdown-timer";
+	static inline const char *TIMERIDKEY = "timer_id";
 	obs_websocket_vendor vendor = nullptr;
 
 	Ui::CountdownTimer *ui;
@@ -89,12 +91,20 @@ private:
 	static void OBSFrontendEventHandler(enum obs_frontend_event event,
 					    void *private_data);
 	static void LoadSavedSettings(CountdownDockWidget *timerWidgetMap);
+	static AshmanixTimer*
+	AttemptToGetTimerWidgetById(CountdownDockWidget *countdownWidget,
+				    const char *websocketTimerID);
 	static void ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 						obs_data_t *response_data,
 						void *priv_data);
 	static void GetTimerStateViaWebsocket(obs_data_t *request_data,
 					      obs_data_t *response_data,
 					      void *priv_data);
+	static void HandleWebsocketButtonPressRequest(obs_data_t *request_data,
+						      obs_data_t *response_data,
+						      void *priv_data);
+	static void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id,
+			       const char *name);
 
 signals:
 	void RequestTimerReset();

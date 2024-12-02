@@ -46,6 +46,7 @@ target_sources(
           src/widgets/settings-dialog.hpp
           src/widgets/settings-dialog.cpp
           src/utils/timer-utils.cpp
-          src/utils/timer-utils.hpp)
+          src/utils/timer-utils.hpp
+          src/utils/general-utils.hpp)
 
 set_target_properties_plugin(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME ${_name})

@@ -42,7 +42,16 @@ struct TimerWidgetStruct {
 	int stopCountdownToTimeHotkeyId = -1;
 };
 
-enum WebsocketRequestType { ADD_TIME = 1, SET_TIME = 2, GET_TIME = 3 };
+enum WebsocketRequestType {
+	ADD_TIME = 1,
+	SET_TIME = 2,
+	GET_TIME = 3,
+	PERIOD_PLAY = 4,
+	PERIOD_PAUSE = 5,
+	PERIOD_SET = 6,
+	TO_TIME_PLAY = 7,
+	TO_TIME_STOP = 8
+};
 
 const char *ConvertToConstChar(QString value);
 long long ConvertStringPeriodToMillis(const char *time_string);

@@ -46,167 +46,47 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 // 		obs_data_set_bool(response_data, "success", true);          \
 // 	}
 
-	// 	obs_websocket_vendor_register_request(
-	// 		vendor, "period_play",
-	// 		WEBSOCKET_CALLBACK(cdWidget.ui->playButton->click,
-	// 				   "Period play button pressed"),
-	// 		this);
-	// 	obs_websocket_vendor_register_request(
-	// 		vendor, "period_pause",
-	// 		WEBSOCKET_CALLBACK(cdWidget.ui->pauseButton->click,
-	// 				   "Period pause button pressed"),
-	// 		this);
-	// 	obs_websocket_vendor_register_request(
-	// 		vendor, "period_set",
-	// 		WEBSOCKET_CALLBACK(cdWidget.ui->resetButton->click,
-	// 				   "Period Set button pressed"),
-	// 		this);
+	obs_websocket_vendor_register_request(
+		vendor, "period_play", HandleWebsocketButtonPressRequest,
+		new WebsocketCallbackData{this, PERIOD_PLAY, NULL, TIMERIDKEY});
+	obs_websocket_vendor_register_request(
+		vendor, "period_pause", HandleWebsocketButtonPressRequest,
+		new WebsocketCallbackData{this, PERIOD_PAUSE, NULL,
+					  TIMERIDKEY});
+	obs_websocket_vendor_register_request(
+		vendor, "period_set", HandleWebsocketButtonPressRequest,
+		new WebsocketCallbackData{this, PERIOD_SET, NULL, TIMERIDKEY});
 
-	// 	obs_websocket_vendor_register_request(
-	// 		vendor, "to_time_play",
-	// 		WEBSOCKET_CALLBACK(cdWidget.ui->toTimePlayButton->click,
-	// 				   "To time play button pressed"),
-	// 		this);
-	// 	obs_websocket_vendor_register_request(
-	// 		vendor, "to_time_stop",
-	// 		WEBSOCKET_CALLBACK(cdWidget.ui->toTimeStopButton->click,
-	// 				   "To time stop button pressed"),
-	// 		this);
-
-	// 	obs_websocket_vendor_register_request(
-	// 		vendor, "get_timer_state",
-	// 		[](obs_data_t *request_data, obs_data_t *response_data,
-	// 		   void *priv_data) {
-	// 			UNUSED_PARAMETER(request_data);
-	// 			CountdownDockWidget *self =
-	// 				static_cast<CountdownDockWidget *>(priv_data);
-
-	// 			obs_data_set_bool(response_data, "is_running",
-	// 					  self->countdownTimerData->isPlaying);
-	// 			obs_data_set_int(
-	// 				response_data, "time_left_ms",
-	// 				self->countdownTimerData->timeLeftInMillis);
-
-	// 			obs_data_set_bool(response_data, "success", true);
-	// 		},
-	// 		this);
+	obs_websocket_vendor_register_request(
+		vendor, "to_time_play", HandleWebsocketButtonPressRequest,
+		new WebsocketCallbackData{this, TO_TIME_PLAY, NULL,
+					  TIMERIDKEY});
+	obs_websocket_vendor_register_request(
+		vendor, "to_time_stop", HandleWebsocketButtonPressRequest,
+		new WebsocketCallbackData{this, TO_TIME_STOP, NULL,
+					  TIMERIDKEY});
 	// #undef WEBSOCKET_CALLBACK
 
 	obs_websocket_vendor_register_request(
 		vendor, "get_timer_state", GetTimerStateViaWebsocket,
-		new WebsocketCallbackData{this, GET_TIME, NULL, "timer_id"});
+		new WebsocketCallbackData{this, GET_TIME, NULL, TIMERIDKEY});
 
 	obs_websocket_vendor_register_request(
 		vendor, "add_time", ChangeTimerTimeViaWebsocket,
 		new WebsocketCallbackData{this, ADD_TIME, "time_to_add",
-					  "timer_id"});
+					  TIMERIDKEY});
 
 	obs_websocket_vendor_register_request(
 		vendor, "set_time", ChangeTimerTimeViaWebsocket,
 		new WebsocketCallbackData{this, SET_TIME, "time_to_set",
-					  "timer_id"});
+					  TIMERIDKEY});
 }
 
 void CountdownDockWidget::SetupCountdownWidgetUI()
 {
-
-	// CountdownWidgetStruct *context = countdownStruct;
-
 	ui->addTimerButton->setProperty("themeID", "addIconSmall");
 	ui->addTimerButton->setEnabled(true);
 	ui->addTimerButton->setToolTip(obs_module_text("AddTimerButtonTip"));
-
-	// ui->timeDisplay->display(CountdownDockWidget::ZEROSTRING);
-
-	// ui->dateTimeEdit->setMinimumDate(QDate::currentDate());
-	// ui->dateTimeEdit->setMaximumDate(QDate::currentDate().addDays(999));
-
-	// ui->daysCheckBox->setText(obs_module_text("DaysCheckboxLabel"));
-	// ui->daysCheckBox->setCheckState(Qt::Checked);
-	// ui->daysCheckBox->setToolTip(obs_module_text("DaysCheckBoxTip"));
-	// ui->timerDays->setValidator(new QRegularExpressionValidator(
-	// 	QRegularExpression("^(0|[1-9]\\d{0,2})$"), this));
-
-	// ui->hoursCheckBox->setText(obs_module_text("HoursCheckboxLabel"));
-	// ui->hoursCheckBox->setCheckState(Qt::Checked);
-	// ui->hoursCheckBox->setToolTip(obs_module_text("HoursCheckBoxTip"));
-	// ui->timerHours->setMaxLength(2);
-	// ui->timerHours->setValidator(new QRegularExpressionValidator(
-	// 	QRegularExpression("^(0?[0-9]|1[0-9]|2[0-3])$"), this));
-
-	// ui->minutesCheckBox->setText(obs_module_text("MinutesCheckboxLabel"));
-	// ui->minutesCheckBox->setCheckState(Qt::Checked);
-	// ui->minutesCheckBox->setToolTip(obs_module_text("MinutesCheckBoxTip"));
-	// ui->timerMinutes->setMaxLength(2);
-	// ui->timerMinutes->setValidator(new QRegularExpressionValidator(
-	// 	QRegularExpression("^[1-5]?[0-9]"), this));
-
-	// ui->secondsCheckBox->setText(obs_module_text("SecondsCheckboxLabel"));
-	// ui->secondsCheckBox->setCheckState(Qt::Checked);
-	// ui->secondsCheckBox->setToolTip(obs_module_text("SecondsCheckBoxTip"));
-	// ui->timerSeconds->setAlignment(Qt::AlignCenter);
-	// ui->timerSeconds->setMaxLength(2);
-	// ui->timerSeconds->setValidator(new QRegularExpressionValidator(
-	// 	QRegularExpression("^[1-5]?[0-9]"), this));
-
-	// ui->leadZeroCheckBox->setText(obs_module_text("LeadZeroCheckboxLabel"));
-	// ui->leadZeroCheckBox->setCheckState(Qt::Checked);
-	// ui->leadZeroCheckBox->setToolTip(
-	// 	obs_module_text("LeadZeroCheckBoxTip"));
-
-	// ui->countUpCheckBox->setText(obs_module_text("CountUpCheckBoxLabel"));
-	// ui->countUpCheckBox->setCheckState(Qt::Checked);
-	// ui->countUpCheckBox->setToolTip(obs_module_text("CountUpCheckBoxTip"));
-
-	// ui->countdownTypeTabWidget->setTabText(
-	// 	0, obs_module_text("SetPeriodTabLabel"));
-	// ui->countdownTypeTabWidget->setTabText(
-	// 	1, obs_module_text("SetDatetimeTabLabel"));
-	// ui->countdownTypeTabWidget->setToolTip(
-	// 	obs_module_text("SetCountdownTypeTip"));
-
-	// ui->textSourceDropdownList->setToolTip(
-	// 	obs_module_text("TextSourceDropdownTip"));
-	// ui->textSourceDropdownLabel->setText(
-	// 	obs_module_text("TextSourceLabel"));
-
-	// ui->endMessageCheckBox->setCheckState(Qt::Unchecked);
-	// ui->endMessageCheckBox->setToolTip(
-	// 	obs_module_text("EndMessageCheckBoxTip"));
-	// ui->endMessageCheckBox->setText(obs_module_text("EndMessageLabel"));
-	// // ui->timerEndLabel->setEnabled(false);
-	// ui->endMessageLineEdit->setEnabled(false);
-	// ui->endMessageLineEdit->setToolTip(
-	// 	obs_module_text("EndMessageLineEditTip"));
-
-	// ui->switchSceneCheckBox->setCheckState(Qt::Unchecked);
-	// ui->switchSceneCheckBox->setToolTip(
-	// 	obs_module_text("SwitchSceneCheckBoxTip"));
-	// ui->switchSceneCheckBox->setText(obs_module_text("SwitchScene"));
-	// // ui->sceneSwitchLabel->setEnabled(false);
-	// ui->sceneSourceDropdownList->setEnabled(false);
-	// ui->sceneSourceDropdownList->setToolTip(
-	// 	obs_module_text("SceneSourceDropdownTip"));
-
-	// ui->playButton->setProperty("themeID", "playIcon");
-	// ui->playButton->setEnabled(true);
-	// ui->playButton->setToolTip(obs_module_text("PlayButtonTip"));
-	// ui->pauseButton->setProperty("themeID", "pauseIcon");
-	// ui->pauseButton->setEnabled(false);
-	// ui->pauseButton->setToolTip(obs_module_text("PauseButtonTip"));
-	// ui->resetButton->setProperty("themeID", "restartIcon");
-	// ui->resetButton->setToolTip(obs_module_text("ResetButtonTip"));
-
-	// ui->toTimePlayButton->setProperty("themeID", "playIcon");
-	// ui->toTimePlayButton->setEnabled(true);
-	// ui->toTimePlayButton->setToolTip(
-	// 	obs_module_text("ToTimePlayButtonTip"));
-	// ui->toTimeStopButton->setProperty("themeID", "stopIcon");
-	// ui->toTimeStopButton->setEnabled(false);
-	// ui->toTimeStopButton->setToolTip(
-	// 	obs_module_text("ToTimeStopButtonTip"));
-
-	// context->isPlaying = false;
 }
 
 void CountdownDockWidget::ConnectUISignalHandlers()
@@ -230,6 +110,7 @@ void CountdownDockWidget::SaveSettings()
 	obs_data_array_t *obsDataArray = obs_data_array_create();
 
 	QVBoxLayout *mainLayout = ui->timerMainLayout;
+
 	for (int i = 0; i < mainLayout->count(); ++i) {
 		QLayoutItem *item = mainLayout->itemAt(i);
 		if (item) {
@@ -241,48 +122,71 @@ void CountdownDockWidget::SaveSettings()
 				if (timerData) {
 					obs_data_t *dataObject =
 						obs_data_create();
+
 					SaveTimerWidgetDataToOBSSaveData(
 						dataObject, timerData);
 					obs_data_array_push_back(obsDataArray,
 								 dataObject);
+
+					// Hotkeys
+					obs_data_array_t *start_countdown_hotkey_save_array =
+						obs_hotkey_save(
+							timerData
+								->startCountdownHotkeyId);
+					obs_data_set_array(
+						settings,
+						("Ashmanix_Countdown_Timer_Start_" +
+						 std::to_string(i))
+							.c_str(),
+						start_countdown_hotkey_save_array);
+					obs_data_array_release(
+						start_countdown_hotkey_save_array);
+
+					obs_data_array_t *pause_countdown_hotkey_save_array =
+						obs_hotkey_save(
+							timerData
+								->pauseCountdownHotkeyId);
+					obs_data_set_array(
+						settings,
+						("Ashmanix_Countdown_Timer_Pause_" +
+						 std::to_string(i))
+							.c_str(),
+						pause_countdown_hotkey_save_array);
+					obs_data_array_release(
+						pause_countdown_hotkey_save_array);
+
+					obs_data_array_t *set_countdown_hotkey_save_array =
+						obs_hotkey_save(
+							timerData
+								->setCountdownHotkeyId);
+					obs_data_set_array(
+						settings,
+						("Ashmanix_Countdown_Timer_Set_" +
+						 std::to_string(i))
+							.c_str(),
+						set_countdown_hotkey_save_array);
+					obs_data_array_release(
+						set_countdown_hotkey_save_array);
+
+					SaveHotkey(
+						settings,
+						timerData->startCountdownToTimeHotkeyId,
+						("Ashmanix_Countdown_Timer_To_Time_Start_" +
+						 std::to_string(i))
+							.c_str());
+
+					SaveHotkey(
+						settings,
+						timerData->stopCountdownToTimeHotkeyId,
+						("Ashmanix_Countdown_Timer_To_Time_Stop_" +
+						 std::to_string(i))
+							.c_str());
+
 					obs_data_release(dataObject);
 				}
 			}
 		}
 	}
-
-	// // Hotkeys
-	// auto SaveHotkey = [](obs_data_t *sv_data, obs_hotkey_id id,
-	// 		     const char *name) {
-	// 	obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
-	// 	if ((int)id == -1)
-	// 		return;
-	// 	OBSDataArrayAutoRelease array = obs_hotkey_save(id);
-	// 	obs_data_set_array(sv_data, name, array);
-	// };
-
-	// obs_data_array_t *start_countdown_hotkey_save_array =
-	// 	obs_hotkey_save(context->startCountdownHotkeyId);
-	// obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_Start",
-	// 		   start_countdown_hotkey_save_array);
-	// obs_data_array_release(start_countdown_hotkey_save_array);
-
-	// obs_data_array_t *pause_countdown_hotkey_save_array =
-	// 	obs_hotkey_save(context->pauseCountdownHotkeyId);
-	// obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_Pause",
-	// 		   pause_countdown_hotkey_save_array);
-	// obs_data_array_release(pause_countdown_hotkey_save_array);
-
-	// obs_data_array_t *set_countdown_hotkey_save_array =
-	// 	obs_hotkey_save(context->setCountdownHotkeyId);
-	// obs_data_set_array(obsData, "Ashmanix_Countdown_Timer_Set",
-	// 		   set_countdown_hotkey_save_array);
-	// obs_data_array_release(set_countdown_hotkey_save_array);
-
-	// SaveHotkey(obsData, context->startCountdownToTimeHotkeyId,
-	// 	   "Ashmanix_Countdown_Timer_To_Time_Start");
-	// SaveHotkey(obsData, context->stopCountdownToTimeHotkeyId,
-	// 	   "Ashmanix_Countdown_Timer_To_Time_Stop");
 
 	obs_data_set_array(settings, "timer_widgets", obsDataArray);
 	char *file = obs_module_config_path(CONFIG);
@@ -305,8 +209,8 @@ void CountdownDockWidget::RegisterHotkeys()
 	// 	if ((int)id == -1)
 	// 		return;
 
-	// 	OBSDataArrayAutoRelease array =
-	// 		obs_data_get_array(s_data, name);
+	// OBSDataArrayAutoRelease array =
+	// obs_data_get_array(s_data, name);
 
 	// 	obs_hotkey_load(id, array);
 	// 	// obs_data_array_release(array);
@@ -438,125 +342,6 @@ void CountdownDockWidget::AddTimer(
 	timerListLayout->addWidget(newTimer);
 }
 
-void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
-						      obs_data_t *response_data,
-						      void *priv_data)
-{
-	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
-	WebsocketRequestType requestType = callback_data->requestType;
-	const char *requestDataTimeKey = callback_data->requestDataKey;
-	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
-
-	const char *websocketDataTime =
-		obs_data_get_string(request_data, requestDataTimeKey);
-
-	if (websocketDataTime == nullptr || strlen(websocketDataTime) == 0) {
-		obs_data_set_bool(response_data, "success", false);
-		QString error_message =
-			QString("%1 field is missing from request!")
-				.arg(requestDataTimeKey);
-		obs_data_set_string(response_data, "message",
-				    error_message.toStdString().c_str());
-	} else {
-		CountdownDockWidget *countdownWidget = callback_data->instance;
-		const char *websocketTimerID =
-			obs_data_get_string(request_data, requestTimerIdKey);
-
-		AshmanixTimer *timer = nullptr;
-
-		if (websocketTimerID != nullptr &&
-		    strlen(websocketTimerID) > 0) {
-			timer = countdownWidget->timerWidgetMap.value(
-				websocketTimerID, nullptr);
-		} else if (countdownWidget->timerListLayout->count()) {
-			QLayoutItem *layoutItem =
-				countdownWidget->timerListLayout->itemAt(0);
-			if (layoutItem) {
-				timer = qobject_cast<AshmanixTimer *>(
-					layoutItem->widget());
-			}
-		}
-
-		if (timer != nullptr) {
-			long long timeInMillis =
-				ConvertStringPeriodToMillis(websocketDataTime);
-
-			if (timeInMillis > 0) {
-				bool result = timer->AlterTime(requestType,
-							       timeInMillis);
-				const char *type_string =
-					requestType == ADD_TIME ? "added"
-								: "set";
-				obs_log(LOG_INFO,
-					"Time %s due to websocket call: %s",
-					type_string, websocketDataTime);
-				obs_data_set_bool(response_data, "success",
-						  result);
-			} else {
-				obs_log(LOG_WARNING,
-					"Timer time NOT changed from websocket request.");
-				obs_data_set_bool(response_data, "success",
-						  false);
-				obs_data_set_string(
-					response_data, "message",
-					"Timer time wasn't changed. Ensure time is in format \"dd:hh:mm:ss\"");
-			}
-		} else {
-			obs_log(LOG_WARNING,
-				"Countdown widget not found for websocket request!");
-			obs_data_set_bool(response_data, "success", false);
-			obs_data_set_string(response_data, "message",
-					    "Error trying to update time!");
-		}
-	}
-}
-
-void CountdownDockWidget::GetTimerStateViaWebsocket(obs_data_t *request_data,
-						    obs_data_t *response_data,
-						    void *priv_data)
-{
-	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
-	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
-
-	CountdownDockWidget *countdownWidget = callback_data->instance;
-	const char *websocketTimerID =
-		obs_data_get_string(request_data, requestTimerIdKey);
-
-	AshmanixTimer *timer = nullptr;
-
-	if (websocketTimerID != nullptr && strlen(websocketTimerID) > 0) {
-		timer = countdownWidget->timerWidgetMap.value(websocketTimerID,
-							      nullptr);
-	} else if (countdownWidget->timerListLayout->count()) {
-		QLayoutItem *layoutItem =
-			countdownWidget->timerListLayout->itemAt(0);
-		if (layoutItem) {
-			timer = qobject_cast<AshmanixTimer *>(
-				layoutItem->widget());
-		}
-	}
-
-	if (timer != nullptr) {
-		TimerWidgetStruct *timerData = timer->GetTimerData();
-		obs_data_set_bool(response_data, "is_running",
-				  timerData->isPlaying);
-		obs_data_set_int(response_data, "time_left_ms",
-				 timerData->timeLeftInMillis);
-
-		obs_data_set_string(response_data, "timer_id",
-				    timerData->timerId.toStdString().c_str());
-
-		obs_data_set_bool(response_data, "success", true);
-
-	} else {
-		obs_log(LOG_WARNING,
-			"Countdown widget not found for websocket request!");
-		obs_data_set_bool(response_data, "success", false);
-		obs_data_set_string(response_data, "message",
-				    "Error trying to get timer data!");
-	}
-}
-
 void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
 						  void *private_data)
 {
@@ -616,6 +401,190 @@ void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 		// 		}
 		// }
 		obs_data_release(data);
+	}
+}
+
+void CountdownDockWidget::SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id,
+				     const char *name)
+{
+	obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
+	if ((int)id == -1)
+		return;
+	OBSDataArrayAutoRelease array = obs_hotkey_save(id);
+	obs_data_set_array(sv_data, name, array);
+};
+
+AshmanixTimer *CountdownDockWidget::AttemptToGetTimerWidgetById(
+	CountdownDockWidget *countdownWidget, const char *websocketTimerID)
+{
+	AshmanixTimer *timer = nullptr;
+	if (websocketTimerID != nullptr && strlen(websocketTimerID) > 0) {
+		timer = countdownWidget->timerWidgetMap.value(websocketTimerID,
+							      nullptr);
+	} else if (countdownWidget->timerListLayout->count()) {
+		QLayoutItem *layoutItem =
+			countdownWidget->timerListLayout->itemAt(0);
+		if (layoutItem) {
+			timer = qobject_cast<AshmanixTimer *>(
+				layoutItem->widget());
+		}
+	}
+	return timer;
+}
+
+void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
+						      obs_data_t *response_data,
+						      void *priv_data)
+{
+	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
+	WebsocketRequestType requestType = callback_data->requestType;
+	const char *requestDataTimeKey = callback_data->requestDataKey;
+	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
+
+	const char *websocketDataTime =
+		obs_data_get_string(request_data, requestDataTimeKey);
+
+	if (websocketDataTime == nullptr || strlen(websocketDataTime) == 0) {
+		obs_data_set_bool(response_data, "success", false);
+		QString error_message =
+			QString("%1 field is missing from request!")
+				.arg(requestDataTimeKey);
+		obs_data_set_string(response_data, "message",
+				    error_message.toStdString().c_str());
+	} else {
+		CountdownDockWidget *countdownWidget = callback_data->instance;
+		const char *websocketTimerID =
+			obs_data_get_string(request_data, requestTimerIdKey);
+
+		AshmanixTimer *timer = AttemptToGetTimerWidgetById(
+			countdownWidget, websocketTimerID);
+
+		if (timer != nullptr) {
+			long long timeInMillis =
+				ConvertStringPeriodToMillis(websocketDataTime);
+
+			if (timeInMillis > 0) {
+				bool result = timer->AlterTime(requestType,
+							       timeInMillis);
+				const char *type_string =
+					requestType == ADD_TIME ? "added"
+								: "set";
+				obs_log(LOG_INFO,
+					"Time %s due to websocket call: %s",
+					type_string, websocketDataTime);
+				obs_data_set_bool(response_data, "success",
+						  result);
+			} else {
+				obs_log(LOG_WARNING,
+					"Timer time NOT changed from websocket request.");
+				obs_data_set_bool(response_data, "success",
+						  false);
+				obs_data_set_string(
+					response_data, "message",
+					"Timer time wasn't changed. Ensure time is in format \"dd:hh:mm:ss\"");
+			}
+		} else {
+			obs_log(LOG_WARNING,
+				"Countdown widget not found for websocket request!");
+			obs_data_set_bool(response_data, "success", false);
+			obs_data_set_string(response_data, "message",
+					    "Error trying to update time!");
+		}
+	}
+}
+
+void CountdownDockWidget::GetTimerStateViaWebsocket(obs_data_t *request_data,
+						    obs_data_t *response_data,
+						    void *priv_data)
+{
+	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
+	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
+
+	CountdownDockWidget *countdownWidget = callback_data->instance;
+	const char *websocketTimerID =
+		obs_data_get_string(request_data, requestTimerIdKey);
+
+	AshmanixTimer *timer =
+		AttemptToGetTimerWidgetById(countdownWidget, websocketTimerID);
+
+	if (timer != nullptr) {
+		TimerWidgetStruct *timerData = timer->GetTimerData();
+		obs_data_set_bool(response_data, "is_running",
+				  timerData->isPlaying);
+		obs_data_set_int(response_data, "time_left_ms",
+				 timerData->timeLeftInMillis);
+
+		obs_data_set_string(response_data, "timer_id",
+				    timerData->timerId.toStdString().c_str());
+
+		obs_data_set_bool(response_data, "success", true);
+
+	} else {
+		obs_log(LOG_WARNING,
+			"Countdown widget not found for websocket request!");
+		obs_data_set_bool(response_data, "success", false);
+		obs_data_set_string(response_data, "message",
+				    "Error trying to get timer data!");
+	}
+}
+
+void CountdownDockWidget::HandleWebsocketButtonPressRequest(
+	obs_data_t *request_data, obs_data_t *response_data, void *priv_data)
+{
+	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
+	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
+	WebsocketRequestType requestType = callback_data->requestType;
+	CountdownDockWidget *countdownWidget = callback_data->instance;
+	const char *websocketTimerID =
+		obs_data_get_string(request_data, requestTimerIdKey);
+
+	AshmanixTimer *timer =
+		AttemptToGetTimerWidgetById(countdownWidget, websocketTimerID);
+
+	if (timer != nullptr) {
+		switch (requestType) {
+		case PERIOD_PLAY:
+			timer->PlayButtonClicked();
+			obs_data_set_bool(response_data, "success", true);
+			obs_data_set_bool(response_data, "message",
+					  "Play button pressed");
+			break;
+		case PERIOD_PAUSE:
+			timer->PauseButtonClicked();
+			obs_data_set_bool(response_data, "success", true);
+			obs_data_set_bool(response_data, "message",
+					  "Pause button pressed");
+			break;
+		case PERIOD_SET:
+			timer->ResetButtonClicked();
+			obs_data_set_bool(response_data, "success", true);
+			obs_data_set_bool(response_data, "message",
+					  "Reset button pressed");
+			break;
+		case TO_TIME_PLAY:
+			timer->ToTimePlayButtonClicked();
+			obs_data_set_bool(response_data, "success", true);
+			obs_data_set_bool(response_data, "message",
+					  "To Time play button pressed");
+			break;
+		case TO_TIME_STOP:
+			timer->ToTimeStopButtonClicked();
+			obs_data_set_bool(response_data, "success", true);
+			obs_data_set_bool(response_data, "message",
+					  "To Time stop button pressed");
+			break;
+		default:
+			obs_data_set_bool(response_data, "success", false);
+			obs_data_set_bool(response_data, "message",
+					  "No buttons pressed");
+			break;
+		}
+	} else {
+		obs_log(LOG_WARNING,
+			"Countdown widget not found for websocket timer state change request!");
+		obs_data_set_bool(response_data, "success", false);
+		obs_data_set_string(response_data, "message",
+				    "Error trying to change timer state!");
 	}
 }
 

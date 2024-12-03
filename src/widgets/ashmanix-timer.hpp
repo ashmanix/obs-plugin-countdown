@@ -30,7 +30,9 @@ public:
 	~AshmanixTimer();
 
 	void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject);
-	static void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject, TimerWidgetStruct *timerData);
+	static void
+	LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject,
+					   TimerWidgetStruct *timerData);
 
 	QString GetTimerID();
 	QPushButton *GetDeleteButton();

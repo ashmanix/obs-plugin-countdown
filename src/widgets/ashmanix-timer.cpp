@@ -43,8 +43,7 @@ AshmanixTimer::~AshmanixTimer()
 	this->deleteLater();
 }
 
-void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(
-	obs_data_t *dataObject)
+void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject)
 {
 	obs_data_set_string(dataObject, "timerId",
 			    countdownTimerData.timerId.toStdString().c_str());
@@ -53,28 +52,39 @@ void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(
 	obs_data_set_bool(dataObject, "showLeadingZero",
 			  countdownTimerData.showLeadingZero);
 
-	obs_data_set_string(dataObject, "selectedSource",
-			    countdownTimerData.selectedSource.toStdString().c_str());
-	obs_data_set_string(dataObject, "selectedScene",
-			    countdownTimerData.selectedScene.toStdString().c_str());
-	obs_data_set_string(dataObject, "endMessage",
-			    countdownTimerData.endMessage.toStdString().c_str());
+	obs_data_set_string(
+		dataObject, "selectedSource",
+		countdownTimerData.selectedSource.toStdString().c_str());
+	obs_data_set_string(
+		dataObject, "selectedScene",
+		countdownTimerData.selectedScene.toStdString().c_str());
+	obs_data_set_string(
+		dataObject, "endMessage",
+		countdownTimerData.endMessage.toStdString().c_str());
 	obs_data_set_string(
 		dataObject, "dateTime",
 		countdownTimerData.dateTime.toString().toStdString().c_str());
 
-	obs_data_set_int(dataObject, "periodDays", countdownTimerData.periodDays);
-	obs_data_set_int(dataObject, "periodHours", countdownTimerData.periodHours);
-	obs_data_set_int(dataObject, "periodMinutes", countdownTimerData.periodMinutes);
-	obs_data_set_int(dataObject, "periodSeconds", countdownTimerData.periodSeconds);
+	obs_data_set_int(dataObject, "periodDays",
+			 countdownTimerData.periodDays);
+	obs_data_set_int(dataObject, "periodHours",
+			 countdownTimerData.periodHours);
+	obs_data_set_int(dataObject, "periodMinutes",
+			 countdownTimerData.periodMinutes);
+	obs_data_set_int(dataObject, "periodSeconds",
+			 countdownTimerData.periodSeconds);
 
 	obs_data_set_bool(dataObject, "showDays", countdownTimerData.showDays);
-	obs_data_set_bool(dataObject, "showHours", countdownTimerData.showHours);
-	obs_data_set_bool(dataObject, "showMinutes", countdownTimerData.showMinutes);
-	obs_data_set_bool(dataObject, "showSeconds", countdownTimerData.showSeconds);
+	obs_data_set_bool(dataObject, "showHours",
+			  countdownTimerData.showHours);
+	obs_data_set_bool(dataObject, "showMinutes",
+			  countdownTimerData.showMinutes);
+	obs_data_set_bool(dataObject, "showSeconds",
+			  countdownTimerData.showSeconds);
 	obs_data_set_bool(dataObject, "showEndMessage",
 			  countdownTimerData.showEndMessage);
-	obs_data_set_bool(dataObject, "showEndScene", countdownTimerData.showEndScene);
+	obs_data_set_bool(dataObject, "showEndScene",
+			  countdownTimerData.showEndScene);
 
 	obs_data_set_int(dataObject, "countdownTypeSelectedTab",
 			 countdownTimerData.countdownTypeSelectedTab);

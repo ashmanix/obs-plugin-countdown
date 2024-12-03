@@ -70,7 +70,6 @@ private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 
 	static const int COUNTDOWNPERIOD = 1000;
-	static char const ZEROSTRING[];
 	static inline const char *VENDORNAME = "ashmanix-countdown-timer";
 	static inline const char *TIMERIDKEY = "timer_id";
 	obs_websocket_vendor vendor = nullptr;
@@ -102,8 +101,6 @@ private:
 	static void HandleWebsocketButtonPressRequest(obs_data_t *request_data,
 						      obs_data_t *response_data,
 						      void *priv_data);
-	static void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id,
-			       const char *name);
 
 signals:
 	void RequestTimerReset();

@@ -29,6 +29,9 @@ public:
 			       obs_websocket_vendor vendor = nullptr);
 	~AshmanixTimer();
 
+	void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject);
+	static void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject, TimerWidgetStruct *timerData);
+
 	QString GetTimerID();
 	QPushButton *GetDeleteButton();
 	TimerWidgetStruct *GetTimerData();
@@ -67,11 +70,11 @@ private:
 	void SetCurrentScene();
 	long long GetMillisFromPeriodUI();
 
-	void RegisterWebsocketRequests();
-	void UnregisterWebsocketRequests();
-
 	void SendTimerTickEvent(QString timerId, long long timeLeftInMillis);
 	void SendTimerStateEvent(QString timerId, const char *state);
+
+	static void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id,
+			       const char *name);
 
 signals:
 	void RequestTimerReset();

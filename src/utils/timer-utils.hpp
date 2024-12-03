@@ -6,7 +6,6 @@
 #include <QTimer>
 #include <QTabWidget>
 #include <QTime>
-#include <obs.h>
 
 struct TimerWidgetStruct {
 	QString timerId;
@@ -61,9 +60,5 @@ QString GetFormattedTimerString(bool daysState, bool hoursState,
 				bool showLeadingZero, long long timeInMillis);
 long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo,
 					int countdownPeriod = 1000);
-void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject,
-				      TimerWidgetStruct *timerData);
-void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject,
-					TimerWidgetStruct *timerData);
 
 #endif // TIMERUTILS_H

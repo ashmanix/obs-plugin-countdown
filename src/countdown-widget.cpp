@@ -1,7 +1,5 @@
 #include "countdown-widget.hpp"
 
-const char CountdownDockWidget::ZEROSTRING[] = "00:00:00:00";
-
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	: QWidget(parent),
 	  ui(new Ui::CountdownTimer)
@@ -110,65 +108,11 @@ void CountdownDockWidget::SaveSettings()
 				if (timerData) {
 					obs_data_t *dataObject =
 						obs_data_create();
-
-					SaveTimerWidgetDataToOBSSaveData(
-						dataObject, timerData);
+					timerWidget
+						->SaveTimerWidgetDataToOBSSaveData(
+							dataObject);
 					obs_data_array_push_back(obsDataArray,
 								 dataObject);
-
-					// Hotkeys
-					obs_data_array_t *start_countdown_hotkey_save_array =
-						obs_hotkey_save(
-							timerData
-								->startCountdownHotkeyId);
-					obs_data_set_array(
-						settings,
-						("Ashmanix_Countdown_Timer_Start_" +
-						 std::to_string(i))
-							.c_str(),
-						start_countdown_hotkey_save_array);
-					obs_data_array_release(
-						start_countdown_hotkey_save_array);
-
-					obs_data_array_t *pause_countdown_hotkey_save_array =
-						obs_hotkey_save(
-							timerData
-								->pauseCountdownHotkeyId);
-					obs_data_set_array(
-						settings,
-						("Ashmanix_Countdown_Timer_Pause_" +
-						 std::to_string(i))
-							.c_str(),
-						pause_countdown_hotkey_save_array);
-					obs_data_array_release(
-						pause_countdown_hotkey_save_array);
-
-					obs_data_array_t *set_countdown_hotkey_save_array =
-						obs_hotkey_save(
-							timerData
-								->setCountdownHotkeyId);
-					obs_data_set_array(
-						settings,
-						("Ashmanix_Countdown_Timer_Set_" +
-						 std::to_string(i))
-							.c_str(),
-						set_countdown_hotkey_save_array);
-					obs_data_array_release(
-						set_countdown_hotkey_save_array);
-
-					SaveHotkey(
-						settings,
-						timerData->startCountdownToTimeHotkeyId,
-						("Ashmanix_Countdown_Timer_To_Time_Start_" +
-						 std::to_string(i))
-							.c_str());
-
-					SaveHotkey(
-						settings,
-						timerData->stopCountdownToTimeHotkeyId,
-						("Ashmanix_Countdown_Timer_To_Time_Stop_" +
-						 std::to_string(i))
-							.c_str());
 
 					obs_data_release(dataObject);
 				}
@@ -339,7 +283,6 @@ void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
 
 	switch (event) {
 	case OBS_FRONTEND_EVENT_FINISHED_LOADING: {
-		// CountdownDockWidget::ConnectUISignalHandlers(context);
 		CountdownDockWidget::LoadSavedSettings(countdownDockWidget);
 	} break;
 	default:
@@ -367,40 +310,14 @@ void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 					obs_data_array_item(timersArray, i);
 				TimerWidgetStruct timerWidgetData =
 					TimerWidgetStruct();
-				LoadTimerWidgetDataFromOBSSaveData(
+				AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(
 					timerDataObj, &timerWidgetData);
 				dockWidget->AddTimer(timerWidgetData);
 			}
 		}
-		// 	const char *jsonString =
-		// 		obs_data_get_string(data, "timer_data");
-		// 	if (jsonString) {
-		// 		QJsonDocument jsonDoc =
-		// 			QJsonDocument::fromJson(QByteArray(jsonString));
-		// 		QJsonArray jsonArray = jsonDoc.array();
-
-		// 		for (const QJsonValue value : jsonArray) {
-		// 			QJsonObject obj = value.toObject();
-		// 			QString widgetKey = obj["key"].toString();
-
-		// 			TimerWidgetStruct timerWidgetData =
-		// 				JsonToTimerWidgetStruct(obj);
-		// 			dockWidget->AddTimer(timerWidgetData);
-		// 		}
-		// }
 		obs_data_release(data);
 	}
 }
-
-void CountdownDockWidget::SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id,
-				     const char *name)
-{
-	obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
-	if ((int)id == -1)
-		return;
-	OBSDataArrayAutoRelease array = obs_hotkey_save(id);
-	obs_data_set_array(sv_data, name, array);
-};
 
 AshmanixTimer *CountdownDockWidget::AttemptToGetTimerWidgetById(
 	CountdownDockWidget *countdownWidget, const char *websocketTimerID)

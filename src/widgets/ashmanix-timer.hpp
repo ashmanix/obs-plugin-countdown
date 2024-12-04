@@ -92,7 +92,8 @@ private:
 			       const char *name);
 	static void *HotKeyCallback(void *incoming_data);
 
-	const char *GetFullHotKeyName(const char *nameString, const char* joinText = "_");
+	const char *GetFullHotKeyName(const char *nameString,
+				      const char *joinText = "_");
 
 signals:
 	void RequestTimerReset();

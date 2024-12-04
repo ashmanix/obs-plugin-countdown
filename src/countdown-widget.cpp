@@ -165,12 +165,12 @@ void CountdownDockWidget::RegisterHotkeys()
 // 		}                                                              \
 // 	}
 	// 	// Register Play Hotkey
-		// context->startCountdownHotkeyId = (int)obs_hotkey_register_frontend(
-		// 	"Ashmanix_Countdown_Timer_Start",
-		// 	obs_module_text("StartCountdownHotkeyDescription"),
-		// 	HOTKEY_CALLBACK(true, countdownUi.playButton->animateClick,
-		// 			"Play Button Pressed"),
-		// 	ui);
+	// context->startCountdownHotkeyId = (int)obs_hotkey_register_frontend(
+	// 	"Ashmanix_Countdown_Timer_Start",
+	// 	obs_module_text("StartCountdownHotkeyDescription"),
+	// 	HOTKEY_CALLBACK(true, countdownUi.playButton->animateClick,
+	// 			"Play Button Pressed"),
+	// 	ui);
 	// 	if (saved_data)
 	// 		LoadHotkey(saved_data, context->startCountdownHotkeyId,
 	// 			   "Ashmanix_Countdown_Timer_Start");
@@ -247,7 +247,7 @@ void CountdownDockWidget::UnregisterHotkeys()
 	// 		countdownTimerData->stopCountdownToTimeHotkeyId);
 }
 
-void CountdownDockWidget::AddTimer(obs_data_t* savedData)
+void CountdownDockWidget::AddTimer(obs_data_t *savedData)
 {
 	AshmanixTimer *newTimer = new AshmanixTimer(this, vendor, savedData);
 

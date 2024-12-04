@@ -600,16 +600,16 @@ void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
 void AshmanixTimer::RegisterAllHotKeys(obs_data_t *savedData)
 {
 	// Unregister all hotkeys first to avoid duplicate registration
-    UnregisterAllHotKeys();
-	
+	UnregisterAllHotKeys();
+
 	RegisterHotKey(
 		countdownTimerData.startCountdownHotkeyId,
 		"Ashmanix_Countdown_Timer_Start",
 		GetFullHotKeyName(
 			obs_module_text("StartCountdownHotkeyDescription"),
 			" - "),
-		[this]() { ui->playButton->click(); },
-		"Play Button Pressed", savedData);
+		[this]() { ui->playButton->click(); }, "Play Button Pressed",
+		savedData);
 
 	RegisterHotKey(
 		countdownTimerData.pauseCountdownHotkeyId,

@@ -1,15 +1,28 @@
 #include "ashmanix-timer.hpp"
 
-AshmanixTimer::AshmanixTimer(QWidget *parent, QString id,
-			     obs_websocket_vendor vendor)
+AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor vendor,
+			     obs_data_t *savedData)
 	: QWidget(parent),
 	  ui(new Ui::AshmanixTimer)
 {
 	countdownTimerData = TimerWidgetStruct();
 
 	ui->setupUi(this);
-	countdownTimerData.timerId = id;
+
+	if (savedData)
+		LoadTimerWidgetDataFromOBSSaveData(savedData);
+
+	if (countdownTimerData.timerId.size() == 0) {
+		// Create a unique ID for the timer
+		QUuid uuid = QUuid::createUuid();
+		QByteArray hash = QCryptographicHash::hash(
+			uuid.toByteArray(), QCryptographicHash::Md5);
+		countdownTimerData.timerId = QString(hash.toHex().left(
+			8)); // We take the first 8 characters of the hash
+	}
+
 	this->setProperty("id", countdownTimerData.timerId);
+
 	vendor = &vendor;
 
 #if __APPLE__
@@ -40,6 +53,7 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, QString id,
 
 AshmanixTimer::~AshmanixTimer()
 {
+	UnregisterAllHotKeys();
 	this->deleteLater();
 }
 
@@ -90,46 +104,36 @@ void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject)
 			 countdownTimerData.countdownTypeSelectedTab);
 
 	// ------------------------- Hotkeys -------------------------
-	SaveHotkey(dataObject, countdownTimerData.startCountdownToTimeHotkeyId,
-		   ("Ashmanix_Countdown_Timer_Start_" +
-		    (countdownTimerData.timerId).toStdString())
-			   .c_str());
+	SaveHotKey(dataObject, countdownTimerData.startCountdownHotkeyId,
+		   "Ashmanix_Countdown_Timer_Start");
 
-	SaveHotkey(dataObject, countdownTimerData.startCountdownToTimeHotkeyId,
-		   ("Ashmanix_Countdown_Timer_Set_" +
-		    (countdownTimerData.timerId).toStdString())
-			   .c_str());
+	SaveHotKey(dataObject, countdownTimerData.pauseCountdownHotkeyId,
+		   "Ashmanix_Countdown_Timer_Pause");
 
-	SaveHotkey(dataObject, countdownTimerData.startCountdownToTimeHotkeyId,
-		   ("Ashmanix_Countdown_Timer_To_Time_Start_" +
-		    (countdownTimerData.timerId).toStdString())
-			   .c_str());
+	SaveHotKey(dataObject, countdownTimerData.setCountdownHotkeyId,
+		   "Ashmanix_Countdown_Timer_Set");
 
-	SaveHotkey(dataObject, countdownTimerData.startCountdownToTimeHotkeyId,
-		   ("Ashmanix_Countdown_Timer_To_Time_Start_" +
-		    (countdownTimerData.timerId).toStdString())
-			   .c_str());
+	SaveHotKey(dataObject, countdownTimerData.startCountdownToTimeHotkeyId,
+		   "Ashmanix_Countdown_Timer_To_Time_Start");
 
-	SaveHotkey(dataObject, countdownTimerData.stopCountdownToTimeHotkeyId,
-		   ("Ashmanix_Countdown_Timer_To_Time_Stop_" +
-		    (countdownTimerData.timerId).toStdString())
-			   .c_str());
+	SaveHotKey(dataObject, countdownTimerData.stopCountdownToTimeHotkeyId,
+		   "Ashmanix_Countdown_Timer_To_Time_Stop");
 }
 
-void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(
-	obs_data_t *dataObject, TimerWidgetStruct *timerData)
+void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
 {
 
-	timerData->timerId = (char *)obs_data_get_string(dataObject, "timerId");
-	timerData->shouldCountUp =
+	countdownTimerData.timerId =
+		(char *)obs_data_get_string(dataObject, "timerId");
+	countdownTimerData.shouldCountUp =
 		(bool)obs_data_get_bool(dataObject, "shouldCountUp");
-	timerData->showLeadingZero =
+	countdownTimerData.showLeadingZero =
 		(bool)obs_data_get_bool(dataObject, "showLeadingZero");
-	timerData->selectedSource =
+	countdownTimerData.selectedSource =
 		(char *)obs_data_get_string(dataObject, "selectedSource");
-	timerData->selectedScene =
+	countdownTimerData.selectedScene =
 		(char *)obs_data_get_string(dataObject, "selectedScene");
-	timerData->endMessage =
+	countdownTimerData.endMessage =
 		(char *)obs_data_get_string(dataObject, "endMessage");
 
 	QDateTime savedTime = QDateTime::fromString(
@@ -140,39 +144,47 @@ void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(
 		if (currentTime > savedTime)
 			savedTime = savedTime.addDays(1);
 	}
-	timerData->dateTime = savedTime;
+	countdownTimerData.dateTime = savedTime;
 
-	timerData->periodDays = (int)obs_data_get_int(dataObject, "periodDays");
-	timerData->periodHours =
+	countdownTimerData.periodDays =
+		(int)obs_data_get_int(dataObject, "periodDays");
+	countdownTimerData.periodHours =
 		(int)obs_data_get_int(dataObject, "periodHours");
-	timerData->periodMinutes =
+	countdownTimerData.periodMinutes =
 		(int)obs_data_get_int(dataObject, "periodMinutes");
-	timerData->periodSeconds =
+	countdownTimerData.periodSeconds =
 		(int)obs_data_get_int(dataObject, "periodSeconds");
 
-	timerData->showDays = (bool)obs_data_get_bool(dataObject, "showDays");
-	timerData->showHours = (bool)obs_data_get_bool(dataObject, "showHours");
-	timerData->showMinutes =
+	countdownTimerData.showDays =
+		(bool)obs_data_get_bool(dataObject, "showDays");
+	countdownTimerData.showHours =
+		(bool)obs_data_get_bool(dataObject, "showHours");
+	countdownTimerData.showMinutes =
 		(bool)obs_data_get_bool(dataObject, "showMinutes");
-	timerData->showSeconds =
+	countdownTimerData.showSeconds =
 		(bool)obs_data_get_bool(dataObject, "showSeconds");
-	timerData->showEndMessage =
+	countdownTimerData.showEndMessage =
 		(bool)obs_data_get_bool(dataObject, "showEndMessage");
-	timerData->showEndScene =
+	countdownTimerData.showEndScene =
 		(bool)obs_data_get_bool(dataObject, "showEndScene");
-	timerData->countdownTypeSelectedTab =
+	countdownTimerData.countdownTypeSelectedTab =
 		(int)obs_data_get_int(dataObject, "countdownTypeSelectedTab");
 
-	timerData->startCountdownHotkeyId =
+	countdownTimerData.startCountdownHotkeyId =
 		(int)obs_data_get_int(dataObject, "startCountdownHotkeyId");
-	timerData->pauseCountdownHotkeyId =
+	countdownTimerData.pauseCountdownHotkeyId =
 		(int)obs_data_get_int(dataObject, "pauseCountdownHotkeyId");
-	timerData->setCountdownHotkeyId =
+	countdownTimerData.setCountdownHotkeyId =
 		(int)obs_data_get_int(dataObject, "setCountdownHotkeyId");
-	timerData->startCountdownToTimeHotkeyId = (int)obs_data_get_int(
+	countdownTimerData.startCountdownToTimeHotkeyId = (int)obs_data_get_int(
 		dataObject, "startCountdownToTimeHotkeyId");
-	timerData->stopCountdownToTimeHotkeyId = (int)obs_data_get_int(
+	countdownTimerData.stopCountdownToTimeHotkeyId = (int)obs_data_get_int(
 		dataObject, "stopCountdownToTimeHotkeyId");
+
+	// Register hotkeys
+	RegisterAllHotKeys(dataObject);
+
+	SetTimerData();
 }
 
 QString AshmanixTimer::GetTimerID()
@@ -190,25 +202,27 @@ TimerWidgetStruct *AshmanixTimer::GetTimerData()
 	return &countdownTimerData;
 }
 
-void AshmanixTimer::SetTimerData(TimerWidgetStruct newData)
+void AshmanixTimer::SetTimerData()
 {
-	ui->timerNameLabel->setText(QString("Timer: %1").arg(newData.timerId));
+	ui->timerNameLabel->setText(
+		QString("Timer: %1").arg(countdownTimerData.timerId));
 
-	ui->dateTimeEdit->setDateTime(newData.dateTime);
+	ui->dateTimeEdit->setDateTime(countdownTimerData.dateTime);
 
-	ui->timerDays->setText(QString::number(newData.periodDays));
-	ui->timerHours->setText(QString::number(newData.periodHours));
-	ui->timerMinutes->setText(QString::number(newData.periodMinutes));
-	ui->timerSeconds->setText(QString::number(newData.periodSeconds));
+	ui->timerDays->setText(QString::number(countdownTimerData.periodDays));
+	ui->timerHours->setText(
+		QString::number(countdownTimerData.periodHours));
+	ui->timerMinutes->setText(
+		QString::number(countdownTimerData.periodMinutes));
+	ui->timerSeconds->setText(
+		QString::number(countdownTimerData.periodSeconds));
 
 	obs_log(LOG_INFO, "Timer %s tab set to %d",
-		newData.timerId.toStdString().c_str(),
-		newData.countdownTypeSelectedTab);
+		countdownTimerData.timerId.toStdString().c_str(),
+		countdownTimerData.countdownTypeSelectedTab);
 
 	ui->countdownTypeTabWidget->setCurrentIndex(
-		newData.countdownTypeSelectedTab);
-
-	countdownTimerData = newData;
+		countdownTimerData.countdownTypeSelectedTab);
 
 	ui->timerNameLabel->setText(
 		QString("Timer: %1").arg(countdownTimerData.timerId));
@@ -262,6 +276,33 @@ bool AshmanixTimer::AlterTime(WebsocketRequestType requestType,
 	emit RequestTimerReset();
 	return result;
 }
+
+void AshmanixTimer::PressPlayButton()
+{
+	ui->playButton->click();
+}
+
+void AshmanixTimer::PressResetButton()
+{
+	ui->resetButton->click();
+}
+
+void AshmanixTimer::PressStopButton()
+{
+	ui->pauseButton->click();
+}
+
+void AshmanixTimer::PressToTimePlayButton()
+{
+	ui->toTimePlayButton->click();
+}
+
+void AshmanixTimer::PressToTimeStopButton()
+{
+	ui->toTimeStopButton->click();
+}
+
+// --------------------------------- Private ----------------------------------
 
 void AshmanixTimer::SetupTimerWidgetUI()
 {
@@ -556,34 +597,127 @@ void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
 	obs_data_release(eventData);
 }
 
-void AshmanixTimer::SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id,
+void AshmanixTimer::RegisterAllHotKeys(obs_data_t *savedData)
+{
+	// Unregister all hotkeys first to avoid duplicate registration
+    UnregisterAllHotKeys();
+	
+	RegisterHotKey(
+		countdownTimerData.startCountdownHotkeyId,
+		"Ashmanix_Countdown_Timer_Start",
+		GetFullHotKeyName(
+			obs_module_text("StartCountdownHotkeyDescription"),
+			" - "),
+		[this]() { ui->playButton->click(); },
+		"Play Button Pressed", savedData);
+
+	RegisterHotKey(
+		countdownTimerData.pauseCountdownHotkeyId,
+		"Ashmanix_Countdown_Timer_Pause",
+		GetFullHotKeyName(
+			obs_module_text("PauseCountdownHotkeyDescription"),
+			" - "),
+		[this]() { ui->pauseButton->animateClick(); },
+		"Pause Button Pressed", savedData);
+
+	RegisterHotKey(
+		countdownTimerData.setCountdownHotkeyId,
+		"Ashmanix_Countdown_Timer_Set",
+		GetFullHotKeyName(
+			obs_module_text("SetCountdownHotkeyDescription"),
+			" - "),
+		[this]() { ui->resetButton->animateClick(); },
+		"Set Button Pressed", savedData);
+
+	RegisterHotKey(
+		countdownTimerData.startCountdownToTimeHotkeyId,
+		"Ashmanix_Countdown_Timer_To_Time_Start",
+		GetFullHotKeyName(
+			obs_module_text("StartCountdownToTimeHotkeyDescription"),
+			" - "),
+		[this]() { ui->toTimePlayButton->animateClick(); },
+		"To Time Start Button Pressed", savedData);
+
+	RegisterHotKey(
+		countdownTimerData.stopCountdownToTimeHotkeyId,
+		"Ashmanix_Countdown_Timer_To_Time_Stop",
+		GetFullHotKeyName(
+			obs_module_text("StopCountdownToTimeHotkeyDescription"),
+			" - "),
+		[this]() { ui->toTimeStopButton->animateClick(); },
+		"To Time Stop Button Pressed", savedData);
+}
+
+void AshmanixTimer::UnregisterAllHotKeys()
+{
+	if (countdownTimerData.startCountdownHotkeyId)
+		obs_hotkey_unregister(
+			countdownTimerData.startCountdownHotkeyId);
+	if (countdownTimerData.pauseCountdownHotkeyId)
+		obs_hotkey_unregister(
+			countdownTimerData.pauseCountdownHotkeyId);
+	if (countdownTimerData.setCountdownHotkeyId)
+		obs_hotkey_unregister(countdownTimerData.setCountdownHotkeyId);
+
+	if (countdownTimerData.startCountdownToTimeHotkeyId)
+		obs_hotkey_unregister(
+			countdownTimerData.startCountdownToTimeHotkeyId);
+	if (countdownTimerData.stopCountdownToTimeHotkeyId)
+		obs_hotkey_unregister(
+			countdownTimerData.stopCountdownToTimeHotkeyId);
+}
+
+void AshmanixTimer::RegisterHotKey(int &id, const char *name,
+				   const char *description,
+				   std::function<void()> function,
+				   const char *buttonLogMessage,
+				   obs_data_t *savedData = nullptr)
+{
+
+	id = (int)obs_hotkey_register_frontend(
+		name, description,
+		(obs_hotkey_func)&AshmanixTimer::HotKeyCallback,
+		new RegisterHotKeyCallbackData{function, buttonLogMessage});
+
+	if (savedData) {
+		if ((int)id == -1)
+			return;
+
+		OBSDataArrayAutoRelease array =
+			obs_data_get_array(savedData, name);
+
+		obs_hotkey_load(id, array);
+	}
+}
+
+void AshmanixTimer::SaveHotKey(obs_data_t *sv_data, obs_hotkey_id id,
 			       const char *name)
 {
+	obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
 	if ((int)id == -1)
 		return;
 	OBSDataArrayAutoRelease array = obs_hotkey_save(id);
 	obs_data_set_array(sv_data, name, array);
 };
 
-void AshmanixTimer::PressPlayButton()
+void *AshmanixTimer::HotKeyCallback(void *incoming_data)
 {
-	ui->playButton->click();
+	RegisterHotKeyCallbackData *hotkey_callback_data =
+		static_cast<RegisterHotKeyCallbackData *>(incoming_data);
+
+	obs_log(LOG_INFO, hotkey_callback_data->hotkeyLogMessage,
+		" due to hotkey");
+	hotkey_callback_data->function();
+	return incoming_data;
 }
-void AshmanixTimer::PressResetButton()
+
+const char *AshmanixTimer::GetFullHotKeyName(const char *name,
+					     const char *joinText)
 {
-	ui->resetButton->click();
-}
-void AshmanixTimer::PressStopButton()
-{
-	ui->pauseButton->click();
-}
-void AshmanixTimer::PressToTimePlayButton()
-{
-	ui->toTimePlayButton->click();
-}
-void AshmanixTimer::PressToTimeStopButton()
-{
-	ui->toTimeStopButton->click();
+	static std::string fullName;
+	fullName = std::string(name) + std::string(joinText) +
+		   countdownTimerData.timerId.toStdString();
+	return fullName.c_str();
 }
 
 // --------------------------------- Public Slots ----------------------------------

@@ -165,12 +165,12 @@ void CountdownDockWidget::RegisterHotkeys()
 // 		}                                                              \
 // 	}
 	// 	// Register Play Hotkey
-	// 	context->startCountdownHotkeyId = (int)obs_hotkey_register_frontend(
-	// 		"Ashmanix_Countdown_Timer_Start",
-	// 		obs_module_text("StartCountdownHotkeyDescription"),
-	// 		HOTKEY_CALLBACK(true, countdownUi.playButton->animateClick,
-	// 				"Play Button Pressed"),
-	// 		ui);
+		// context->startCountdownHotkeyId = (int)obs_hotkey_register_frontend(
+		// 	"Ashmanix_Countdown_Timer_Start",
+		// 	obs_module_text("StartCountdownHotkeyDescription"),
+		// 	HOTKEY_CALLBACK(true, countdownUi.playButton->animateClick,
+		// 			"Play Button Pressed"),
+		// 	ui);
 	// 	if (saved_data)
 	// 		LoadHotkey(saved_data, context->startCountdownHotkeyId,
 	// 			   "Ashmanix_Countdown_Timer_Start");
@@ -247,28 +247,11 @@ void CountdownDockWidget::UnregisterHotkeys()
 	// 		countdownTimerData->stopCountdownToTimeHotkeyId);
 }
 
-void CountdownDockWidget::AddTimer(
-	TimerWidgetStruct timerData = TimerWidgetStruct())
+void CountdownDockWidget::AddTimer(obs_data_t* savedData)
 {
-	QString newId;
+	AshmanixTimer *newTimer = new AshmanixTimer(this, vendor, savedData);
 
-	if (!timerData.timerId.isEmpty()) {
-		newId = timerData.timerId;
-	} else {
-		// Create a unique ID for the timer
-		QUuid uuid = QUuid::createUuid();
-		QByteArray hash = QCryptographicHash::hash(
-			uuid.toByteArray(), QCryptographicHash::Md5);
-		newId = QString(hash.toHex().left(
-			8)); // We take the first 8 characters of the hash
-	}
-
-	AshmanixTimer *newTimer = new AshmanixTimer(this, newId, vendor);
-
-	// Set timer data if provided
-	newTimer->SetTimerData(timerData);
-
-	timerWidgetMap.insert(newId, newTimer);
+	timerWidgetMap.insert(newTimer->GetTimerID(), newTimer);
 	ConnectTimerSignalHandlers(newTimer);
 
 	timerListLayout->addWidget(newTimer);
@@ -308,11 +291,7 @@ void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 			for (int i = 0; i < count; ++i) {
 				obs_data_t *timerDataObj =
 					obs_data_array_item(timersArray, i);
-				TimerWidgetStruct timerWidgetData =
-					TimerWidgetStruct();
-				AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(
-					timerDataObj, &timerWidgetData);
-				dockWidget->AddTimer(timerWidgetData);
+				dockWidget->AddTimer(timerDataObj);
 			}
 		}
 		obs_data_release(data);
@@ -498,15 +477,8 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(
 void CountdownDockWidget::AddTimerButtonClicked()
 {
 	// obs_log(LOG_INFO, "Adding timer to list!");
-	// Create a unique ID for the timer
-	QUuid uuid = QUuid::createUuid();
-	QByteArray hash = QCryptographicHash::hash(uuid.toByteArray(),
-						   QCryptographicHash::Md5);
-	QString newId = QString(hash.toHex().left(
-		8)); // We take the first 8 characters of the hash
-
-	AshmanixTimer *newTimer = new AshmanixTimer(nullptr, newId, vendor);
-	timerWidgetMap.insert(newId, newTimer);
+	AshmanixTimer *newTimer = new AshmanixTimer(nullptr, vendor);
+	timerWidgetMap.insert(newTimer->GetTimerID(), newTimer);
 	connect(newTimer, &AshmanixTimer::RequestDelete, this,
 		&CountdownDockWidget::RemoveTimerButtonClicked);
 

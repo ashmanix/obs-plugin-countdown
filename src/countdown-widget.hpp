@@ -82,9 +82,7 @@ private:
 	void SaveSettings();
 	void RegisterHotkeys();
 	void UnregisterHotkeys();
-	void AddTimer(TimerWidgetStruct timerData);
-
-	// void SendWebsocketEvent(const char *eventName, obs_data_t *eventData);
+	void AddTimer(obs_data_t *savedData = nullptr);
 
 	static void OBSFrontendEventHandler(enum obs_frontend_event event,
 					    void *private_data);

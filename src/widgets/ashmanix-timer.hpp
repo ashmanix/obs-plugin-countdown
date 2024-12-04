@@ -25,19 +25,18 @@ class AshmanixTimer : public QWidget {
 	Q_OBJECT
 
 public:
-	explicit AshmanixTimer(QWidget *parent = nullptr, QString id = "",
-			       obs_websocket_vendor vendor = nullptr);
+	explicit AshmanixTimer(QWidget *parent = nullptr,
+			       obs_websocket_vendor vendor = nullptr,
+			       obs_data_t *savedData = nullptr);
 	~AshmanixTimer();
 
 	void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject);
-	static void
-	LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject,
-					   TimerWidgetStruct *timerData);
+	void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject);
 
 	QString GetTimerID();
 	QPushButton *GetDeleteButton();
 	TimerWidgetStruct *GetTimerData();
-	void SetTimerData(TimerWidgetStruct newData);
+	void SetTimerData();
 	bool AlterTime(WebsocketRequestType requestType,
 		       long long timeInMillis);
 
@@ -48,6 +47,13 @@ public:
 	void PressToTimeStopButton();
 
 private:
+	struct RegisterHotKeyCallbackData {
+		std::function<void()>
+			function; // Function pointer to callback function
+		const char *
+			hotkeyLogMessage; // Message to log when hotkey is triggered
+					  // Ui::AshmanixTimer *ui;
+	};
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	static const int COUNTDOWNPERIOD = 1000;
 	static inline const char *ZEROSTRING = "00:00:00:00";
@@ -75,8 +81,18 @@ private:
 	void SendTimerTickEvent(QString timerId, long long timeLeftInMillis);
 	void SendTimerStateEvent(QString timerId, const char *state);
 
-	static void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id,
+	void RegisterAllHotKeys(obs_data_t *saved_data);
+	void UnregisterAllHotKeys();
+
+	void RegisterHotKey(int &id, const char *name, const char *description,
+			    std::function<void()> function,
+			    const char *buttonLogMessage,
+			    obs_data_t *savedData);
+	static void SaveHotKey(obs_data_t *sv_data, obs_hotkey_id id,
 			       const char *name);
+	static void *HotKeyCallback(void *incoming_data);
+
+	const char *GetFullHotKeyName(const char *nameString, const char* joinText = "_");
 
 signals:
 	void RequestTimerReset();

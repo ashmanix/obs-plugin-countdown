@@ -50,7 +50,7 @@ private:
 	struct RegisterHotKeyCallbackData {
 		std::function<void()>
 			function; // Function pointer to callback function
-		const char *
+		std::string
 			hotkeyLogMessage; // Message to log when hotkey is triggered
 					  // Ui::AshmanixTimer *ui;
 	};
@@ -86,13 +86,13 @@ private:
 
 	void RegisterHotKey(int &id, const char *name, const char *description,
 			    std::function<void()> function,
-			    const char *buttonLogMessage,
+			    std::string buttonLogMessage,
 			    obs_data_t *savedData);
 	static void SaveHotKey(obs_data_t *sv_data, obs_hotkey_id id,
 			       const char *name);
-	static void *HotKeyCallback(void *incoming_data);
+	static void *HotKeyCallback(void *incoming_data, obs_hotkey_id, obs_hotkey_t *, bool pressed);
 
-	const char *GetFullHotKeyName(const char *nameString,
+	std::string GetFullHotKeyName(std::string nameString,
 				      const char *joinText = "_");
 
 signals:

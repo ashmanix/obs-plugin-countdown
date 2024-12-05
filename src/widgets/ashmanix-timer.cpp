@@ -599,53 +599,59 @@ void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
 
 void AshmanixTimer::RegisterAllHotKeys(obs_data_t *savedData)
 {
-	// Unregister all hotkeys first to avoid duplicate registration
-	UnregisterAllHotKeys();
+	obs_log(LOG_INFO, "RegisterAllHotKeys called for Timer ID: %s",
+		countdownTimerData.timerId.toStdString().c_str());
 
 	RegisterHotKey(
 		countdownTimerData.startCountdownHotkeyId,
 		"Ashmanix_Countdown_Timer_Start",
 		GetFullHotKeyName(
 			obs_module_text("StartCountdownHotkeyDescription"),
-			" - "),
-		[this]() { ui->playButton->click(); }, "Play Button Pressed",
-		savedData);
+			" - ")
+			.c_str(),
+		[this]() { ui->playButton->click(); },
+		GetFullHotKeyName("Play Button Pressed", " "), savedData);
 
 	RegisterHotKey(
 		countdownTimerData.pauseCountdownHotkeyId,
 		"Ashmanix_Countdown_Timer_Pause",
 		GetFullHotKeyName(
 			obs_module_text("PauseCountdownHotkeyDescription"),
-			" - "),
+			" - ")
+			.c_str(),
 		[this]() { ui->pauseButton->animateClick(); },
-		"Pause Button Pressed", savedData);
+		GetFullHotKeyName("Pause Button Pressed", " "), savedData);
 
 	RegisterHotKey(
 		countdownTimerData.setCountdownHotkeyId,
 		"Ashmanix_Countdown_Timer_Set",
 		GetFullHotKeyName(
-			obs_module_text("SetCountdownHotkeyDescription"),
-			" - "),
+			obs_module_text("SetCountdownHotkeyDescription"), " - ")
+			.c_str(),
 		[this]() { ui->resetButton->animateClick(); },
-		"Set Button Pressed", savedData);
+		GetFullHotKeyName("Set Button Pressed", " "), savedData);
 
 	RegisterHotKey(
 		countdownTimerData.startCountdownToTimeHotkeyId,
 		"Ashmanix_Countdown_Timer_To_Time_Start",
 		GetFullHotKeyName(
 			obs_module_text("StartCountdownToTimeHotkeyDescription"),
-			" - "),
+			" - ")
+			.c_str(),
 		[this]() { ui->toTimePlayButton->animateClick(); },
-		"To Time Start Button Pressed", savedData);
+		GetFullHotKeyName("To Time Start Button Pressed", " "),
+		savedData);
 
 	RegisterHotKey(
 		countdownTimerData.stopCountdownToTimeHotkeyId,
 		"Ashmanix_Countdown_Timer_To_Time_Stop",
 		GetFullHotKeyName(
 			obs_module_text("StopCountdownToTimeHotkeyDescription"),
-			" - "),
+			" - ")
+			.c_str(),
 		[this]() { ui->toTimeStopButton->animateClick(); },
-		"To Time Stop Button Pressed", savedData);
+		GetFullHotKeyName("To Time Stop Button Pressed", " "),
+		savedData);
 }
 
 void AshmanixTimer::UnregisterAllHotKeys()
@@ -670,7 +676,7 @@ void AshmanixTimer::UnregisterAllHotKeys()
 void AshmanixTimer::RegisterHotKey(int &id, const char *name,
 				   const char *description,
 				   std::function<void()> function,
-				   const char *buttonLogMessage,
+				   std::string buttonLogMessage,
 				   obs_data_t *savedData = nullptr)
 {
 
@@ -693,31 +699,35 @@ void AshmanixTimer::RegisterHotKey(int &id, const char *name,
 void AshmanixTimer::SaveHotKey(obs_data_t *sv_data, obs_hotkey_id id,
 			       const char *name)
 {
-	obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
+	// obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
 	if ((int)id == -1)
 		return;
 	OBSDataArrayAutoRelease array = obs_hotkey_save(id);
 	obs_data_set_array(sv_data, name, array);
 };
 
-void *AshmanixTimer::HotKeyCallback(void *incoming_data)
+void *AshmanixTimer::HotKeyCallback(void *incoming_data, obs_hotkey_id,
+				    obs_hotkey_t *, bool pressed)
 {
-	RegisterHotKeyCallbackData *hotkey_callback_data =
-		static_cast<RegisterHotKeyCallbackData *>(incoming_data);
-
-	obs_log(LOG_INFO, hotkey_callback_data->hotkeyLogMessage,
-		" due to hotkey");
-	hotkey_callback_data->function();
+	if (pressed) {
+		RegisterHotKeyCallbackData *hotkey_callback_data =
+			static_cast<RegisterHotKeyCallbackData *>(
+				incoming_data);
+		obs_log(LOG_INFO,
+			hotkey_callback_data->hotkeyLogMessage.c_str(),
+			" due to hotkey");
+		hotkey_callback_data->function();
+	}
 	return incoming_data;
 }
 
-const char *AshmanixTimer::GetFullHotKeyName(const char *name,
+std::string AshmanixTimer::GetFullHotKeyName(std::string name,
 					     const char *joinText)
 {
 	static std::string fullName;
 	fullName = std::string(name) + std::string(joinText) +
 		   countdownTimerData.timerId.toStdString();
-	return fullName.c_str();
+	return fullName;
 }
 
 // --------------------------------- Public Slots ----------------------------------

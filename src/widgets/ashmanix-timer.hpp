@@ -90,7 +90,8 @@ private:
 			    obs_data_t *savedData);
 	static void SaveHotKey(obs_data_t *sv_data, obs_hotkey_id id,
 			       const char *name);
-	static void *HotKeyCallback(void *incoming_data, obs_hotkey_id, obs_hotkey_t *, bool pressed);
+	static void *HotKeyCallback(void *incoming_data, obs_hotkey_id,
+				    obs_hotkey_t *, bool pressed);
 
 	std::string GetFullHotKeyName(std::string nameString,
 				      const char *joinText = "_");

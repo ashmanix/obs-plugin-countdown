@@ -29,7 +29,7 @@ void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id, const char *name)
 	obs_data_set_array(sv_data, name, array);
 };
 
-void *HotkeyCallback(void *incoming_data, obs_hotkey_id, obs_hotkey_t *,
+void *HotkeyCallback(void *incoming_data, long unsigned int, obs_hotkey_t *,
 		     bool pressed)
 {
 	if (pressed) {

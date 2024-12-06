@@ -192,8 +192,8 @@ void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 		obs_data_array_t *timersArray =
 			obs_data_get_array(data, "timer_widgets");
 		if (timersArray) {
-			int count = obs_data_array_count(timersArray);
-			for (int i = 0; i < count; ++i) {
+			size_t count = obs_data_array_count(timersArray);
+			for (size_t i = 0; i < count; ++i) {
 				obs_data_t *timerDataObj =
 					obs_data_array_item(timersArray, i);
 				dockWidget->AddTimer(timerDataObj);

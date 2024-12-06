@@ -6,7 +6,7 @@ void LoadHotkey(int &id, const char *name, const char *description,
 {
 
 	id = (int)obs_hotkey_register_frontend(
-		name, description, (obs_hotkey_func)&HotkeyCallback,
+		name, description, (obs_hotkey_func)HotkeyCallback,
 		new RegisterHotkeyCallbackData{function, buttonLogMessage});
 
 	if (savedData) {
@@ -29,9 +29,11 @@ void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id, const char *name)
 	obs_data_set_array(sv_data, name, array);
 };
 
-void *HotkeyCallback(void *incoming_data, long unsigned int, obs_hotkey_t *,
+void HotkeyCallback(void *incoming_data, obs_hotkey_id id, obs_hotkey_t *hotkey,
 		     bool pressed)
 {
+	UNUSED_PARAMETER(id);
+	UNUSED_PARAMETER(hotkey);
 	if (pressed) {
 		RegisterHotkeyCallbackData *hotkey_callback_data =
 			static_cast<RegisterHotkeyCallbackData *>(
@@ -41,5 +43,4 @@ void *HotkeyCallback(void *incoming_data, long unsigned int, obs_hotkey_t *,
 			" due to hotkey");
 		hotkey_callback_data->function();
 	}
-	return incoming_data;
 }

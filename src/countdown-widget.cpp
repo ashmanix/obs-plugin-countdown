@@ -81,17 +81,11 @@ void CountdownDockWidget::ConnectUISignalHandlers()
 
 void CountdownDockWidget::ConnectTimerSignalHandlers(AshmanixTimer *timerWidget)
 {
-	QObject::connect(
-		timerWidget, SIGNAL(&AshmanixTimer::RequestDelete()), this,
-		SLOT(&CountdownDockWidget::RemoveTimerButtonClicked()));
+	connect(timerWidget, &AshmanixTimer::RequestDelete, this,
+			 &CountdownDockWidget::RemoveTimerButtonClicked);
 
-	QObject::connect(
-		timerWidget,
-		SIGNAL(&AshmanixTimer::RequestSendWebsocketEvent(
-			const char *eventName, obs_data_t *eventData)),
-		this,
-		SLOT(&CountdownDockWidget::HandleWebsocketSendEvent(
-			const char *eventName, obs_data_t *eventData)));
+	connect(timerWidget, &AshmanixTimer::RequestSendWebsocketEvent,
+			 this, &CountdownDockWidget::HandleWebsocketSendEvent);
 }
 
 void CountdownDockWidget::SaveSettings()

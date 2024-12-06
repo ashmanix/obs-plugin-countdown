@@ -109,8 +109,8 @@ signals:
 	void RequestTimerReset();
 
 private slots:
-	void AddTimerButtonClicked();
 	void RemoveTimerButtonClicked(QString id);
+	void AddTimerButtonClicked();
 
 	void HandleTimerReset();
 	void HandleWebsocketSendEvent(const char *eventName,

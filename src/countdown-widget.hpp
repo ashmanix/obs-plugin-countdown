@@ -66,12 +66,16 @@ public:
 private:
 	QMap<QString, AshmanixTimer *> timerWidgetMap;
 	QVBoxLayout *timerListLayout;
+	int addTimerHotkeyId = -1;
 
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 
 	static const int COUNTDOWNPERIOD = 1000;
 	static inline const char *VENDORNAME = "ashmanix-countdown-timer";
 	static inline const char *TIMERIDKEY = "timer_id";
+
+	static inline const char*addTimerHotkeyName = "Ashmanix_Countdown_Timer_Add_Timer";
+	
 	obs_websocket_vendor vendor = nullptr;
 
 	Ui::CountdownTimer *ui;
@@ -80,8 +84,8 @@ private:
 	void ConnectUISignalHandlers();
 	void ConnectTimerSignalHandlers(AshmanixTimer *timerWidget);
 	void SaveSettings();
-	void RegisterHotkeys();
-	void UnregisterHotkeys();
+	void RegisterAllHotkeys(obs_data_t *savedData);
+	void UnregisterAllHotkeys();
 	void AddTimer(obs_data_t *savedData = nullptr);
 
 	static void OBSFrontendEventHandler(enum obs_frontend_event event,

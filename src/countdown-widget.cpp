@@ -14,14 +14,12 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	obs_frontend_add_event_callback(OBSFrontendEventHandler, this);
 
 	ConnectUISignalHandlers();
-
-	RegisterHotkeys();
 }
 
 CountdownDockWidget::~CountdownDockWidget()
 {
 	SaveSettings();
-	UnregisterHotkeys();
+	UnregisterAllHotkeys();
 }
 
 void CountdownDockWidget::ConfigureWebSocketConnection()
@@ -121,6 +119,11 @@ void CountdownDockWidget::SaveSettings()
 	}
 
 	obs_data_set_array(settings, "timer_widgets", obsDataArray);
+
+	// ----------------------------------- Save Hotkeys -----------------------------------
+	SaveHotkey(settings, addTimerHotkeyId, addTimerHotkeyName);
+	// ------------------------------------------------------------------------------------
+
 	char *file = obs_module_config_path(CONFIG);
 	if (!obs_data_save_json(settings, file)) {
 		char *path = obs_module_config_path("");
@@ -134,117 +137,19 @@ void CountdownDockWidget::SaveSettings()
 	bfree(file);
 }
 
-void CountdownDockWidget::RegisterHotkeys()
+void CountdownDockWidget::RegisterAllHotkeys(obs_data_t *savedData)
 {
-	// auto LoadHotkey = [](obs_data_t *s_data, obs_hotkey_id id,
-	// 		     const char *name) {
-	// 	if ((int)id == -1)
-	// 		return;
-
-	// OBSDataArrayAutoRelease array =
-	// obs_data_get_array(s_data, name);
-
-	// 	obs_hotkey_load(id, array);
-	// 	// obs_data_array_release(array);
-	// };
-
-	// char *file = obs_module_config_path(CONFIG);
-	// obs_data_t *saved_data = nullptr;
-	// if (file) {
-	// 	saved_data = obs_data_create_from_json_file(file);
-	// 	bfree(file);
-	// }
-
-	// #define HOTKEY_CALLBACK(pred, method, log_action)                              \
-// 	[](void *incoming_data, obs_hotkey_id, obs_hotkey_t *, bool pressed) { \
-// 		Ui::CountdownTimer &countdownUi =                              \
-// 			*static_cast<Ui::CountdownTimer *>(incoming_data);     \
-// 		if ((pred) && pressed) {                                       \
-// 			obs_log(LOG_INFO, log_action " due to hotkey");        \
-// 			method();                                              \
-// 		}                                                              \
-// 	}
-	// 	// Register Play Hotkey
-	// context->startCountdownHotkeyId = (int)obs_hotkey_register_frontend(
-	// 	"Ashmanix_Countdown_Timer_Start",
-	// 	obs_module_text("StartCountdownHotkeyDescription"),
-	// 	HOTKEY_CALLBACK(true, countdownUi.playButton->animateClick,
-	// 			"Play Button Pressed"),
-	// 	ui);
-	// 	if (saved_data)
-	// 		LoadHotkey(saved_data, context->startCountdownHotkeyId,
-	// 			   "Ashmanix_Countdown_Timer_Start");
-
-	// 	// Register Pause Hotkey
-	// 	context->pauseCountdownHotkeyId = (int)obs_hotkey_register_frontend(
-	// 		"Ashmanix_Countdown_Timer_Pause",
-	// 		obs_module_text("PauseCountdownHotkeyDescription"),
-	// 		HOTKEY_CALLBACK(true, countdownUi.pauseButton->animateClick,
-	// 				"Pause Button Pressed"),
-	// 		ui);
-	// 	if (saved_data)
-	// 		LoadHotkey(saved_data, context->pauseCountdownHotkeyId,
-	// 			   "Ashmanix_Countdown_Timer_Pause");
-
-	// 	// Register Reset Hotkey
-	// 	context->setCountdownHotkeyId = (int)obs_hotkey_register_frontend(
-	// 		"Ashmanix_Countdown_Timer_Set",
-	// 		obs_module_text("SetCountdownHotkeyDescription"),
-	// 		HOTKEY_CALLBACK(true, countdownUi.resetButton->animateClick,
-	// 				"Set Button Pressed"),
-	// 		ui);
-	// 	if (saved_data)
-	// 		LoadHotkey(saved_data, context->setCountdownHotkeyId,
-	// 			   "Ashmanix_Countdown_Timer_Set");
-
-	// 	// Register To Time Start Hotkey
-	// 	context->startCountdownToTimeHotkeyId =
-	// 		(int)obs_hotkey_register_frontend(
-	// 			"Ashmanix_Countdown_Timer_To_Time_Start",
-	// 			obs_module_text(
-	// 				"StartCountdownToTimeHotkeyDescription"),
-	// 			HOTKEY_CALLBACK(
-	// 				true,
-	// 				countdownUi.toTimePlayButton->animateClick,
-	// 				"To Time Start Button Pressed"),
-	// 			ui);
-	// 	if (saved_data)
-	// 		LoadHotkey(saved_data, context->startCountdownToTimeHotkeyId,
-	// 			   "Ashmanix_Countdown_Timer_To_Time_Start");
-
-	// 	// Register To Time Stop Hotkey
-	// 	context->stopCountdownToTimeHotkeyId = (int)obs_hotkey_register_frontend(
-	// 		"Ashmanix_Countdown_Timer_To_Time_Stop",
-	// 		obs_module_text("StopCountdownToTimeHotkeyDescription"),
-	// 		HOTKEY_CALLBACK(true,
-	// 				countdownUi.toTimeStopButton->animateClick,
-	// 				"To Time Stop Button Pressed"),
-	// 		ui);
-	// 	if (saved_data)
-	// 		LoadHotkey(saved_data, context->stopCountdownToTimeHotkeyId,
-	// 			   "Ashmanix_Countdown_Timer_To_Time_Stop");
-
-	// obs_data_release(saved_data);
-	// #undef HOTKEY_CALLBACK
+	LoadHotkey(
+		addTimerHotkeyId, addTimerHotkeyName,
+		obs_module_text("AddTimerHotkeyDescription"),
+		[this]() { ui->addTimerButton->click(); },
+		"Add Timer Hotkey Pressed", savedData);
 }
 
-void CountdownDockWidget::UnregisterHotkeys()
+void CountdownDockWidget::UnregisterAllHotkeys()
 {
-	// if (countdownTimerData->startCountdownHotkeyId)
-	// 	obs_hotkey_unregister(
-	// 		countdownTimerData->startCountdownHotkeyId);
-	// if (countdownTimerData->pauseCountdownHotkeyId)
-	// 	obs_hotkey_unregister(
-	// 		countdownTimerData->pauseCountdownHotkeyId);
-	// if (countdownTimerData->setCountdownHotkeyId)
-	// 	obs_hotkey_unregister(countdownTimerData->setCountdownHotkeyId);
-
-	// if (countdownTimerData->startCountdownToTimeHotkeyId)
-	// 	obs_hotkey_unregister(
-	// 		countdownTimerData->startCountdownToTimeHotkeyId);
-	// if (countdownTimerData->stopCountdownToTimeHotkeyId)
-	// 	obs_hotkey_unregister(
-	// 		countdownTimerData->stopCountdownToTimeHotkeyId);
+	if (addTimerHotkeyId)
+		obs_hotkey_unregister(addTimerHotkeyId);
 }
 
 void CountdownDockWidget::AddTimer(obs_data_t *savedData)
@@ -294,6 +199,9 @@ void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 				dockWidget->AddTimer(timerDataObj);
 			}
 		}
+
+		dockWidget->RegisterAllHotkeys(data);
+
 		obs_data_release(data);
 	}
 }

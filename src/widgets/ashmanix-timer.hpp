@@ -19,6 +19,7 @@
 #include "../plugin-support.h"
 #include "../ui/ui_AshmanixTimer.h"
 #include "../utils/timer-utils.hpp"
+#include "../utils/obs-utils.hpp"
 #include "settings-dialog.hpp"
 
 class AshmanixTimer : public QWidget {
@@ -47,17 +48,16 @@ public:
 	void PressToTimeStopButton();
 
 private:
-	struct RegisterHotKeyCallbackData {
-		std::function<void()>
-			function; // Function pointer to callback function
-		std::string
-			hotkeyLogMessage; // Message to log when hotkey is triggered
-					  // Ui::AshmanixTimer *ui;
-	};
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	static const int COUNTDOWNPERIOD = 1000;
 	static inline const char *ZEROSTRING = "00:00:00:00";
 	obs_websocket_vendor vendor = nullptr;
+
+	static inline const char *TIMERSTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_Start";
+	static inline const char *TIMERPAUSEHOTKEYNAME = "Ashmanix_Countdown_Timer_Pause";
+	static inline const char *TIMERSETHOTKEYNAME = "Ashmanix_Countdown_Timer_Set";
+	static inline const char *TIMERTOTIMESTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Start";
+	static inline const char *TIMERTOTIMESTOPHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Stop";
 
 	TimerWidgetStruct countdownTimerData;
 	Ui::AshmanixTimer *ui;
@@ -81,19 +81,10 @@ private:
 	void SendTimerTickEvent(QString timerId, long long timeLeftInMillis);
 	void SendTimerStateEvent(QString timerId, const char *state);
 
-	void RegisterAllHotKeys(obs_data_t *saved_data);
-	void UnregisterAllHotKeys();
+	void RegisterAllHotkeys(obs_data_t *saved_data);
+	void UnregisterAllHotkeys();
 
-	void RegisterHotKey(int &id, const char *name, const char *description,
-			    std::function<void()> function,
-			    std::string buttonLogMessage,
-			    obs_data_t *savedData);
-	static void SaveHotKey(obs_data_t *sv_data, obs_hotkey_id id,
-			       const char *name);
-	static void *HotKeyCallback(void *incoming_data, obs_hotkey_id,
-				    obs_hotkey_t *, bool pressed);
-
-	std::string GetFullHotKeyName(std::string nameString,
+	std::string GetFullHotkeyName(std::string nameString,
 				      const char *joinText = "_");
 
 signals:

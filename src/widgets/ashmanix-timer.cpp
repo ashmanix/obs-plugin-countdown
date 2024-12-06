@@ -9,8 +9,9 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor vendor,
 
 	ui->setupUi(this);
 
-	if (savedData)
+	if (savedData){
 		LoadTimerWidgetDataFromOBSSaveData(savedData);
+	}
 
 	if (countdownTimerData.timerId.size() == 0) {
 		// Create a unique ID for the timer
@@ -44,16 +45,19 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor vendor,
 	// 			       QSizePolicy::MinimumExpanding);
 #endif
 
+	
 	SetupTimerWidgetUI();
 
 	ConnectUISignalHandlers();
 
 	InitialiseTimerTime();
+	
+	RegisterAllHotkeys(savedData);
 }
 
 AshmanixTimer::~AshmanixTimer()
 {
-	UnregisterAllHotKeys();
+	UnregisterAllHotkeys();
 	this->deleteLater();
 }
 
@@ -104,20 +108,20 @@ void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject)
 			 countdownTimerData.countdownTypeSelectedTab);
 
 	// ------------------------- Hotkeys -------------------------
-	SaveHotKey(dataObject, countdownTimerData.startCountdownHotkeyId,
-		   "Ashmanix_Countdown_Timer_Start");
+	SaveHotkey(dataObject, countdownTimerData.startCountdownHotkeyId,
+		   TIMERSTARTHOTKEYNAME);
 
-	SaveHotKey(dataObject, countdownTimerData.pauseCountdownHotkeyId,
-		   "Ashmanix_Countdown_Timer_Pause");
+	SaveHotkey(dataObject, countdownTimerData.pauseCountdownHotkeyId,
+		   TIMERPAUSEHOTKEYNAME);
 
-	SaveHotKey(dataObject, countdownTimerData.setCountdownHotkeyId,
-		   "Ashmanix_Countdown_Timer_Set");
+	SaveHotkey(dataObject, countdownTimerData.setCountdownHotkeyId,
+		   TIMERSETHOTKEYNAME);
 
-	SaveHotKey(dataObject, countdownTimerData.startCountdownToTimeHotkeyId,
-		   "Ashmanix_Countdown_Timer_To_Time_Start");
+	SaveHotkey(dataObject, countdownTimerData.startCountdownToTimeHotkeyId,
+		   TIMERTOTIMESTARTHOTKEYNAME);
 
-	SaveHotKey(dataObject, countdownTimerData.stopCountdownToTimeHotkeyId,
-		   "Ashmanix_Countdown_Timer_To_Time_Stop");
+	SaveHotkey(dataObject, countdownTimerData.stopCountdownToTimeHotkeyId,
+		   TIMERTOTIMESTOPHOTKEYNAME);
 }
 
 void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
@@ -180,9 +184,6 @@ void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
 		dataObject, "startCountdownToTimeHotkeyId");
 	countdownTimerData.stopCountdownToTimeHotkeyId = (int)obs_data_get_int(
 		dataObject, "stopCountdownToTimeHotkeyId");
-
-	// Register hotkeys
-	RegisterAllHotKeys(dataObject);
 
 	SetTimerData();
 }
@@ -597,64 +598,61 @@ void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
 	obs_data_release(eventData);
 }
 
-void AshmanixTimer::RegisterAllHotKeys(obs_data_t *savedData)
+void AshmanixTimer::RegisterAllHotkeys(obs_data_t *savedData)
 {
-	obs_log(LOG_INFO, "RegisterAllHotKeys called for Timer ID: %s",
-		countdownTimerData.timerId.toStdString().c_str());
-
-	RegisterHotKey(
+	LoadHotkey(
 		countdownTimerData.startCountdownHotkeyId,
-		"Ashmanix_Countdown_Timer_Start",
-		GetFullHotKeyName(
+		TIMERSTARTHOTKEYNAME,
+		GetFullHotkeyName(
 			obs_module_text("StartCountdownHotkeyDescription"),
 			" - ")
 			.c_str(),
 		[this]() { ui->playButton->click(); },
-		GetFullHotKeyName("Play Button Pressed", " "), savedData);
+		GetFullHotkeyName("Play Hotkey Pressed", " "), savedData);
 
-	RegisterHotKey(
+	LoadHotkey(
 		countdownTimerData.pauseCountdownHotkeyId,
-		"Ashmanix_Countdown_Timer_Pause",
-		GetFullHotKeyName(
+		TIMERPAUSEHOTKEYNAME,
+		GetFullHotkeyName(
 			obs_module_text("PauseCountdownHotkeyDescription"),
 			" - ")
 			.c_str(),
 		[this]() { ui->pauseButton->animateClick(); },
-		GetFullHotKeyName("Pause Button Pressed", " "), savedData);
+		GetFullHotkeyName("Pause Hotkey Pressed", " "), savedData);
 
-	RegisterHotKey(
+	LoadHotkey(
 		countdownTimerData.setCountdownHotkeyId,
-		"Ashmanix_Countdown_Timer_Set",
-		GetFullHotKeyName(
+		TIMERSETHOTKEYNAME,
+		GetFullHotkeyName(
 			obs_module_text("SetCountdownHotkeyDescription"), " - ")
 			.c_str(),
 		[this]() { ui->resetButton->animateClick(); },
-		GetFullHotKeyName("Set Button Pressed", " "), savedData);
+		GetFullHotkeyName("Set Hotkey Pressed", " "), savedData);
 
-	RegisterHotKey(
+	LoadHotkey(
 		countdownTimerData.startCountdownToTimeHotkeyId,
-		"Ashmanix_Countdown_Timer_To_Time_Start",
-		GetFullHotKeyName(
+		TIMERTOTIMESTARTHOTKEYNAME,
+		GetFullHotkeyName(
 			obs_module_text("StartCountdownToTimeHotkeyDescription"),
 			" - ")
 			.c_str(),
 		[this]() { ui->toTimePlayButton->animateClick(); },
-		GetFullHotKeyName("To Time Start Button Pressed", " "),
+		GetFullHotkeyName("To Time Start Hotkey Pressed", " "),
 		savedData);
 
-	RegisterHotKey(
+	LoadHotkey(
 		countdownTimerData.stopCountdownToTimeHotkeyId,
-		"Ashmanix_Countdown_Timer_To_Time_Stop",
-		GetFullHotKeyName(
+		TIMERTOTIMESTOPHOTKEYNAME,
+		GetFullHotkeyName(
 			obs_module_text("StopCountdownToTimeHotkeyDescription"),
 			" - ")
 			.c_str(),
 		[this]() { ui->toTimeStopButton->animateClick(); },
-		GetFullHotKeyName("To Time Stop Button Pressed", " "),
+		GetFullHotkeyName("To Time Stop Hotkey Pressed", " "),
 		savedData);
 }
 
-void AshmanixTimer::UnregisterAllHotKeys()
+void AshmanixTimer::UnregisterAllHotkeys()
 {
 	if (countdownTimerData.startCountdownHotkeyId)
 		obs_hotkey_unregister(
@@ -673,55 +671,7 @@ void AshmanixTimer::UnregisterAllHotKeys()
 			countdownTimerData.stopCountdownToTimeHotkeyId);
 }
 
-void AshmanixTimer::RegisterHotKey(int &id, const char *name,
-				   const char *description,
-				   std::function<void()> function,
-				   std::string buttonLogMessage,
-				   obs_data_t *savedData = nullptr)
-{
-
-	id = (int)obs_hotkey_register_frontend(
-		name, description,
-		(obs_hotkey_func)&AshmanixTimer::HotKeyCallback,
-		new RegisterHotKeyCallbackData{function, buttonLogMessage});
-
-	if (savedData) {
-		if ((int)id == -1)
-			return;
-
-		OBSDataArrayAutoRelease array =
-			obs_data_get_array(savedData, name);
-
-		obs_hotkey_load(id, array);
-	}
-}
-
-void AshmanixTimer::SaveHotKey(obs_data_t *sv_data, obs_hotkey_id id,
-			       const char *name)
-{
-	// obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
-	if ((int)id == -1)
-		return;
-	OBSDataArrayAutoRelease array = obs_hotkey_save(id);
-	obs_data_set_array(sv_data, name, array);
-};
-
-void *AshmanixTimer::HotKeyCallback(void *incoming_data, obs_hotkey_id,
-				    obs_hotkey_t *, bool pressed)
-{
-	if (pressed) {
-		RegisterHotKeyCallbackData *hotkey_callback_data =
-			static_cast<RegisterHotKeyCallbackData *>(
-				incoming_data);
-		obs_log(LOG_INFO,
-			hotkey_callback_data->hotkeyLogMessage.c_str(),
-			" due to hotkey");
-		hotkey_callback_data->function();
-	}
-	return incoming_data;
-}
-
-std::string AshmanixTimer::GetFullHotKeyName(std::string name,
+std::string AshmanixTimer::GetFullHotkeyName(std::string name,
 					     const char *joinText)
 {
 	static std::string fullName;

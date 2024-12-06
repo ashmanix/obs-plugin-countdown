@@ -224,20 +224,28 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 
 		ui->daysCheckBox->setChecked(settingsDialogData->showDays);
 		ui->hoursCheckBox->setChecked(settingsDialogData->showHours);
-		ui->minutesCheckBox->setChecked(settingsDialogData->showMinutes);
-		ui->secondsCheckBox->setChecked(settingsDialogData->showSeconds);
-		ui->leadZeroCheckBox->setChecked(settingsDialogData->showLeadingZero);
+		ui->minutesCheckBox->setChecked(
+			settingsDialogData->showMinutes);
+		ui->secondsCheckBox->setChecked(
+			settingsDialogData->showSeconds);
+		ui->leadZeroCheckBox->setChecked(
+			settingsDialogData->showLeadingZero);
 
-		ui->countUpCheckBox->setChecked(settingsDialogData->shouldCountUp);
+		ui->countUpCheckBox->setChecked(
+			settingsDialogData->shouldCountUp);
 		if (settingsDialogData->isPlaying)
 			ui->countUpCheckBox->setEnabled(false);
 
-		ui->endMessageCheckBox->setChecked(settingsDialogData->showEndMessage);
-		ui->endMessageLineEdit->setEnabled(settingsDialogData->showEndMessage);
+		ui->endMessageCheckBox->setChecked(
+			settingsDialogData->showEndMessage);
+		ui->endMessageLineEdit->setEnabled(
+			settingsDialogData->showEndMessage);
 		ui->endMessageLineEdit->setText(settingsDialogData->endMessage);
 
-		ui->switchSceneCheckBox->setChecked(settingsDialogData->showEndScene);
-		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->showEndScene);
+		ui->switchSceneCheckBox->setChecked(
+			settingsDialogData->showEndScene);
+		ui->sceneSourceDropdownList->setEnabled(
+			settingsDialogData->showEndScene);
 
 		ui->applyPushButton->setEnabled(false);
 	} else {

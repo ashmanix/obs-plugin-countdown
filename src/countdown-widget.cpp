@@ -134,6 +134,7 @@ void CountdownDockWidget::SaveSettings()
 		obs_data_save_json(settings, file);
 	}
 	obs_data_array_release(obsDataArray);
+	obs_data_release(settings);
 	bfree(file);
 }
 

@@ -53,11 +53,16 @@ private:
 	static inline const char *ZEROSTRING = "00:00:00:00";
 	obs_websocket_vendor vendor = nullptr;
 
-	static inline const char *TIMERSTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_Start";
-	static inline const char *TIMERPAUSEHOTKEYNAME = "Ashmanix_Countdown_Timer_Pause";
-	static inline const char *TIMERSETHOTKEYNAME = "Ashmanix_Countdown_Timer_Set";
-	static inline const char *TIMERTOTIMESTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Start";
-	static inline const char *TIMERTOTIMESTOPHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Stop";
+	static inline const char *TIMERSTARTHOTKEYNAME =
+		"Ashmanix_Countdown_Timer_Start";
+	static inline const char *TIMERPAUSEHOTKEYNAME =
+		"Ashmanix_Countdown_Timer_Pause";
+	static inline const char *TIMERSETHOTKEYNAME =
+		"Ashmanix_Countdown_Timer_Set";
+	static inline const char *TIMERTOTIMESTARTHOTKEYNAME =
+		"Ashmanix_Countdown_Timer_To_Time_Start";
+	static inline const char *TIMERTOTIMESTOPHOTKEYNAME =
+		"Ashmanix_Countdown_Timer_To_Time_Stop";
 
 	TimerWidgetStruct countdownTimerData;
 	Ui::AshmanixTimer *ui;

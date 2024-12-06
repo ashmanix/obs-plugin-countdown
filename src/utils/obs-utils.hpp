@@ -14,8 +14,8 @@ struct RegisterHotkeyCallbackData {
 };
 
 void LoadHotkey(int &id, const char *name, const char *description,
-		    std::function<void()> function,
-		    std::string buttonLogMessage, obs_data_t *savedData);
+		std::function<void()> function, std::string buttonLogMessage,
+		obs_data_t *savedData);
 
 void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id, const char *name);
 void *HotkeyCallback(void *incoming_data, obs_hotkey_id, obs_hotkey_t *,

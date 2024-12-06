@@ -9,7 +9,7 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor vendor,
 
 	ui->setupUi(this);
 
-	if (savedData){
+	if (savedData) {
 		LoadTimerWidgetDataFromOBSSaveData(savedData);
 	}
 
@@ -45,13 +45,12 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor vendor,
 	// 			       QSizePolicy::MinimumExpanding);
 #endif
 
-	
 	SetupTimerWidgetUI();
 
 	ConnectUISignalHandlers();
 
 	InitialiseTimerTime();
-	
+
 	RegisterAllHotkeys(savedData);
 }
 
@@ -601,8 +600,7 @@ void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
 void AshmanixTimer::RegisterAllHotkeys(obs_data_t *savedData)
 {
 	LoadHotkey(
-		countdownTimerData.startCountdownHotkeyId,
-		TIMERSTARTHOTKEYNAME,
+		countdownTimerData.startCountdownHotkeyId, TIMERSTARTHOTKEYNAME,
 		GetFullHotkeyName(
 			obs_module_text("StartCountdownHotkeyDescription"),
 			" - ")
@@ -611,8 +609,7 @@ void AshmanixTimer::RegisterAllHotkeys(obs_data_t *savedData)
 		GetFullHotkeyName("Play Hotkey Pressed", " "), savedData);
 
 	LoadHotkey(
-		countdownTimerData.pauseCountdownHotkeyId,
-		TIMERPAUSEHOTKEYNAME,
+		countdownTimerData.pauseCountdownHotkeyId, TIMERPAUSEHOTKEYNAME,
 		GetFullHotkeyName(
 			obs_module_text("PauseCountdownHotkeyDescription"),
 			" - ")
@@ -621,8 +618,7 @@ void AshmanixTimer::RegisterAllHotkeys(obs_data_t *savedData)
 		GetFullHotkeyName("Pause Hotkey Pressed", " "), savedData);
 
 	LoadHotkey(
-		countdownTimerData.setCountdownHotkeyId,
-		TIMERSETHOTKEYNAME,
+		countdownTimerData.setCountdownHotkeyId, TIMERSETHOTKEYNAME,
 		GetFullHotkeyName(
 			obs_module_text("SetCountdownHotkeyDescription"), " - ")
 			.c_str(),

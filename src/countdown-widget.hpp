@@ -74,8 +74,9 @@ private:
 	static inline const char *VENDORNAME = "ashmanix-countdown-timer";
 	static inline const char *TIMERIDKEY = "timer_id";
 
-	static inline const char*addTimerHotkeyName = "Ashmanix_Countdown_Timer_Add_Timer";
-	
+	static inline const char *addTimerHotkeyName =
+		"Ashmanix_Countdown_Timer_Add_Timer";
+
 	obs_websocket_vendor vendor = nullptr;
 
 	Ui::CountdownTimer *ui;

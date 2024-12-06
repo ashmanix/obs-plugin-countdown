@@ -26,7 +26,7 @@ void SettingsDialog::SetCountUpCheckBoxEnabled(bool isEnabled)
 	ui->countUpCheckBox->setEnabled(isEnabled);
 }
 
-void SettingsDialog::SetupDialogUI(TimerWidgetStruct *data)
+void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 {
 	ui->daysCheckBox->setText(obs_module_text("DaysCheckboxLabel"));
 	ui->daysCheckBox->setToolTip(obs_module_text("DaysCheckBoxTip"));
@@ -77,7 +77,7 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *data)
 	GetOBSSourceList();
 
 	// Set form based on timer data
-	SetFormDetails(data);
+	SetFormDetails(settingsDialogData);
 }
 
 void SettingsDialog::GetOBSSourceList()
@@ -206,38 +206,38 @@ void SettingsDialog::ApplyFormChanges()
 	}
 }
 
-void SettingsDialog::SetFormDetails(TimerWidgetStruct *data)
+void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 {
-	if (data != nullptr) {
+	if (settingsDialogData != nullptr) {
 		obs_log(LOG_INFO, "Setting form details");
 		int textSelectIndex = ui->textSourceDropdownList->findText(
-			data->selectedSource);
+			settingsDialogData->selectedSource);
 		if (textSelectIndex != -1)
 			ui->textSourceDropdownList->setCurrentIndex(
 				textSelectIndex);
 
 		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(
-			data->selectedScene);
+			settingsDialogData->selectedScene);
 		if (sceneSelectIndex != -1)
 			ui->sceneSourceDropdownList->setCurrentIndex(
 				sceneSelectIndex);
 
-		ui->daysCheckBox->setChecked(data->showDays);
-		ui->hoursCheckBox->setChecked(data->showHours);
-		ui->minutesCheckBox->setChecked(data->showMinutes);
-		ui->secondsCheckBox->setChecked(data->showSeconds);
-		ui->leadZeroCheckBox->setChecked(data->showLeadingZero);
+		ui->daysCheckBox->setChecked(settingsDialogData->showDays);
+		ui->hoursCheckBox->setChecked(settingsDialogData->showHours);
+		ui->minutesCheckBox->setChecked(settingsDialogData->showMinutes);
+		ui->secondsCheckBox->setChecked(settingsDialogData->showSeconds);
+		ui->leadZeroCheckBox->setChecked(settingsDialogData->showLeadingZero);
 
-		ui->countUpCheckBox->setChecked(data->shouldCountUp);
-		if (data->isPlaying)
+		ui->countUpCheckBox->setChecked(settingsDialogData->shouldCountUp);
+		if (settingsDialogData->isPlaying)
 			ui->countUpCheckBox->setEnabled(false);
 
-		ui->endMessageCheckBox->setChecked(data->showEndMessage);
-		ui->endMessageLineEdit->setEnabled(data->showEndMessage);
-		ui->endMessageLineEdit->setText(data->endMessage);
+		ui->endMessageCheckBox->setChecked(settingsDialogData->showEndMessage);
+		ui->endMessageLineEdit->setEnabled(settingsDialogData->showEndMessage);
+		ui->endMessageLineEdit->setText(settingsDialogData->endMessage);
 
-		ui->switchSceneCheckBox->setChecked(data->showEndScene);
-		ui->sceneSourceDropdownList->setEnabled(data->showEndScene);
+		ui->switchSceneCheckBox->setChecked(settingsDialogData->showEndScene);
+		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->showEndScene);
 
 		ui->applyPushButton->setEnabled(false);
 	} else {

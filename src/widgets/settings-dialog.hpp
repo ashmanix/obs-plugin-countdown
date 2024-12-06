@@ -26,12 +26,12 @@ private:
 	Ui::SettingsDialog *ui;
 	TimerWidgetStruct *timerData;
 
-	void SetupDialogUI(TimerWidgetStruct *data);
+	void SetupDialogUI(TimerWidgetStruct *settingsDialogData);
 	void GetOBSSourceList();
 	void ConnectUISignalHandlers();
 	void ConnectObsSignalHandlers();
 	void ApplyFormChanges();
-	void SetFormDetails(TimerWidgetStruct *data);
+	void SetFormDetails(TimerWidgetStruct *settingsDialogData);
 
 	static bool GetTextSources(void *list_property, obs_source_t *source);
 	static void OBSSourceCreated(void *param, calldata_t *calldata);

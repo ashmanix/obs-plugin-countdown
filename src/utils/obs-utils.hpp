@@ -8,6 +8,8 @@
 #include "./timer-utils.hpp"
 #include "../plugin-support.h"
 
+Q_DECLARE_OPAQUE_POINTER(obs_data_t*)
+
 struct RegisterHotkeyCallbackData {
 	std::function<void()> function; // Function pointer to callback function
 	std::string hotkeyLogMessage; // Message to log when hotkey is triggered

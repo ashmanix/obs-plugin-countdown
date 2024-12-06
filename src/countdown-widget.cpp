@@ -4,6 +4,8 @@ CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	: QWidget(parent),
 	  ui(new Ui::CountdownTimer)
 {
+	// Register custom type for signals and slots
+	qRegisterMetaType<obs_data_t *>("obs_data_t*");
 
 	ui->setupUi(this);
 	timerListLayout = ui->timerMainLayout;

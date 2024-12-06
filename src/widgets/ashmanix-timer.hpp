@@ -16,12 +16,14 @@
 #include <obs-module.h>
 #include <obs-websocket-api.h>
 #include <obs-data.h>
+#include <QMetaType>
 
 #include "../plugin-support.h"
 #include "../ui/ui_AshmanixTimer.h"
 #include "../utils/timer-utils.hpp"
 #include "../utils/obs-utils.hpp"
 #include "settings-dialog.hpp"
+
 
 class AshmanixTimer : public QWidget {
 	Q_OBJECT

@@ -5,6 +5,9 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor,
 	: QWidget(parent),
 	  ui(new Ui::AshmanixTimer)
 {
+	// Register custom type for signals and slots
+	qRegisterMetaType<obs_data_t *>("obs_data_t*");
+
 	countdownTimerData = TimerWidgetStruct();
 
 	ui->setupUi(this);

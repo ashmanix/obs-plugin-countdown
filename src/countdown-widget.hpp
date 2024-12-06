@@ -42,6 +42,7 @@
 #include <obs-module.h>
 #include <obs-websocket-api.h>
 #include <obs-data.h>
+#include <QMetaType>
 
 #include "plugin-support.h"
 #include "ui/ui_CountdownTimer.h"

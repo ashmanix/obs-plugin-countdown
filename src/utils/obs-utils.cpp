@@ -30,7 +30,7 @@ void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id, const char *name)
 };
 
 void HotkeyCallback(void *incoming_data, obs_hotkey_id id, obs_hotkey_t *hotkey,
-		     bool pressed)
+		    bool pressed)
 {
 	UNUSED_PARAMETER(id);
 	UNUSED_PARAMETER(hotkey);

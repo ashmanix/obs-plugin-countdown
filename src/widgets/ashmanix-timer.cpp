@@ -1,6 +1,6 @@
 #include "ashmanix-timer.hpp"
 
-AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor vendor,
+AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor,
 			     obs_data_t *savedData)
 	: QWidget(parent),
 	  ui(new Ui::AshmanixTimer)
@@ -24,7 +24,7 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor vendor,
 
 	this->setProperty("id", countdownTimerData.timerId);
 
-	vendor = &vendor;
+	vendor = &newVendor;
 
 #if __APPLE__
 	// ui->hsDaysLeft->changeSize(0, 20, QSizePolicy::Fixed,

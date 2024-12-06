@@ -19,6 +19,6 @@ void LoadHotkey(int &id, const char *name, const char *description,
 
 void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id, const char *name);
 void HotkeyCallback(void *incoming_data, obs_hotkey_id id, obs_hotkey_t *hotkey,
-		     bool pressed);
+		    bool pressed);
 
 #endif // OBSUTILS_H

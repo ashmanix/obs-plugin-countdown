@@ -82,10 +82,10 @@ void CountdownDockWidget::ConnectUISignalHandlers()
 void CountdownDockWidget::ConnectTimerSignalHandlers(AshmanixTimer *timerWidget)
 {
 	connect(timerWidget, &AshmanixTimer::RequestDelete, this,
-			 &CountdownDockWidget::RemoveTimerButtonClicked);
+		&CountdownDockWidget::RemoveTimerButtonClicked);
 
-	connect(timerWidget, &AshmanixTimer::RequestSendWebsocketEvent,
-			 this, &CountdownDockWidget::HandleWebsocketSendEvent);
+	connect(timerWidget, &AshmanixTimer::RequestSendWebsocketEvent, this,
+		&CountdownDockWidget::HandleWebsocketSendEvent);
 }
 
 void CountdownDockWidget::SaveSettings()

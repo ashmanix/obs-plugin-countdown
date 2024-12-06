@@ -15,7 +15,7 @@
 #include <obs-frontend-api.h>
 #include <obs-module.h>
 #include <obs-websocket-api.h>
-#include <obs-data.h> 
+#include <obs-data.h>
 
 #include "../plugin-support.h"
 #include "../ui/ui_AshmanixTimer.h"

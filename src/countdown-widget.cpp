@@ -24,6 +24,22 @@ CountdownDockWidget::~CountdownDockWidget()
 	UnregisterAllHotkeys();
 }
 
+int CountdownDockWidget::GetNumberOfTimers()
+{
+	return static_cast<int>(timerWidgetMap.size());
+}
+
+AshmanixTimer *CountdownDockWidget::GetFirstTimerWidget()
+{
+	QLayoutItem *layout = ui->timerMainLayout->itemAt(0);
+	AshmanixTimer *firstTimerWidget = nullptr;
+	if (layout) {
+		firstTimerWidget =
+			static_cast<AshmanixTimer *>(layout->widget());
+	}
+	return firstTimerWidget;
+}
+
 void CountdownDockWidget::ConfigureWebSocketConnection()
 {
 	vendor = obs_websocket_register_vendor(VENDORNAME);
@@ -71,13 +87,14 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 void CountdownDockWidget::SetupCountdownWidgetUI()
 {
 	ui->addTimerButton->setProperty("themeID", "addIconSmall");
+	ui->addTimerButton->setProperty("class", "icon-plus");
 	ui->addTimerButton->setEnabled(true);
 	ui->addTimerButton->setToolTip(obs_module_text("AddTimerButtonTip"));
 }
 
 void CountdownDockWidget::ConnectUISignalHandlers()
 {
-	QObject::connect(ui->addTimerButton, SIGNAL(clicked()),
+	QObject::connect(ui->addTimerButton, SIGNAL(clicked()), this,
 			 SLOT(AddTimerButtonClicked()));
 }
 
@@ -88,6 +105,9 @@ void CountdownDockWidget::ConnectTimerSignalHandlers(AshmanixTimer *timerWidget)
 
 	connect(timerWidget, &AshmanixTimer::RequestSendWebsocketEvent, this,
 		&CountdownDockWidget::HandleWebsocketSendEvent);
+
+	connect(timerWidget, &AshmanixTimer::MoveTimer, this,
+		&CountdownDockWidget::MoveTimerInList);
 }
 
 void CountdownDockWidget::SaveSettings()
@@ -163,6 +183,37 @@ void CountdownDockWidget::AddTimer(obs_data_t *savedData)
 	ConnectTimerSignalHandlers(newTimer);
 
 	timerListLayout->addWidget(newTimer);
+
+	AshmanixTimer *firstTimerWidget = GetFirstTimerWidget();
+
+	if (GetNumberOfTimers() == 1 && firstTimerWidget) {
+		firstTimerWidget->SetIsDeleteButtonDisabled(true);
+	} else {
+		firstTimerWidget->SetIsDeleteButtonDisabled(false);
+	}
+
+	UpdateTimerListMoveButtonState();
+}
+
+void CountdownDockWidget::UpdateTimerListMoveButtonState()
+{
+	size_t timerWidgetCount = ui->timerMainLayout->count();
+	for (size_t i = 0; i < timerWidgetCount; i++) {
+		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
+			ui->timerMainLayout->itemAt(i)->widget());
+		if (timerWidget) {
+			if (i == 0) {
+				timerWidget->SetIsUpButtonDisabled(true);
+				timerWidget->SetIsDownButtonDisabled(false);
+			} else if (i == (timerWidgetCount - 1)) {
+				timerWidget->SetIsUpButtonDisabled(false);
+				timerWidget->SetIsDownButtonDisabled(true);
+			} else {
+				timerWidget->SetIsUpButtonDisabled(false);
+				timerWidget->SetIsDownButtonDisabled(false);
+			}
+		}
+	}
 }
 
 void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
@@ -183,7 +234,6 @@ void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
 
 void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 {
-	UNUSED_PARAMETER(dockWidget);
 	char *file = obs_module_config_path(CONFIG);
 	obs_data_t *data = nullptr;
 	if (file) {
@@ -201,6 +251,12 @@ void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 					obs_data_array_item(timersArray, i);
 				dockWidget->AddTimer(timerDataObj);
 			}
+		}
+
+		// Add widget if none were loaded from save file
+		// as we must have at least 1 timer
+		if (dockWidget->GetNumberOfTimers() == 0) {
+			dockWidget->AddTimer();
 		}
 
 		dockWidget->RegisterAllHotkeys(data);
@@ -387,13 +443,7 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(
 
 void CountdownDockWidget::AddTimerButtonClicked()
 {
-	// obs_log(LOG_INFO, "Adding timer to list!");
-	AshmanixTimer *newTimer = new AshmanixTimer(nullptr, vendor);
-	timerWidgetMap.insert(newTimer->GetTimerID(), newTimer);
-	connect(newTimer, &AshmanixTimer::RequestDelete, this,
-		&CountdownDockWidget::RemoveTimerButtonClicked);
-
-	timerListLayout->addWidget(newTimer);
+	AddTimer();
 }
 
 void CountdownDockWidget::RemoveTimerButtonClicked(QString id)
@@ -407,12 +457,15 @@ void CountdownDockWidget::RemoveTimerButtonClicked(QString id)
 					  .toStdString()
 					  .c_str());
 	}
-}
 
-void CountdownDockWidget::HandleTimerReset()
-{
-	// countdownTimerData->timer->stop();
-	// countdownTimerData->timer->start(COUNTDOWNPERIOD);
+	// There should always be 1 timer in list therefore we disable
+	// the delete button if only 1 timer is left.
+	AshmanixTimer *firstTimerWidget = GetFirstTimerWidget();
+	int noOfTImers = GetNumberOfTimers();
+	if (noOfTImers == 1 && firstTimerWidget) {
+		firstTimerWidget->SetIsDeleteButtonDisabled(true);
+	}
+	UpdateTimerListMoveButtonState();
 }
 
 void CountdownDockWidget::HandleWebsocketSendEvent(const char *eventName,
@@ -422,4 +475,27 @@ void CountdownDockWidget::HandleWebsocketSendEvent(const char *eventName,
 		return;
 
 	obs_websocket_vendor_emit_event(vendor, eventName, eventData);
+}
+
+void CountdownDockWidget::MoveTimerInList(QString direction, QString id)
+{
+	UNUSED_PARAMETER(direction);
+	UNUSED_PARAMETER(id);
+	obs_log(LOG_INFO, "Move timer %s in %s direction",
+		id.toStdString().c_str(), direction.toStdString().c_str());
+	AshmanixTimer *timerWidget = timerWidgetMap.find(id).value();
+	if (timerWidget) {
+		//Gets the index of the widget within the layout
+		const int index = ui->timerMainLayout->indexOf(timerWidget);
+		if (!(direction == "up" && index == 0) &&
+		    !(direction == "down" &&
+		      index == (ui->timerMainLayout->count() - 1))) {
+			const int newIndex = direction == "up" ? index - 1
+							       : index + 1;
+			ui->timerMainLayout->removeWidget(timerWidget);
+			ui->timerMainLayout->insertWidget(newIndex,
+							  timerWidget);
+			UpdateTimerListMoveButtonState();
+		}
+	}
 }

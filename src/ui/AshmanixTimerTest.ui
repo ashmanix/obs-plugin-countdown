@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>361</width>
-    <height>189</height>
+    <width>425</width>
+    <height>210</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,57 +42,55 @@
        <number>12</number>
       </property>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <widget class="QLabel" name="timerNameLabel">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Timer Name</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,1,0,0">
         <property name="topMargin">
          <number>0</number>
         </property>
         <item>
-         <widget class="QToolButton" name="deleteToolButton">
+         <widget class="QPushButton" name="deleteToolButton">
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="text">
            <string>D</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="timerNameLabel">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
-          <property name="text">
-           <string>Timer Name</string>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>20</height>
+           </size>
           </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="textInteractionFlags">
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-          </property>
-         </widget>
+         </spacer>
         </item>
-        <item>
-         <widget class="QToolButton" name="settingsToolButton">
-          <property name="text">
-           <string>S</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0,0">
-        <property name="topMargin">
-         <number>0</number>
-        </property>
         <item>
          <widget class="QLCDNumber" name="timeDisplay">
           <property name="sizePolicy">
@@ -100,12 +98,6 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
           </property>
           <property name="autoFillBackground">
            <bool>true</bool>
@@ -128,16 +120,28 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="moveUpToolButton">
-          <property name="text">
-           <string>U</string>
+         <spacer name="horizontalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
-         </widget>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
         <item>
-         <widget class="QToolButton" name="moveDownToolButton">
+         <widget class="QPushButton" name="settingsToolButton">
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="text">
-           <string>D</string>
+           <string>S</string>
           </property>
          </widget>
         </item>
@@ -383,6 +387,37 @@
          </layout>
         </widget>
        </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0">
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>5</number>
+          </property>
+          <item>
+           <widget class="QDateTimeEdit" name="dateTimeEdit_2">
+            <property name="calendarPopup">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBox">
+          <property name="currentText">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

@@ -57,6 +57,8 @@ public:
 	explicit CountdownDockWidget(QWidget *parent = nullptr);
 	~CountdownDockWidget();
 	void ConfigureWebSocketConnection();
+	int GetNumberOfTimers();
+	AshmanixTimer *GetFirstTimerWidget();
 
 	struct WebsocketCallbackData {
 		CountdownDockWidget *instance;
@@ -90,6 +92,7 @@ private:
 	void RegisterAllHotkeys(obs_data_t *savedData);
 	void UnregisterAllHotkeys();
 	void AddTimer(obs_data_t *savedData = nullptr);
+	void UpdateTimerListMoveButtonState();
 
 	static void OBSFrontendEventHandler(enum obs_frontend_event event,
 					    void *private_data);
@@ -113,10 +116,9 @@ signals:
 private slots:
 	void RemoveTimerButtonClicked(QString id);
 	void AddTimerButtonClicked();
-
-	void HandleTimerReset();
 	void HandleWebsocketSendEvent(const char *eventName,
 				      obs_data_t *eventData);
+	void MoveTimerInList(QString direction, QString id);
 };
 
 #endif // COUNTDOWNWIDGET_H

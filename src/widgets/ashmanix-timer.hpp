@@ -24,7 +24,6 @@
 #include "../utils/obs-utils.hpp"
 #include "settings-dialog.hpp"
 
-
 class AshmanixTimer : public QWidget {
 	Q_OBJECT
 
@@ -38,8 +37,10 @@ public:
 	void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject);
 
 	QString GetTimerID();
-	QPushButton *GetDeleteButton();
 	TimerWidgetStruct *GetTimerData();
+	void SetIsDeleteButtonDisabled(bool isDisabled);
+	void SetIsUpButtonDisabled(bool isDisabled);
+	void SetIsDownButtonDisabled(bool isDisabled);
 	void SetTimerData();
 	bool AlterTime(WebsocketRequestType requestType,
 		       long long timeInMillis);
@@ -100,6 +101,7 @@ signals:
 	void RequestDelete(QString id);
 	void RequestSendWebsocketEvent(const char *eventName,
 				       obs_data_t *eventData);
+	void MoveTimer(QString direction, QString timerId);
 
 public slots:
 	void PlayButtonClicked();
@@ -123,6 +125,8 @@ private slots:
 	void MinutesChanged(QString newText);
 	void SecondsChanged(QString newText);
 	void DateTimeChanged(QDateTime newDateTime);
+	void EmitMoveTimerDownSignal();
+	void EmitMoveTimerUpSignal();
 };
 
 #endif // ASHMANIXTIMER_H

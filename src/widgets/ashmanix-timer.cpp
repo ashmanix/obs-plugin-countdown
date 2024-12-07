@@ -195,14 +195,24 @@ QString AshmanixTimer::GetTimerID()
 	return countdownTimerData.timerId;
 }
 
-QPushButton *AshmanixTimer::GetDeleteButton()
-{
-	return ui->deleteButton;
-}
-
 TimerWidgetStruct *AshmanixTimer::GetTimerData()
 {
 	return &countdownTimerData;
+}
+
+void AshmanixTimer::SetIsDeleteButtonDisabled(bool isDisabled)
+{
+	ui->deleteToolButton->setDisabled(isDisabled);
+}
+
+void AshmanixTimer::SetIsUpButtonDisabled(bool isDisabled)
+{
+	ui->moveUpToolButton->setDisabled(isDisabled);
+}
+
+void AshmanixTimer::SetIsDownButtonDisabled(bool isDisabled)
+{
+	ui->moveDownToolButton->setDisabled(isDisabled);
 }
 
 void AshmanixTimer::SetTimerData()
@@ -312,15 +322,33 @@ void AshmanixTimer::SetupTimerWidgetUI()
 	ui->timerNameLabel->setText(
 		QString("Timer: %1").arg(countdownTimerData.timerId));
 
-	ui->settingsButton->setProperty("themeID", "propertiesIconSmall");
-	ui->settingsButton->setText("");
-	ui->settingsButton->setEnabled(true);
-	ui->settingsButton->setToolTip(obs_module_text("AddTimerButtonTip"));
+	ui->settingsToolButton->setProperty("themeID", "propertiesIconSmall");
+	ui->settingsToolButton->setProperty("class", "icon-gear");
+	ui->settingsToolButton->setText("");
+	ui->settingsToolButton->setEnabled(true);
+	ui->settingsToolButton->setToolTip(
+		obs_module_text("SettingsButtonTip"));
 
-	ui->deleteButton->setProperty("themeID", "removeIconSmall");
-	ui->deleteButton->setText("");
-	ui->deleteButton->setEnabled(true);
-	ui->deleteButton->setToolTip(obs_module_text("DeleteTimerButtonTip"));
+	ui->deleteToolButton->setProperty("themeID", "removeIconSmall");
+	ui->deleteToolButton->setProperty("class", "icon-trash");
+	ui->deleteToolButton->setText("");
+	ui->deleteToolButton->setEnabled(true);
+	ui->deleteToolButton->setToolTip(
+		obs_module_text("DeleteTimerButtonTip"));
+
+	ui->moveUpToolButton->setProperty("themeID", "upArrowIconSmall");
+	ui->moveUpToolButton->setProperty("class", "icon-up");
+	ui->moveUpToolButton->setText("");
+	ui->moveUpToolButton->setEnabled(true);
+	ui->moveUpToolButton->setToolTip(
+		obs_module_text("MoveTimerUpButtonTip"));
+
+	ui->moveDownToolButton->setProperty("themeID", "downArrowIconSmall");
+	ui->moveDownToolButton->setProperty("class", "icon-down");
+	ui->moveDownToolButton->setText("");
+	ui->moveDownToolButton->setEnabled(true);
+	ui->moveDownToolButton->setToolTip(
+		obs_module_text("MoveTimerDownButtonTip"));
 
 	ui->timeDisplay->display(AshmanixTimer::ZEROSTRING);
 
@@ -359,19 +387,27 @@ void AshmanixTimer::SetupTimerWidgetUI()
 		1, obs_module_text("SetDatetimeTabTip"));
 
 	ui->playButton->setProperty("themeID", "playIcon");
+	ui->playButton->setProperty("class", "icon-media-play");
 	ui->playButton->setEnabled(true);
 	ui->playButton->setToolTip(obs_module_text("PlayButtonTip"));
+
 	ui->pauseButton->setProperty("themeID", "pauseIcon");
+	ui->pauseButton->setProperty("class", "icon-media-pause");
 	ui->pauseButton->setEnabled(false);
 	ui->pauseButton->setToolTip(obs_module_text("PauseButtonTip"));
+
 	ui->resetButton->setProperty("themeID", "restartIcon");
+	ui->resetButton->setProperty("class", "icon-media-restart");
 	ui->resetButton->setToolTip(obs_module_text("ResetButtonTip"));
 
 	ui->toTimePlayButton->setProperty("themeID", "playIcon");
+	ui->toTimePlayButton->setProperty("class", "icon-media-play");
 	ui->toTimePlayButton->setEnabled(true);
 	ui->toTimePlayButton->setToolTip(
+
 		obs_module_text("ToTimePlayButtonTip"));
 	ui->toTimeStopButton->setProperty("themeID", "stopIcon");
+	ui->toTimeStopButton->setProperty("class", "icon-media-stop");
 	ui->toTimeStopButton->setEnabled(false);
 	ui->toTimeStopButton->setToolTip(
 		obs_module_text("ToTimeStopButtonTip"));
@@ -396,10 +432,10 @@ void AshmanixTimer::ConnectUISignalHandlers()
 	QObject::connect(ui->toTimeStopButton, SIGNAL(clicked()),
 			 SLOT(ToTimeStopButtonClicked()));
 
-	QObject::connect(ui->deleteButton, SIGNAL(clicked()),
+	QObject::connect(ui->deleteToolButton, SIGNAL(clicked()),
 			 SLOT(DeleteButtonClicked()));
 
-	QObject::connect(ui->settingsButton, SIGNAL(clicked()),
+	QObject::connect(ui->settingsToolButton, SIGNAL(clicked()),
 			 SLOT(SettingsButtonClicked()));
 
 	QObject::connect(ui->countdownTypeTabWidget,
@@ -420,6 +456,12 @@ void AshmanixTimer::ConnectUISignalHandlers()
 
 	QObject::connect(ui->dateTimeEdit, SIGNAL(dateTimeChanged(QDateTime)),
 			 SLOT(DateTimeChanged(QDateTime)));
+
+	QObject::connect(ui->moveUpToolButton, SIGNAL(clicked()), this,
+			 SLOT(EmitMoveTimerUpSignal()));
+
+	QObject::connect(ui->moveDownToolButton, SIGNAL(clicked()), this,
+			 SLOT(EmitMoveTimerDownSignal()));
 }
 
 QString
@@ -888,4 +930,16 @@ void AshmanixTimer::SecondsChanged(QString newText)
 void AshmanixTimer::DateTimeChanged(QDateTime newDateTime)
 {
 	countdownTimerData.dateTime = newDateTime;
+}
+
+void AshmanixTimer::EmitMoveTimerDownSignal()
+{
+	// obs_log(LOG_INFO, "Moving timer: down");
+	emit MoveTimer(QString("down"), countdownTimerData.timerId);
+}
+
+void AshmanixTimer::EmitMoveTimerUpSignal()
+{
+	// obs_log(LOG_INFO, "Moving timer: up");
+	emit MoveTimer(QString("up"), countdownTimerData.timerId);
 }

@@ -237,8 +237,8 @@ void CountdownDockWidget::UpdateTimerListMoveButtonState()
 void CountdownDockWidget::UpdateWidgetStyles(
 	CountdownDockWidget *countdownDockWidget)
 {
-	size_t timerWidgetCount =
-		countdownDockWidget->ui->timerMainLayout->count();
+	size_t timerWidgetCount = static_cast<size_t>(
+		countdownDockWidget->ui->timerMainLayout->count());
 	for (size_t i = 0; i < timerWidgetCount; i++) {
 		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
 			countdownDockWidget->ui->timerMainLayout->itemAt(i)
@@ -538,7 +538,8 @@ void CountdownDockWidget::MoveTimerInList(QString direction, QString id)
 
 void CountdownDockWidget::StartAllTimers()
 {
-	size_t timerWidgetCount = ui->timerMainLayout->count();
+	size_t timerWidgetCount =
+		static_cast<size_t>(ui->timerMainLayout->count());
 	for (size_t i = 0; i < timerWidgetCount; i++) {
 		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
 			ui->timerMainLayout->itemAt(i)->widget());
@@ -550,7 +551,8 @@ void CountdownDockWidget::StartAllTimers()
 
 void CountdownDockWidget::StopAllTimers()
 {
-	size_t timerWidgetCount = ui->timerMainLayout->count();
+	size_t timerWidgetCount =
+		static_cast<size_t>(ui->timerMainLayout->count());
 	for (size_t i = 0; i < timerWidgetCount; i++) {
 		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
 			ui->timerMainLayout->itemAt(i)->widget());

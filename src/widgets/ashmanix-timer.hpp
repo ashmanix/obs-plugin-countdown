@@ -51,6 +51,8 @@ public:
 	void PressToTimePlayButton();
 	void PressToTimeStopButton();
 	void UpdateStyles();
+	void StartTimer();
+	void StopTimer();
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };

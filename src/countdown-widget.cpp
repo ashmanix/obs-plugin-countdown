@@ -90,12 +90,30 @@ void CountdownDockWidget::SetupCountdownWidgetUI()
 	ui->addTimerButton->setProperty("class", "icon-plus");
 	ui->addTimerButton->setEnabled(true);
 	ui->addTimerButton->setToolTip(obs_module_text("AddTimerButtonTip"));
+
+	ui->playAllButton->setProperty("themeID", "playIcon");
+	ui->playAllButton->setProperty("class", "icon-media-play");
+	ui->playAllButton->setEnabled(true);
+	ui->playAllButton->setToolTip(
+		obs_module_text("StartAllTimersButtonTip"));
+
+	ui->stopAllButton->setProperty("themeID", "stopIcon");
+	ui->stopAllButton->setProperty("class", "icon-media-stop");
+	ui->stopAllButton->setEnabled(true);
+	ui->stopAllButton->setToolTip(
+		obs_module_text("StopAllTimersButtonTip"));
 }
 
 void CountdownDockWidget::ConnectUISignalHandlers()
 {
-	QObject::connect(ui->addTimerButton, SIGNAL(clicked()), this,
-			 SLOT(AddTimerButtonClicked()));
+	QObject::connect(ui->addTimerButton, &QPushButton::clicked, this,
+			 &CountdownDockWidget::AddTimerButtonClicked);
+
+	QObject::connect(ui->playAllButton, &QPushButton::clicked, this,
+			 &CountdownDockWidget::StartAllTimers);
+
+	QObject::connect(ui->stopAllButton, &QPushButton::clicked, this,
+			 &CountdownDockWidget::StopAllTimers);
 }
 
 void CountdownDockWidget::ConnectTimerSignalHandlers(AshmanixTimer *timerWidget)
@@ -514,6 +532,30 @@ void CountdownDockWidget::MoveTimerInList(QString direction, QString id)
 			ui->timerMainLayout->insertWidget(newIndex,
 							  timerWidget);
 			UpdateTimerListMoveButtonState();
+		}
+	}
+}
+
+void CountdownDockWidget::StartAllTimers()
+{
+	size_t timerWidgetCount = ui->timerMainLayout->count();
+	for (size_t i = 0; i < timerWidgetCount; i++) {
+		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
+			ui->timerMainLayout->itemAt(i)->widget());
+		if (timerWidget) {
+			timerWidget->StartTimer();
+		}
+	}
+}
+
+void CountdownDockWidget::StopAllTimers()
+{
+	size_t timerWidgetCount = ui->timerMainLayout->count();
+	for (size_t i = 0; i < timerWidgetCount; i++) {
+		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
+			ui->timerMainLayout->itemAt(i)->widget());
+		if (timerWidget) {
+			timerWidget->StopTimer();
 		}
 	}
 }

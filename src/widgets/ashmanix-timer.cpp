@@ -1033,3 +1033,29 @@ void AshmanixTimer::UpdateTimeDisplayTooltip()
 
 	ui->timeDisplay->setToolTip(detailsTooltip);
 }
+
+void AshmanixTimer::StartTimer()
+{
+	switch (countdownTimerData.selectedCountdownType) {
+	case PERIOD:
+		PressPlayButton();
+		break;
+
+	case DATETIME:
+		PressToTimePlayButton();
+		break;
+	}
+}
+
+void AshmanixTimer::StopTimer()
+{
+	switch (countdownTimerData.selectedCountdownType) {
+	case PERIOD:
+		PressStopButton();
+		break;
+
+	case DATETIME:
+		PressToTimeStopButton();
+		break;
+	}
+}

@@ -121,6 +121,8 @@ private slots:
 	void HandleWebsocketSendEvent(const char *eventName,
 				      obs_data_t *eventData);
 	void MoveTimerInList(QString direction, QString id);
+	void StartAllTimers();
+	void StopAllTimers();
 };
 
 #endif // COUNTDOWNWIDGET_H

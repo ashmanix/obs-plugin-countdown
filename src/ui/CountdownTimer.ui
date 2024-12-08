@@ -2,9 +2,17 @@
 <ui version="4.0">
  <class>CountdownTimer</class>
  <widget class="QWidget" name="CountdownTimer">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>150</width>
+    <height>129</height>
+   </rect>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0">
    <property name="spacing">
-    <number>4</number>
+    <number>0</number>
    </property>
    <property name="leftMargin">
     <number>0</number>
@@ -28,8 +36,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>433</width>
-        <height>327</height>
+        <width>148</width>
+        <height>91</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -54,7 +62,7 @@
           <enum>QLayout::SetDefaultConstraint</enum>
          </property>
          <item>
-          <layout class="QVBoxLayout" name="timerMainLayout" stretch=""/>
+          <layout class="QVBoxLayout" name="timerMainLayout"/>
          </item>
          <item>
           <spacer name="verticalSpacer">
@@ -78,13 +86,16 @@
    <item>
     <layout class="QHBoxLayout" name="buttonLayout">
      <property name="leftMargin">
-      <number>12</number>
+      <number>5</number>
+     </property>
+     <property name="topMargin">
+      <number>5</number>
      </property>
      <property name="rightMargin">
-      <number>12</number>
+      <number>5</number>
      </property>
      <property name="bottomMargin">
-      <number>0</number>
+      <number>5</number>
      </property>
      <item>
       <spacer name="horizontalSpacer">
@@ -100,7 +111,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="addTimerButton">
+      <widget class="QToolButton" name="addTimerButton">
        <property name="minimumSize">
         <size>
          <width>30</width>

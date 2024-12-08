@@ -50,6 +50,7 @@ public:
 	void PressStopButton();
 	void PressToTimePlayButton();
 	void PressToTimeStopButton();
+	void UpdateStyles();
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
@@ -112,8 +113,6 @@ public slots:
 	void ToTimeStopButtonClicked();
 
 private slots:
-	void CountdownTypeTabChanged(int index);
-
 	void SettingsButtonClicked();
 	void DeleteButtonClicked();
 
@@ -127,6 +126,7 @@ private slots:
 	void DateTimeChanged(QDateTime newDateTime);
 	void EmitMoveTimerDownSignal();
 	void EmitMoveTimerUpSignal();
+	void ToggleTimeType(CountdownType type);
 };
 
 #endif // ASHMANIXTIMER_H

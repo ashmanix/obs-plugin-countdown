@@ -216,6 +216,21 @@ void CountdownDockWidget::UpdateTimerListMoveButtonState()
 	}
 }
 
+void CountdownDockWidget::UpdateWidgetStyles(
+	CountdownDockWidget *countdownDockWidget)
+{
+	size_t timerWidgetCount =
+		countdownDockWidget->ui->timerMainLayout->count();
+	for (size_t i = 0; i < timerWidgetCount; i++) {
+		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
+			countdownDockWidget->ui->timerMainLayout->itemAt(i)
+				->widget());
+		if (timerWidget) {
+			timerWidget->UpdateStyles();
+		}
+	}
+}
+
 void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
 						  void *private_data)
 {
@@ -226,6 +241,9 @@ void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
 	switch (event) {
 	case OBS_FRONTEND_EVENT_FINISHED_LOADING: {
 		CountdownDockWidget::LoadSavedSettings(countdownDockWidget);
+	} break;
+	case OBS_FRONTEND_EVENT_THEME_CHANGED: {
+		CountdownDockWidget::UpdateWidgetStyles(countdownDockWidget);
 	} break;
 	default:
 		break;

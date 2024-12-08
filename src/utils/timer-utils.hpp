@@ -7,6 +7,19 @@
 #include <QTabWidget>
 #include <QTime>
 
+enum CountdownType { PERIOD = 0, DATETIME = 1 };
+
+enum WebsocketRequestType {
+	ADD_TIME = 1,
+	SET_TIME = 2,
+	GET_TIME = 3,
+	PERIOD_PLAY = 4,
+	PERIOD_PAUSE = 5,
+	PERIOD_SET = 6,
+	TO_TIME_PLAY = 7,
+	TO_TIME_STOP = 8
+};
+
 struct TimerWidgetStruct {
 	QString timerId;
 	bool isPlaying;
@@ -32,24 +45,16 @@ struct TimerWidgetStruct {
 
 	long long timeLeftInMillis = 0;
 	QDateTime timeToCountUpToStart;
-	int countdownTypeSelectedTab = 0;
+	CountdownType selectedCountdownType = PERIOD;
 
 	int startCountdownHotkeyId = -1;
 	int pauseCountdownHotkeyId = -1;
 	int setCountdownHotkeyId = -1;
 	int startCountdownToTimeHotkeyId = -1;
 	int stopCountdownToTimeHotkeyId = -1;
-};
 
-enum WebsocketRequestType {
-	ADD_TIME = 1,
-	SET_TIME = 2,
-	GET_TIME = 3,
-	PERIOD_PLAY = 4,
-	PERIOD_PAUSE = 5,
-	PERIOD_SET = 6,
-	TO_TIME_PLAY = 7,
-	TO_TIME_STOP = 8
+	QWidget *periodVLayout;
+	QWidget *datetimeVLayout;
 };
 
 const char *ConvertToConstChar(QString value);

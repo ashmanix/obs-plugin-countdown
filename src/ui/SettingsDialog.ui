@@ -71,7 +71,7 @@
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
         <property name="horizontalSpacing">
-         <number>-1</number>
+         <number>20</number>
         </property>
         <property name="verticalSpacing">
          <number>-1</number>
@@ -367,7 +367,12 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>By &lt;a href='https://www.ashmanix.com'&gt;Ashmanix&lt;/a&gt;</string>
+      <string>&lt;html&gt;
+&lt;head/&gt;
+&lt;body&gt;
+&lt;p&gt;By Ashmanix (&lt;a href=&quot;https://www.ashmanix.com&quot;&gt;&lt;span&gt;https://www.ashmanix.com&lt;/span&gt;&lt;/a&gt;)&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

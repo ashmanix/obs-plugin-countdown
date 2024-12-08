@@ -24,3 +24,5 @@
 
 # Exclude CMake build number cache
 /cmake/.CMakeBuildNumber
+
+local-test-script

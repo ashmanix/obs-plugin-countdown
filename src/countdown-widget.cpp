@@ -215,9 +215,8 @@ void CountdownDockWidget::AddTimer(obs_data_t *savedData)
 
 void CountdownDockWidget::UpdateTimerListMoveButtonState()
 {
-	size_t timerWidgetCount =
-		static_cast<size_t>(ui->timerMainLayout->count());
-	for (size_t i = 0; i < timerWidgetCount; i++) {
+	int timerWidgetCount = ui->timerMainLayout->count();
+	for (int i = 0; i < timerWidgetCount; i++) {
 		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
 			ui->timerMainLayout->itemAt(i)->widget());
 		if (timerWidget) {
@@ -238,9 +237,9 @@ void CountdownDockWidget::UpdateTimerListMoveButtonState()
 void CountdownDockWidget::UpdateWidgetStyles(
 	CountdownDockWidget *countdownDockWidget)
 {
-	size_t timerWidgetCount = static_cast<size_t>(
-		countdownDockWidget->ui->timerMainLayout->count());
-	for (size_t i = 0; i < timerWidgetCount; i++) {
+	int timerWidgetCount =
+		countdownDockWidget->ui->timerMainLayout->count();
+	for (int i = 0; i < timerWidgetCount; i++) {
 		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
 			countdownDockWidget->ui->timerMainLayout->itemAt(i)
 				->widget());
@@ -516,10 +515,6 @@ void CountdownDockWidget::HandleWebsocketSendEvent(const char *eventName,
 
 void CountdownDockWidget::MoveTimerInList(QString direction, QString id)
 {
-	UNUSED_PARAMETER(direction);
-	UNUSED_PARAMETER(id);
-	obs_log(LOG_INFO, "Move timer %s in %s direction",
-		id.toStdString().c_str(), direction.toStdString().c_str());
 	AshmanixTimer *timerWidget = timerWidgetMap.find(id).value();
 	if (timerWidget) {
 		//Gets the index of the widget within the layout
@@ -539,9 +534,8 @@ void CountdownDockWidget::MoveTimerInList(QString direction, QString id)
 
 void CountdownDockWidget::StartAllTimers()
 {
-	size_t timerWidgetCount =
-		static_cast<size_t>(ui->timerMainLayout->count());
-	for (size_t i = 0; i < timerWidgetCount; i++) {
+	int timerWidgetCount = ui->timerMainLayout->count();
+	for (int i = 0; i < timerWidgetCount; i++) {
 		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
 			ui->timerMainLayout->itemAt(i)->widget());
 		if (timerWidget) {
@@ -552,9 +546,8 @@ void CountdownDockWidget::StartAllTimers()
 
 void CountdownDockWidget::StopAllTimers()
 {
-	size_t timerWidgetCount =
-		static_cast<size_t>(ui->timerMainLayout->count());
-	for (size_t i = 0; i < timerWidgetCount; i++) {
+	int timerWidgetCount = ui->timerMainLayout->count();
+	for (int i = 0; i < timerWidgetCount; i++) {
 		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
 			ui->timerMainLayout->itemAt(i)->widget());
 		if (timerWidget) {

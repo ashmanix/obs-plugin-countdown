@@ -743,6 +743,14 @@ void AshmanixTimer::PlayButtonClicked()
 	     countdownTimerData.timeLeftInMillis >= GetMillisFromPeriodUI()))
 		return;
 
+	if (countdownTimerData.shouldCountUp) {
+		countdownTimerData.timeToCountTo = QDateTime::currentDateTime();
+	} else {
+		countdownTimerData.timeToCountTo =
+			QDateTime::currentDateTime().addMSecs(
+				GetMillisFromPeriodUI());
+	}
+
 	ui->timeDisplay->display(ConvertMillisToDateTimeString(
 		countdownTimerData.timeLeftInMillis));
 	StartTimerCounting();
@@ -779,8 +787,7 @@ void AshmanixTimer::ToTimePlayButtonClicked()
 	}
 
 	if (countdownTimerData.shouldCountUp) {
-		countdownTimerData.timeToCountUpToStart =
-			QDateTime::currentDateTime();
+		countdownTimerData.timeToCountTo = ui->dateTimeEdit->dateTime();
 		countdownTimerData.timeLeftInMillis = 0;
 	} else {
 		countdownTimerData.timeLeftInMillis =
@@ -838,11 +845,14 @@ void AshmanixTimer::TimerAdjust()
 		// Counting down
 		if (countdownTimerData.selectedCountdownType == PERIOD) {
 			// If selected tab is period
-			timerPeriodMillis -= COUNTDOWNPERIOD;
+			timerPeriodMillis = static_cast<long long>(
+				QDateTime::currentDateTime().msecsTo(
+					countdownTimerData.timeToCountTo));
 		} else {
 			// If selected tab is datetime
-			timerPeriodMillis = CalcToCurrentDateTimeInMillis(
-				ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
+			timerPeriodMillis = static_cast<long long>(
+				countdownTimerData.timeToCountTo.msecsTo(
+					ui->dateTimeEdit->dateTime()));
 		}
 		if (timerPeriodMillis < COUNTDOWNPERIOD)
 			endTimer = true;
@@ -851,16 +861,18 @@ void AshmanixTimer::TimerAdjust()
 
 		// Check if we need to end timer
 		if (countdownTimerData.selectedCountdownType == PERIOD) {
-			timerPeriodMillis += COUNTDOWNPERIOD;
+			timerPeriodMillis = static_cast<long long>(
+				countdownTimerData.timeToCountTo.msecsTo(
+					QDateTime::currentDateTime()));
 			// If selected tab is period
 			if (timerPeriodMillis >= GetMillisFromPeriodUI())
 				endTimer = true;
 		} else {
-			timerPeriodMillis =
-				countdownTimerData.timeToCountUpToStart.msecsTo(
-					QDateTime::currentDateTime());
+			timerPeriodMillis = static_cast<long long>(
+				countdownTimerData.timeToCountTo.msecsTo(
+					QDateTime::currentDateTime()));
 			// If selected tab is datetime
-			if ((countdownTimerData.timeToCountUpToStart.msecsTo(
+			if ((countdownTimerData.timeToCountTo.msecsTo(
 				    ui->dateTimeEdit->dateTime())) -
 				    timerPeriodMillis <=
 			    COUNTDOWNPERIOD)
@@ -894,9 +906,8 @@ void AshmanixTimer::TimerAdjust()
 					GetMillisFromPeriodUI();
 			} else {
 				countdownTimerData.timeLeftInMillis =
-					countdownTimerData.timeToCountUpToStart
-						.msecsTo(ui->dateTimeEdit
-								 ->dateTime());
+					countdownTimerData.timeToCountTo.msecsTo(
+						ui->dateTimeEdit->dateTime());
 			}
 			UpdateDateTimeDisplay(
 				countdownTimerData.timeLeftInMillis);

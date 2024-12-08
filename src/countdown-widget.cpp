@@ -215,7 +215,8 @@ void CountdownDockWidget::AddTimer(obs_data_t *savedData)
 
 void CountdownDockWidget::UpdateTimerListMoveButtonState()
 {
-	size_t timerWidgetCount = ui->timerMainLayout->count();
+	size_t timerWidgetCount =
+		static_cast<size_t>(ui->timerMainLayout->count());
 	for (size_t i = 0; i < timerWidgetCount; i++) {
 		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
 			ui->timerMainLayout->itemAt(i)->widget());

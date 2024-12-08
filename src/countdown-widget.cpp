@@ -162,6 +162,8 @@ void CountdownDockWidget::SaveSettings()
 
 	// ----------------------------------- Save Hotkeys -----------------------------------
 	SaveHotkey(settings, addTimerHotkeyId, addTimerHotkeyName);
+	SaveHotkey(settings, startAllTimersHotkeyId, startAllTimersHotkeyName);
+	SaveHotkey(settings, stopAllTimersHotkeyId, stopAllTimersHotkeyName);
 	// ------------------------------------------------------------------------------------
 
 	char *file = obs_module_config_path(CONFIG);
@@ -185,6 +187,18 @@ void CountdownDockWidget::RegisterAllHotkeys(obs_data_t *savedData)
 		obs_module_text("AddTimerHotkeyDescription"),
 		[this]() { ui->addTimerButton->click(); },
 		"Add Timer Hotkey Pressed", savedData);
+
+			LoadHotkey(
+		startAllTimersHotkeyId, startAllTimersHotkeyName,
+		obs_module_text("StartAllTimersHotkeyDescription"),
+		[this]() { ui->playAllButton->click(); },
+		"Start All Timers Hotkey Pressed", savedData);
+
+			LoadHotkey(
+		stopAllTimersHotkeyId, stopAllTimersHotkeyName,
+		obs_module_text("StopAllTimersHotkeyDescription"),
+		[this]() { ui->stopAllButton->click(); },
+		"Stop All Timers Hotkey Pressed", savedData);
 }
 
 void CountdownDockWidget::UnregisterAllHotkeys()

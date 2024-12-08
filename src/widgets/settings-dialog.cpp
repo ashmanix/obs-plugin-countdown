@@ -72,6 +72,15 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 		obs_module_text("SceneSourceDropdownTip"));
 	ui->sceneSourceDropdownList->addItem("");
 
+	ui->generalGroupBox->setTitle(
+		obs_module_text("DialogGeneralGroupBoxTitle"));
+	ui->timerEndGroupBox->setTitle(
+		obs_module_text("DialogTimerEndGroupBoxTitle"));
+	ui->timeFormatGroupBox->setTitle(
+		obs_module_text("DialogTimeFormatGroupBoxTitle"));
+	ui->timerTypeGroupBox->setTitle(
+		obs_module_text("DialogTimerTypeGroupBoxTitle"));
+
 	ui->applyPushButton->setEnabled(false);
 
 	GetOBSSourceList();
@@ -103,48 +112,48 @@ void SettingsDialog::GetOBSSourceList()
 void SettingsDialog::ConnectUISignalHandlers()
 {
 	QObject::connect(ui->textSourceDropdownList,
-			 SIGNAL(currentTextChanged(QString)),
-			 SLOT(FormChangeDetected()));
+			 &QComboBox::currentTextChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->switchSceneCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(SceneSwitchCheckBoxSelected(int)));
+	QObject::connect(ui->switchSceneCheckBox, &QCheckBox::stateChanged,
+			 this, &SettingsDialog::SceneSwitchCheckBoxSelected);
 
 	QObject::connect(ui->sceneSourceDropdownList,
-			 SIGNAL(currentTextChanged(QString)),
-			 SLOT(FormChangeDetected()));
+			 &QComboBox::currentTextChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->endMessageCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(EndMessageCheckBoxSelected(int)));
+	QObject::connect(ui->endMessageCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::EndMessageCheckBoxSelected);
 
-	QObject::connect(ui->endMessageLineEdit, SIGNAL(textChanged(QString)),
-			 SLOT(FormChangeDetected()));
+	QObject::connect(ui->endMessageLineEdit, &QLineEdit::textChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->daysCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(FormChangeDetected()));
+	QObject::connect(ui->daysCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->hoursCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(FormChangeDetected()));
+	QObject::connect(ui->hoursCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->minutesCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(FormChangeDetected()));
+	QObject::connect(ui->minutesCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->secondsCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(FormChangeDetected()));
+	QObject::connect(ui->secondsCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->leadZeroCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(FormChangeDetected()));
+	QObject::connect(ui->leadZeroCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->countUpCheckBox, SIGNAL(stateChanged(int)),
-			 SLOT(FormChangeDetected()));
+	QObject::connect(ui->countUpCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->applyPushButton, SIGNAL(clicked()),
-			 SLOT(ApplyButtonClicked()));
+	QObject::connect(ui->applyPushButton, &QPushButton::clicked, this,
+			 &SettingsDialog::ApplyButtonClicked);
 
-	QObject::connect(ui->cancelPushButton, SIGNAL(clicked()),
-			 SLOT(CancelButtonClicked()));
+	QObject::connect(ui->cancelPushButton, &QPushButton::clicked, this,
+			 &SettingsDialog::CancelButtonClicked);
 
-	QObject::connect(ui->okPushButton, SIGNAL(clicked()),
-			 SLOT(OkButtonClicked()));
+	QObject::connect(ui->okPushButton, &QPushButton::clicked, this,
+			 &SettingsDialog::OkButtonClicked);
 }
 
 bool SettingsDialog::GetTextSources(void *list_property, obs_source_t *source)
@@ -182,7 +191,6 @@ void SettingsDialog::ConnectObsSignalHandlers()
 void SettingsDialog::ApplyFormChanges()
 {
 	if (timerData != nullptr) {
-		obs_log(LOG_INFO, "Apply form changes");
 		timerData->selectedSource =
 			ui->textSourceDropdownList->currentText();
 
@@ -201,6 +209,7 @@ void SettingsDialog::ApplyFormChanges()
 		timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
 
 		ui->applyPushButton->setEnabled(false);
+		emit SettingsUpdated();
 	} else {
 		obs_log(LOG_WARNING, "No timer data found!");
 	}
@@ -376,20 +385,17 @@ void SettingsDialog::SceneSwitchCheckBoxSelected(int state)
 
 void SettingsDialog::ApplyButtonClicked()
 {
-	obs_log(LOG_INFO, "Apply button clicked!");
 	ApplyFormChanges();
 }
 
 void SettingsDialog::CancelButtonClicked()
 {
-	obs_log(LOG_INFO, "Cancel button clicked!");
 	SetFormDetails(timerData);
 	this->reject();
 }
 
 void SettingsDialog::OkButtonClicked()
 {
-	obs_log(LOG_INFO, "OK button clicked!");
 	ApplyFormChanges();
 	this->reject();
 }

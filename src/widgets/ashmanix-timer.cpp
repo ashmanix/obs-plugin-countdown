@@ -230,13 +230,6 @@ void AshmanixTimer::SetTimerData()
 	ui->timerSeconds->setText(
 		QString::number(countdownTimerData.periodSeconds));
 
-	obs_log(LOG_INFO, "Timer %s tab set to %d",
-		countdownTimerData.timerId.toStdString().c_str(),
-		countdownTimerData.selectedCountdownType);
-
-	// ui->countdownTypeTabWidget->setCurrentIndex(
-	// 	countdownTimerData.selectedCountdownType);
-
 	ui->timerNameLabel->setText(
 		QString("Timer: %1").arg(countdownTimerData.timerId));
 	InitialiseTimerTime();
@@ -423,52 +416,54 @@ void AshmanixTimer::SetupTimerWidgetUI()
 	ui->toTimeStopButton->setToolTip(
 		obs_module_text("ToTimeStopButtonTip"));
 
+	UpdateTimeDisplayTooltip();
+
 	countdownTimerData.isPlaying = false;
 }
 
 void AshmanixTimer::ConnectUISignalHandlers()
 {
-	QObject::connect(ui->playButton, SIGNAL(clicked()),
-			 SLOT(PlayButtonClicked()));
+	QObject::connect(ui->playButton, &QPushButton::clicked, this,
+			 &AshmanixTimer::PlayButtonClicked);
 
-	QObject::connect(ui->pauseButton, SIGNAL(clicked()),
-			 SLOT(PauseButtonClicked()));
+	QObject::connect(ui->pauseButton, &QPushButton::clicked, this,
+			 &AshmanixTimer::PauseButtonClicked);
 
-	QObject::connect(ui->resetButton, SIGNAL(clicked()),
-			 SLOT(ResetButtonClicked()));
+	QObject::connect(ui->resetButton, &QPushButton::clicked, this,
+			 &AshmanixTimer::ResetButtonClicked);
 
-	QObject::connect(ui->toTimePlayButton, SIGNAL(clicked()),
-			 SLOT(ToTimePlayButtonClicked()));
+	QObject::connect(ui->toTimePlayButton, &QPushButton::clicked, this,
+			 &AshmanixTimer::ToTimePlayButtonClicked);
 
-	QObject::connect(ui->toTimeStopButton, SIGNAL(clicked()),
-			 SLOT(ToTimeStopButtonClicked()));
+	QObject::connect(ui->toTimeStopButton, &QPushButton::clicked, this,
+			 &AshmanixTimer::ToTimeStopButtonClicked);
 
-	QObject::connect(ui->deleteToolButton, SIGNAL(clicked()),
-			 SLOT(DeleteButtonClicked()));
+	QObject::connect(ui->deleteToolButton, &QPushButton::clicked, this,
+			 &AshmanixTimer::DeleteButtonClicked);
 
-	QObject::connect(ui->settingsToolButton, SIGNAL(clicked()),
-			 SLOT(SettingsButtonClicked()));
+	QObject::connect(ui->settingsToolButton, &QPushButton::clicked, this,
+			 &AshmanixTimer::SettingsButtonClicked);
 
-	QObject::connect(ui->timerDays, SIGNAL(textEdited(QString)),
-			 SLOT(DaysChanged(QString)));
+	QObject::connect(ui->timerDays, &QLineEdit::textChanged, this,
+			 &AshmanixTimer::DaysChanged);
 
-	QObject::connect(ui->timerHours, SIGNAL(textEdited(QString)),
-			 SLOT(HoursChanged(QString)));
+	QObject::connect(ui->timerHours, &QLineEdit::textChanged, this,
+			 &AshmanixTimer::HoursChanged);
 
-	QObject::connect(ui->timerMinutes, SIGNAL(textEdited(QString)),
-			 SLOT(MinutesChanged(QString)));
+	QObject::connect(ui->timerMinutes, &QLineEdit::textChanged, this,
+			 &AshmanixTimer::MinutesChanged);
 
-	QObject::connect(ui->timerSeconds, SIGNAL(textEdited(QString)),
-			 SLOT(SecondsChanged(QString)));
+	QObject::connect(ui->timerSeconds, &QLineEdit::textChanged, this,
+			 &AshmanixTimer::SecondsChanged);
 
-	QObject::connect(ui->dateTimeEdit, SIGNAL(dateTimeChanged(QDateTime)),
-			 SLOT(DateTimeChanged(QDateTime)));
+	QObject::connect(ui->dateTimeEdit, &QDateTimeEdit::dateTimeChanged,
+			 this, &AshmanixTimer::DateTimeChanged);
 
-	QObject::connect(ui->moveUpToolButton, SIGNAL(clicked()), this,
-			 SLOT(EmitMoveTimerUpSignal()));
+	QObject::connect(ui->moveUpToolButton, &QPushButton::clicked, this,
+			 &AshmanixTimer::EmitMoveTimerUpSignal);
 
-	QObject::connect(ui->moveDownToolButton, SIGNAL(clicked()), this,
-			 SLOT(EmitMoveTimerDownSignal()));
+	QObject::connect(ui->moveDownToolButton, &QPushButton::clicked, this,
+			 &AshmanixTimer::EmitMoveTimerDownSignal);
 
 	QObject::connect(ui->periodToolButton, &QPushButton::clicked, this,
 			 [this]() { ToggleTimeType(PERIOD); });
@@ -811,11 +806,13 @@ void AshmanixTimer::ToTimeStopButtonClicked()
 
 void AshmanixTimer::SettingsButtonClicked()
 {
-	obs_log(LOG_INFO, "Settings button clicked for Timer %s",
-		(countdownTimerData.timerId).toStdString().c_str());
 	if (!settingsDialogUi) {
 		settingsDialogUi =
 			new SettingsDialog(this, &countdownTimerData);
+
+		QObject::connect(settingsDialogUi,
+				 &SettingsDialog::SettingsUpdated, this,
+				 [this]() { UpdateTimeDisplayTooltip(); });
 	}
 	if (settingsDialogUi->isVisible()) {
 		settingsDialogUi->raise();
@@ -974,4 +971,65 @@ void AshmanixTimer::ToggleTimeType(CountdownType type)
 		obs_log(LOG_WARNING,
 			"Period and/or Datetime layouts not found!");
 	}
+}
+
+void AshmanixTimer::UpdateTimeDisplayTooltip()
+{
+	QString detailsTooltip = "";
+
+	detailsTooltip += obs_module_text("TextSourceLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.selectedSource;
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("EndMessageLabel");
+	detailsTooltip += " : ";
+	if (countdownTimerData.showEndMessage) {
+		detailsTooltip += "✓ ";
+		detailsTooltip += countdownTimerData.endMessage;
+	} else {
+		detailsTooltip += "-";
+	}
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("SwitchScene");
+	detailsTooltip += " : ";
+	if (countdownTimerData.showEndScene) {
+		detailsTooltip += "✓ ";
+		detailsTooltip += countdownTimerData.selectedScene;
+	} else {
+		detailsTooltip += "-";
+	}
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("DaysCheckboxLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.showDays ? "✓" : "-";
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("HoursCheckboxLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.showHours ? "✓" : "-";
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("MinutesCheckboxLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.showMinutes ? "✓" : "-";
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("SecondsCheckboxLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.showSeconds ? "✓" : "-";
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("LeadZeroCheckboxLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.showLeadingZero ? "✓" : "-";
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("CountUpCheckBoxLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.shouldCountUp ? "✓" : "-";
+
+	ui->timeDisplay->setToolTip(detailsTooltip);
 }

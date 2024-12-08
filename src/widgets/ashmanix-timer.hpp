@@ -97,6 +97,8 @@ private:
 	std::string GetFullHotkeyName(std::string nameString,
 				      const char *joinText = "_");
 
+	void UpdateTimeDisplayTooltip();
+
 signals:
 	void RequestTimerReset();
 	void RequestDelete(QString id);

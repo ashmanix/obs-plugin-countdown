@@ -41,6 +41,7 @@ private:
 	static int CheckSourceType(obs_source_t *source);
 
 signals:
+	void SettingsUpdated();
 
 private slots:
 	void FormChangeDetected();

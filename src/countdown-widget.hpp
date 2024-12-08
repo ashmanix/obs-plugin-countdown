@@ -73,7 +73,7 @@ private:
 	int addTimerHotkeyId = -1;
 	int startAllTimersHotkeyId = -1;
 	int stopAllTimersHotkeyId = -1;
-	
+
 	static inline const char *addTimerHotkeyName =
 		"Ashmanix_Countdown_Timer_Add_Timer";
 	static inline const char *startAllTimersHotkeyName =

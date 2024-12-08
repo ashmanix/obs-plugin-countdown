@@ -188,13 +188,13 @@ void CountdownDockWidget::RegisterAllHotkeys(obs_data_t *savedData)
 		[this]() { ui->addTimerButton->click(); },
 		"Add Timer Hotkey Pressed", savedData);
 
-			LoadHotkey(
+	LoadHotkey(
 		startAllTimersHotkeyId, startAllTimersHotkeyName,
 		obs_module_text("StartAllTimersHotkeyDescription"),
 		[this]() { ui->playAllButton->click(); },
 		"Start All Timers Hotkey Pressed", savedData);
 
-			LoadHotkey(
+	LoadHotkey(
 		stopAllTimersHotkeyId, stopAllTimersHotkeyName,
 		obs_module_text("StopAllTimersHotkeyDescription"),
 		[this]() { ui->stopAllButton->click(); },

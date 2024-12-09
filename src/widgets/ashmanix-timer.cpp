@@ -843,8 +843,6 @@ void AshmanixTimer::TimerAdjust()
 			timerPeriodMillis = static_cast<long long>(
 				QDateTime::currentDateTime().msecsTo(
 					ui->dateTimeEdit->dateTime()));
-			obs_log(LOG_INFO, "Countdown millis: %ld",
-				timerPeriodMillis);
 		}
 		if (timerPeriodMillis < TIMERPERIOD)
 			endTimer = true;

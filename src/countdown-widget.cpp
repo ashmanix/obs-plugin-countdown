@@ -255,6 +255,21 @@ void CountdownDockWidget::UpdateTimerListMoveButtonState()
 		}
 	}
 }
+void CountdownDockWidget::StartTimersOnStreamStart(
+	CountdownDockWidget *countdownDockWidget)
+{
+	int timerWidgetCount =
+		countdownDockWidget->ui->timerMainLayout->count();
+	for (int i = 0; i < timerWidgetCount; i++) {
+		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
+			countdownDockWidget->ui->timerMainLayout->itemAt(i)
+				->widget());
+		if (timerWidget &&
+		    timerWidget->GetTimerData()->startOnStreamStart) {
+			timerWidget->StartTimer();
+		}
+	}
+}
 
 void CountdownDockWidget::UpdateWidgetStyles(
 	CountdownDockWidget *countdownDockWidget)
@@ -279,12 +294,16 @@ void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
 		(CountdownDockWidget *)private_data;
 
 	switch (event) {
-	case OBS_FRONTEND_EVENT_FINISHED_LOADING: {
+	case OBS_FRONTEND_EVENT_FINISHED_LOADING:
 		CountdownDockWidget::LoadSavedSettings(countdownDockWidget);
-	} break;
-	case OBS_FRONTEND_EVENT_THEME_CHANGED: {
+		break;
+	case OBS_FRONTEND_EVENT_THEME_CHANGED:
 		CountdownDockWidget::UpdateWidgetStyles(countdownDockWidget);
-	} break;
+		break;
+	case OBS_FRONTEND_EVENT_STREAMING_STARTED:
+		CountdownDockWidget::StartTimersOnStreamStart(
+			countdownDockWidget);
+		break;
 	default:
 		break;
 	}

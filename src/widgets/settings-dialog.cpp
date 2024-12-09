@@ -47,6 +47,11 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 	ui->countUpCheckBox->setText(obs_module_text("CountUpCheckBoxLabel"));
 	ui->countUpCheckBox->setToolTip(obs_module_text("CountUpCheckBoxTip"));
 
+	ui->startOnStreamStartCheckBox->setText(
+		obs_module_text("StartOnStreamCheckBoxLabel"));
+	ui->startOnStreamStartCheckBox->setToolTip(
+		obs_module_text("StartOnStreamCheckBoxTip"));
+
 	ui->textSourceDropdownList->setToolTip(
 		obs_module_text("TextSourceDropdownTip"));
 	ui->textSourceDropdownList->addItem("");
@@ -74,6 +79,8 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 
 	ui->generalGroupBox->setTitle(
 		obs_module_text("DialogGeneralGroupBoxTitle"));
+	ui->timerStartGroupBox->setTitle(
+		obs_module_text("DialogTimerStartGroupBoxTitle"));
 	ui->timerEndGroupBox->setTitle(
 		obs_module_text("DialogTimerEndGroupBoxTitle"));
 	ui->timeFormatGroupBox->setTitle(
@@ -83,7 +90,11 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 
 	ui->applyPushButton->setEnabled(false);
 
-	ui->versionTextLabel->setText(QString("ver. %1").arg(PLUGIN_VERSION));
+	ui->byLabel->setText(obs_module_text("DialogInfoByLabel"));
+	ui->contributorsLabel->setText(
+		obs_module_text("DialogInfoConstributorsLabel"));
+	ui->versionLabel->setText(obs_module_text("DialogInfoVersionLabel"));
+	ui->versionTextLabel->setText(PLUGIN_VERSION);
 
 	GetOBSSourceList();
 
@@ -115,6 +126,10 @@ void SettingsDialog::ConnectUISignalHandlers()
 {
 	QObject::connect(ui->textSourceDropdownList,
 			 &QComboBox::currentTextChanged, this,
+			 &SettingsDialog::FormChangeDetected);
+
+	QObject::connect(ui->startOnStreamStartCheckBox,
+			 &QCheckBox::stateChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 
 	QObject::connect(ui->switchSceneCheckBox, &QCheckBox::stateChanged,
@@ -196,6 +211,9 @@ void SettingsDialog::ApplyFormChanges()
 		timerData->selectedSource =
 			ui->textSourceDropdownList->currentText();
 
+		timerData->startOnStreamStart =
+			ui->startOnStreamStartCheckBox->isChecked();
+
 		timerData->showEndMessage = ui->endMessageCheckBox->isChecked();
 		timerData->endMessage = ui->endMessageLineEdit->text();
 		timerData->showEndScene = ui->switchSceneCheckBox->isChecked();
@@ -220,12 +238,14 @@ void SettingsDialog::ApplyFormChanges()
 void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 {
 	if (settingsDialogData != nullptr) {
-		obs_log(LOG_INFO, "Setting form details");
 		int textSelectIndex = ui->textSourceDropdownList->findText(
 			settingsDialogData->selectedSource);
 		if (textSelectIndex != -1)
 			ui->textSourceDropdownList->setCurrentIndex(
 				textSelectIndex);
+
+		ui->startOnStreamStartCheckBox->setChecked(
+			settingsDialogData->startOnStreamStart);
 
 		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(
 			settingsDialogData->selectedScene);

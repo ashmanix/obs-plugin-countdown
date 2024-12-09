@@ -27,6 +27,7 @@ struct TimerWidgetStruct {
 	bool isPlaying;
 	bool shouldCountUp = false;
 	bool showLeadingZero = true;
+	bool startOnStreamStart = false;
 	QString selectedSource = "";
 	QString selectedScene = "";
 	QString endMessage = "";

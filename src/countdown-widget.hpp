@@ -100,6 +100,8 @@ private:
 	void AddTimer(obs_data_t *savedData = nullptr);
 	void UpdateTimerListMoveButtonState();
 	static void
+	StartTimersOnStreamStart(CountdownDockWidget *countdownDockWidget);
+	static void
 	UpdateWidgetStyles(CountdownDockWidget *countdownDockWidget);
 
 	static void OBSFrontendEventHandler(enum obs_frontend_event event,

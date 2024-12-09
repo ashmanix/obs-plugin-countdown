@@ -29,25 +29,6 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor,
 
 	vendor = &newVendor;
 
-#if __APPLE__
-	// ui->hsDaysLeft->changeSize(0, 20, QSizePolicy::Fixed,
-	// 			   QSizePolicy::Fixed);
-	// ui->hsDaysRight->changeSize(0, 20, QSizePolicy::Fixed,
-	// 			    QSizePolicy::Fixed);
-	// ui->hsHoursLeft->changeSize(0, 20, QSizePolicy::Fixed,
-	// 			    QSizePolicy::Fixed);
-	// ui->hsHoursRight->changeSize(0, 20, QSizePolicy::Fixed,
-	// 			     QSizePolicy::Fixed);
-	// ui->hsMinutesLeft->changeSize(0, 20, QSizePolicy::Fixed,
-	// 			      QSizePolicy::Fixed);
-	// ui->hsMinutesRight->changeSize(0, 20, QSizePolicy::Fixed,
-	// 			       QSizePolicy::Fixed);
-	// ui->hsSecondsLeft->changeSize(0, 20, QSizePolicy::Fixed,
-	// 			      QSizePolicy::Fixed);
-	// ui->hsSecondsRight->changeSize(0, 20, QSizePolicy::MinimumExpanding,
-	// 			       QSizePolicy::MinimumExpanding);
-#endif
-
 	SetupTimerWidgetUI();
 
 	ConnectUISignalHandlers();
@@ -67,6 +48,8 @@ void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject)
 {
 	obs_data_set_string(dataObject, "timerId",
 			    countdownTimerData.timerId.toStdString().c_str());
+	obs_data_set_bool(dataObject, "startOnStreamStart",
+			  countdownTimerData.startOnStreamStart);
 	obs_data_set_bool(dataObject, "shouldCountUp",
 			  countdownTimerData.shouldCountUp);
 	obs_data_set_bool(dataObject, "showLeadingZero",
@@ -131,6 +114,8 @@ void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
 
 	countdownTimerData.timerId =
 		(char *)obs_data_get_string(dataObject, "timerId");
+	countdownTimerData.startOnStreamStart =
+		(bool)obs_data_get_bool(dataObject, "startOnStreamStart");
 	countdownTimerData.shouldCountUp =
 		(bool)obs_data_get_bool(dataObject, "shouldCountUp");
 	countdownTimerData.showLeadingZero =
@@ -991,6 +976,11 @@ void AshmanixTimer::UpdateTimeDisplayTooltip()
 	detailsTooltip += obs_module_text("TextSourceLabel");
 	detailsTooltip += " : ";
 	detailsTooltip += countdownTimerData.selectedSource;
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("StartOnStreamCheckBoxLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.startOnStreamStart ? "✓" : "-";
 	detailsTooltip += "\n";
 
 	detailsTooltip += obs_module_text("EndMessageLabel");

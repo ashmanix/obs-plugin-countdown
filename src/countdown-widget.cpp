@@ -70,6 +70,14 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 					  TIMERIDKEY});
 
 	obs_websocket_vendor_register_request(
+		vendor, "play_all", HandleWebsocketButtonPressRequest,
+		new WebsocketCallbackData{this, PLAY_ALL, NULL, NULL});
+
+	obs_websocket_vendor_register_request(
+		vendor, "stop_all", HandleWebsocketButtonPressRequest,
+		new WebsocketCallbackData{this, STOP_ALL, NULL, NULL});
+
+	obs_websocket_vendor_register_request(
 		vendor, "get_timer_state", GetTimerStateViaWebsocket,
 		new WebsocketCallbackData{this, GET_TIME, NULL, TIMERIDKEY});
 
@@ -433,59 +441,66 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(
 	obs_data_t *request_data, obs_data_t *response_data, void *priv_data)
 {
 	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
-	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
 	WebsocketRequestType requestType = callback_data->requestType;
 	CountdownDockWidget *countdownWidget = callback_data->instance;
+
+	auto setResponse = [&](bool success, const char *msg) {
+		obs_data_set_bool(response_data, "success", success);
+		obs_data_set_string(response_data, "message", msg);
+	};
+
+	switch (requestType) {
+	case PLAY_ALL:
+		countdownWidget->StartAllTimers();
+		setResponse(true, "Start All Timers button pressed");
+		return;
+	case STOP_ALL:
+		countdownWidget->StopAllTimers();
+		setResponse(true, "Stop All Timers button pressed");
+		return;
+	default:
+		break;
+	}
+
+	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
 	const char *websocketTimerID =
 		obs_data_get_string(request_data, requestTimerIdKey);
-
 	AshmanixTimer *timer =
 		AttemptToGetTimerWidgetById(countdownWidget, websocketTimerID);
 
-	if (timer != nullptr) {
-		switch (requestType) {
-		case PERIOD_PLAY:
-			timer->PressPlayButton();
-			obs_data_set_bool(response_data, "success", true);
-			obs_data_set_bool(response_data, "message",
-					  "Play button pressed");
-			break;
-		case PERIOD_PAUSE:
-			timer->PressStopButton();
-			obs_data_set_bool(response_data, "success", true);
-			obs_data_set_bool(response_data, "message",
-					  "Pause button pressed");
-			break;
-		case PERIOD_SET:
-			timer->PressResetButton();
-			obs_data_set_bool(response_data, "success", true);
-			obs_data_set_bool(response_data, "message",
-					  "Reset button pressed");
-			break;
-		case TO_TIME_PLAY:
-			timer->PressToTimePlayButton();
-			obs_data_set_bool(response_data, "success", true);
-			obs_data_set_bool(response_data, "message",
-					  "To Time play button pressed");
-			break;
-		case TO_TIME_STOP:
-			timer->PressToTimeStopButton();
-			obs_data_set_bool(response_data, "success", true);
-			obs_data_set_bool(response_data, "message",
-					  "To Time stop button pressed");
-			break;
-		default:
-			obs_data_set_bool(response_data, "success", false);
-			obs_data_set_bool(response_data, "message",
-					  "No buttons pressed");
-			break;
-		}
-	} else {
+	if (!timer) {
 		obs_log(LOG_WARNING,
 			"Countdown widget not found for websocket timer state change request!");
 		obs_data_set_bool(response_data, "success", false);
 		obs_data_set_string(response_data, "message",
 				    "Error trying to change timer state!");
+		return;
+	}
+
+	switch (requestType) {
+	case PERIOD_PLAY:
+		timer->PressPlayButton();
+		setResponse(true, "Play button pressed");
+		break;
+	case PERIOD_PAUSE:
+		timer->PressStopButton();
+		setResponse(true, "Pause button pressed");
+		break;
+	case PERIOD_SET:
+		timer->PressResetButton();
+		setResponse(true, "Reset button pressed");
+		break;
+	case TO_TIME_PLAY:
+		timer->PressToTimePlayButton();
+		setResponse(true, "To Time play button pressed");
+		break;
+	case TO_TIME_STOP:
+		timer->PressToTimeStopButton();
+		setResponse(true, "To Time stop button pressed");
+		break;
+	default:
+		setResponse(false, "No buttons pressed");
+		break;
 	}
 }
 

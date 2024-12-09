@@ -781,10 +781,10 @@ void AshmanixTimer::ToTimePlayButtonClicked()
 		countdownTimerData.timeLeftInMillis =
 			countdownTimerData.timeAtTimerStart.msecsTo(
 				ui->dateTimeEdit->dateTime());
+		if (countdownTimerData.timeLeftInMillis < 0)
+			countdownTimerData.timeLeftInMillis = 0;
 	}
 
-	// ui->timeDisplay->display(ConvertMillisToDateTimeString(
-	// countdownTimerData.timeLeftInMillis));
 	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
 	StartTimerCounting();
 }
@@ -870,6 +870,9 @@ void AshmanixTimer::TimerAdjust()
 	}
 
 	countdownTimerData.timeLeftInMillis = timerPeriodMillis;
+
+	if (countdownTimerData.timeLeftInMillis < 0)
+		countdownTimerData.timeLeftInMillis = 0;
 
 	// We only update the time and send a tick event if the seconds have changed from last time
 	if (lastDisplayedSeconds !=

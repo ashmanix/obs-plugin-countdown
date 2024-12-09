@@ -260,7 +260,7 @@ bool AshmanixTimer::AlterTime(WebsocketRequestType requestType,
 			break;
 		}
 		long long new_time = CalcToCurrentDateTimeInMillis(
-			ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
+			ui->dateTimeEdit->dateTime(), TIMERPERIOD);
 		UpdateDateTimeDisplay(new_time);
 		result = true;
 	}
@@ -473,7 +473,7 @@ AshmanixTimer::ConvertDateTimeToFormattedDisplayString(long long timeInMillis,
 void AshmanixTimer::StartTimerCounting()
 {
 	countdownTimerData.isPlaying = true;
-	countdownTimerData.timer->start(COUNTDOWNPERIOD);
+	countdownTimerData.timer->start(TIMERPERIOD);
 	ui->playButton->setEnabled(false);
 	ui->pauseButton->setEnabled(true);
 	ui->resetButton->setEnabled(false);
@@ -722,22 +722,25 @@ void AshmanixTimer::PlayButtonClicked()
 	if (countdownTimerData.selectedCountdownType == DATETIME) {
 		ToggleTimeType(PERIOD);
 	}
+	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
+
+	long long periodUIInMillis = GetMillisFromPeriodUI();
+	QDateTime currentDateTime = QDateTime::currentDateTime();
 
 	if ((!countdownTimerData.shouldCountUp && IsSetTimeZero()) ||
 	    (countdownTimerData.shouldCountUp &&
-	     countdownTimerData.timeLeftInMillis >= GetMillisFromPeriodUI()))
+	     countdownTimerData.timeLeftInMillis >= periodUIInMillis))
 		return;
 
 	if (countdownTimerData.shouldCountUp) {
-		countdownTimerData.timeToCountTo = QDateTime::currentDateTime();
+		countdownTimerData.timeAtTimerStart = currentDateTime;
 	} else {
-		countdownTimerData.timeToCountTo =
-			QDateTime::currentDateTime().addMSecs(
-				GetMillisFromPeriodUI());
+		countdownTimerData.timeAtTimerStart =
+			currentDateTime.addMSecs(periodUIInMillis);
 	}
 
-	ui->timeDisplay->display(ConvertMillisToDateTimeString(
-		countdownTimerData.timeLeftInMillis));
+	// ui->timeDisplay->display(ConvertMillisToDateTimeString(
+	// countdownTimerData.timeLeftInMillis));
 	StartTimerCounting();
 }
 
@@ -771,17 +774,19 @@ void AshmanixTimer::ToTimePlayButtonClicked()
 		ToggleTimeType(DATETIME);
 	}
 
+	countdownTimerData.timeAtTimerStart = QDateTime::currentDateTime();
+
 	if (countdownTimerData.shouldCountUp) {
-		countdownTimerData.timeToCountTo = ui->dateTimeEdit->dateTime();
 		countdownTimerData.timeLeftInMillis = 0;
 	} else {
 		countdownTimerData.timeLeftInMillis =
-			CalcToCurrentDateTimeInMillis(
-				ui->dateTimeEdit->dateTime(), COUNTDOWNPERIOD);
+			countdownTimerData.timeAtTimerStart.msecsTo(
+				ui->dateTimeEdit->dateTime());
 	}
 
-	ui->timeDisplay->display(ConvertMillisToDateTimeString(
-		countdownTimerData.timeLeftInMillis));
+	// ui->timeDisplay->display(ConvertMillisToDateTimeString(
+	// countdownTimerData.timeLeftInMillis));
+	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
 	StartTimerCounting();
 }
 
@@ -832,14 +837,16 @@ void AshmanixTimer::TimerAdjust()
 			// If selected tab is period
 			timerPeriodMillis = static_cast<long long>(
 				QDateTime::currentDateTime().msecsTo(
-					countdownTimerData.timeToCountTo));
+					countdownTimerData.timeAtTimerStart));
 		} else {
 			// If selected tab is datetime
 			timerPeriodMillis = static_cast<long long>(
-				countdownTimerData.timeToCountTo.msecsTo(
+				QDateTime::currentDateTime().msecsTo(
 					ui->dateTimeEdit->dateTime()));
+			obs_log(LOG_INFO, "Countdown millis: %ld",
+				timerPeriodMillis);
 		}
-		if (timerPeriodMillis < COUNTDOWNPERIOD)
+		if (timerPeriodMillis < TIMERPERIOD)
 			endTimer = true;
 	} else {
 		// When counting up always add to current timer
@@ -847,30 +854,37 @@ void AshmanixTimer::TimerAdjust()
 		// Check if we need to end timer
 		if (countdownTimerData.selectedCountdownType == PERIOD) {
 			timerPeriodMillis = static_cast<long long>(
-				countdownTimerData.timeToCountTo.msecsTo(
+				countdownTimerData.timeAtTimerStart.msecsTo(
 					QDateTime::currentDateTime()));
 			// If selected tab is period
 			if (timerPeriodMillis >= GetMillisFromPeriodUI())
 				endTimer = true;
 		} else {
 			timerPeriodMillis = static_cast<long long>(
-				countdownTimerData.timeToCountTo.msecsTo(
+				countdownTimerData.timeAtTimerStart.msecsTo(
 					QDateTime::currentDateTime()));
 			// If selected tab is datetime
-			if ((countdownTimerData.timeToCountTo.msecsTo(
+			if ((countdownTimerData.timeAtTimerStart.msecsTo(
 				    ui->dateTimeEdit->dateTime())) -
 				    timerPeriodMillis <=
-			    COUNTDOWNPERIOD)
+			    TIMERPERIOD)
 				endTimer = true;
 		}
 	}
 
 	countdownTimerData.timeLeftInMillis = timerPeriodMillis;
-	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
 
-	// Send tick event
-	SendTimerTickEvent(countdownTimerData.timerId,
-			   countdownTimerData.timeLeftInMillis);
+	if (lastDisplayedSeconds !=
+	    (countdownTimerData.timeLeftInMillis / 1000)) {
+		lastDisplayedSeconds =
+			countdownTimerData.timeLeftInMillis / 1000;
+
+		UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
+
+		// Send tick event
+		SendTimerTickEvent(countdownTimerData.timerId,
+				   countdownTimerData.timeLeftInMillis);
+	}
 
 	if (endTimer == true) {
 		if (countdownTimerData.showEndMessage) {
@@ -891,8 +905,9 @@ void AshmanixTimer::TimerAdjust()
 					GetMillisFromPeriodUI();
 			} else {
 				countdownTimerData.timeLeftInMillis =
-					countdownTimerData.timeToCountTo.msecsTo(
-						ui->dateTimeEdit->dateTime());
+					countdownTimerData.timeAtTimerStart
+						.msecsTo(ui->dateTimeEdit
+								 ->dateTime());
 			}
 			UpdateDateTimeDisplay(
 				countdownTimerData.timeLeftInMillis);
@@ -907,7 +922,7 @@ void AshmanixTimer::TimerAdjust()
 void AshmanixTimer::HandleTimerReset()
 {
 	countdownTimerData.timer->stop();
-	countdownTimerData.timer->start(COUNTDOWNPERIOD);
+	countdownTimerData.timer->start(TIMERPERIOD);
 }
 
 void AshmanixTimer::DaysChanged(QString newText)

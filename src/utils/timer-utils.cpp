@@ -113,9 +113,9 @@ QString GetFormattedTimerString(bool daysState, bool hoursState,
 long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo,
 					int countdownPeriod)
 {
-	QDateTime systemTime = QDateTime::currentDateTime().toUTC();
+	QDateTime systemTime = QDateTime::currentDateTime();
 	long long millisecondsDifference =
-		systemTime.msecsTo(timeToCountdownTo.toUTC());
+		systemTime.msecsTo(timeToCountdownTo);
 	long long millisResult = 0;
 
 	millisecondsDifference = millisecondsDifference +

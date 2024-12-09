@@ -17,7 +17,9 @@ enum WebsocketRequestType {
 	PERIOD_PAUSE = 5,
 	PERIOD_SET = 6,
 	TO_TIME_PLAY = 7,
-	TO_TIME_STOP = 8
+	TO_TIME_STOP = 8,
+	PLAY_ALL = 9,
+	STOP_ALL = 10
 };
 
 struct TimerWidgetStruct {

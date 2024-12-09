@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,0,1,0">
+  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,0,0,1,0">
    <item>
     <widget class="QGroupBox" name="generalGroupBox">
      <property name="title">
@@ -379,6 +379,13 @@
      </property>
      <property name="openExternalLinks">
       <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="versionTextLabel">
+     <property name="text">
+      <string>ver.</string>
      </property>
     </widget>
    </item>

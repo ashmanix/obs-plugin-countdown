@@ -83,6 +83,8 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 
 	ui->applyPushButton->setEnabled(false);
 
+	ui->versionTextLabel->setText(QString("ver. %1").arg(PLUGIN_VERSION));
+
 	GetOBSSourceList();
 
 	// Set form based on timer data

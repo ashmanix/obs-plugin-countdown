@@ -83,7 +83,6 @@ private:
 
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 
-	static const int COUNTDOWNPERIOD = 1000;
 	static inline const char *VENDORNAME = "ashmanix-countdown-timer";
 	static inline const char *TIMERIDKEY = "timer_id";
 

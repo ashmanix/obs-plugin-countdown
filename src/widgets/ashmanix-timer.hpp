@@ -56,9 +56,10 @@ public:
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
-	static const int COUNTDOWNPERIOD = 1000;
+	static const int TIMERPERIOD = 500;
 	static inline const char *ZEROSTRING = "00:00:00:00";
 	obs_websocket_vendor vendor = nullptr;
+	long long lastDisplayedSeconds = -1;
 
 	static inline const char *TIMERSTARTHOTKEYNAME =
 		"Ashmanix_Countdown_Timer_Start";

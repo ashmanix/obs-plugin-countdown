@@ -47,7 +47,7 @@ struct TimerWidgetStruct {
 	bool showEndScene = false;
 
 	long long timeLeftInMillis = 0;
-	QDateTime timeToCountTo;
+	QDateTime timeAtTimerStart;
 	CountdownType selectedCountdownType = PERIOD;
 
 	int startCountdownHotkeyId = -1;

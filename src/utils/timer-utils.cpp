@@ -67,9 +67,9 @@ QString ConvertMillisToDateTimeString(long long timeInMillis)
 		     QChar('0')); // Seconds with leading zeros
 }
 
-QString GetFormattedTimerString(int daysState, int hoursState, int minutesState,
-				int secondsState, bool showLeadingZero,
-				long long timeInMillis)
+QString GetFormattedTimerString(bool daysState, bool hoursState,
+				bool minutesState, bool secondsState,
+				bool showLeadingZero, long long timeInMillis)
 {
 	long long days = timeInMillis / (24 * 60 * 60 * 1000);
 	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
@@ -81,7 +81,7 @@ QString GetFormattedTimerString(int daysState, int hoursState, int minutesState,
 
 	bool isFirstField = true;
 
-	auto appendField = [&](long long value, int state) {
+	auto appendField = [&](long long value, bool state) {
 		if (state) {
 			if (isFirstField && !showLeadingZero) {
 				// Append without leading zero
@@ -113,9 +113,9 @@ QString GetFormattedTimerString(int daysState, int hoursState, int minutesState,
 long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo,
 					int countdownPeriod)
 {
-	QDateTime systemTime = QDateTime::currentDateTime().toUTC();
+	QDateTime systemTime = QDateTime::currentDateTime();
 	long long millisecondsDifference =
-		systemTime.msecsTo(timeToCountdownTo.toUTC());
+		systemTime.msecsTo(timeToCountdownTo);
 	long long millisResult = 0;
 
 	millisecondsDifference = millisecondsDifference +

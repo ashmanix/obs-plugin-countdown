@@ -98,6 +98,7 @@ private:
 	void UnregisterAllHotkeys();
 	void AddTimer(obs_data_t *savedData = nullptr);
 	void UpdateTimerListMoveButtonState();
+	void ToggleUIForMultipleTimers();
 	static void
 	StartTimersOnStreamStart(CountdownDockWidget *countdownDockWidget);
 	static void

@@ -227,9 +227,9 @@ void CountdownDockWidget::AddTimer(obs_data_t *savedData)
 	AshmanixTimer *firstTimerWidget = GetFirstTimerWidget();
 
 	if (GetNumberOfTimers() == 1 && firstTimerWidget) {
-		firstTimerWidget->SetIsDeleteButtonDisabled(true);
+		firstTimerWidget->SetHideMultiTimerUIButtons(true);
 	} else {
-		firstTimerWidget->SetIsDeleteButtonDisabled(false);
+		firstTimerWidget->SetHideMultiTimerUIButtons(false);
 	}
 
 	UpdateTimerListMoveButtonState();
@@ -547,7 +547,7 @@ void CountdownDockWidget::RemoveTimerButtonClicked(QString id)
 	AshmanixTimer *firstTimerWidget = GetFirstTimerWidget();
 	int noOfTImers = GetNumberOfTimers();
 	if (noOfTImers == 1 && firstTimerWidget) {
-		firstTimerWidget->SetIsDeleteButtonDisabled(true);
+		firstTimerWidget->SetHideMultiTimerUIButtons(true);
 	}
 	UpdateTimerListMoveButtonState();
 }

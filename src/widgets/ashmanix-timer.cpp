@@ -185,9 +185,22 @@ TimerWidgetStruct *AshmanixTimer::GetTimerData()
 	return &countdownTimerData;
 }
 
-void AshmanixTimer::SetIsDeleteButtonDisabled(bool isDisabled)
+void AshmanixTimer::SetHideMultiTimerUIButtons(bool shouldHide)
 {
-	ui->deleteToolButton->setDisabled(isDisabled);
+	if (shouldHide) {
+
+		ui->deleteToolButton->setDisabled(true);
+		ui->deleteToolButton->hide();
+		ui->timerTitleHLayout->insertItem(0, deleteButtonSpacer);
+		ui->moveUpToolButton->hide();
+		ui->moveDownToolButton->hide();
+	} else {
+		ui->timerTitleHLayout->removeItem(deleteButtonSpacer);
+		ui->deleteToolButton->setDisabled(false);
+		ui->deleteToolButton->show();
+		ui->moveUpToolButton->show();
+		ui->moveDownToolButton->show();
+	}
 }
 
 void AshmanixTimer::SetIsUpButtonDisabled(bool isDisabled)
@@ -400,6 +413,11 @@ void AshmanixTimer::SetupTimerWidgetUI()
 	ui->toTimeStopButton->setEnabled(false);
 	ui->toTimeStopButton->setToolTip(
 		obs_module_text("ToTimeStopButtonTip"));
+
+	deleteButtonSpacer =
+		new QSpacerItem(ui->deleteToolButton->sizeHint().width(),
+				ui->deleteToolButton->sizeHint().height(),
+				QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	UpdateTimeDisplayTooltip();
 

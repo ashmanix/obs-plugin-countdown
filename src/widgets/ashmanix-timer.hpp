@@ -38,7 +38,7 @@ public:
 
 	QString GetTimerID();
 	TimerWidgetStruct *GetTimerData();
-	void SetIsDeleteButtonDisabled(bool isDisabled);
+	void SetHideMultiTimerUIButtons(bool shouldHide);
 	void SetIsUpButtonDisabled(bool isDisabled);
 	void SetIsDownButtonDisabled(bool isDisabled);
 	void SetTimerData();
@@ -60,6 +60,7 @@ private:
 	static inline const char *ZEROSTRING = "00:00:00:00";
 	obs_websocket_vendor vendor = nullptr;
 	long long lastDisplayedSeconds = -1;
+	QSpacerItem *deleteButtonSpacer;
 
 	static inline const char *TIMERSTARTHOTKEYNAME =
 		"Ashmanix_Countdown_Timer_Start";

@@ -518,15 +518,24 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(
 
 void CountdownDockWidget::ToggleUIForMultipleTimers()
 {
-	AshmanixTimer *firstTimerWidget = GetFirstTimerWidget();
+
+	AshmanixTimer *firstTimerWidget = nullptr;
 	int noOfTImers = GetNumberOfTimers();
 
-	if (firstTimerWidget) {
-		if (noOfTImers == 1) {
+	if (noOfTImers == 1) {
+		// If only one timer left we use timer map to get last timer
+		// as deletion of timers is delayed and we might get an old
+		// reference when getting timer in layout
+		firstTimerWidget = static_cast<AshmanixTimer *>(
+			timerWidgetMap.begin().value());
+		if (firstTimerWidget) {
 			firstTimerWidget->SetHideMultiTimerUIButtons(true);
 			ui->playAllButton->hide();
 			ui->stopAllButton->hide();
-		} else {
+		}
+	} else {
+		firstTimerWidget = GetFirstTimerWidget();
+		if (firstTimerWidget) {
 			firstTimerWidget->SetHideMultiTimerUIButtons(false);
 			ui->playAllButton->show();
 			ui->stopAllButton->show();

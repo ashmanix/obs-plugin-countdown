@@ -45,6 +45,7 @@ target_sources(
           src/widgets/ashmanix-timer.cpp
           src/widgets/settings-dialog.hpp
           src/widgets/settings-dialog.cpp
+          src/widgets/obs-dock-wrapper.hpp
           src/utils/timer-utils.cpp
           src/utils/timer-utils.hpp
           src/utils/obs-utils.cpp

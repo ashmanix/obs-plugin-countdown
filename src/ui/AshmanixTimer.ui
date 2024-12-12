@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>302</width>
-    <height>199</height>
+    <height>206</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
    <item>
     <widget class="QFrame" name="frame">
      <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <enum>QFrame::Box</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Plain</enum>

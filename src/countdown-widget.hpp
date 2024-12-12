@@ -43,15 +43,17 @@
 #include <obs-websocket-api.h>
 #include <obs-data.h>
 #include <QMetaType>
+#include <QToolbar>
 
 #include "plugin-support.h"
 #include "ui/ui_CountdownTimer.h"
 #include "utils/timer-utils.hpp"
 #include "widgets/ashmanix-timer.hpp"
+#include "widgets/obs-dock-wrapper.hpp"
 
 #define CONFIG "config.json"
 
-class CountdownDockWidget : public QWidget {
+class CountdownDockWidget : public OBSDock {
 	Q_OBJECT
 public:
 	explicit CountdownDockWidget(QWidget *parent = nullptr);

@@ -313,7 +313,7 @@ void AshmanixTimer::UpdateStyles()
 		ui->periodToolButton->palette().color(QPalette::Button);
 	QColor darkenedColor = bgColor.darker(150);
 	this->setStyleSheet(
-		QString("QToolButton:checked { background-color: %1; }")
+		QString("QToolButton:checked { background-color: %1; } #mainTimerWidget { border-left: none; border-right: none; }")
 			.arg(darkenedColor.name()));
 }
 
@@ -413,6 +413,8 @@ void AshmanixTimer::SetupTimerWidgetUI()
 	ui->toTimeStopButton->setEnabled(false);
 	ui->toTimeStopButton->setToolTip(
 		obs_module_text("ToTimeStopButtonTip"));
+
+	ui->frame->setProperty("class", "bg-base");
 
 	deleteButtonSpacer =
 		new QSpacerItem(ui->deleteToolButton->sizeHint().width(),

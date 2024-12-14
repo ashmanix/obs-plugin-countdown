@@ -1,7 +1,7 @@
 #include "countdown-widget.hpp"
 
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
-	: QWidget(parent),
+	: OBSDock(parent),
 	  ui(new Ui::CountdownTimer)
 {
 	// Register custom type for signals and slots

@@ -103,13 +103,12 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 	ui->versionTextLabel->setText(PLUGIN_VERSION);
 
 	ui->dialogMainWidget->setStyleSheet(
-    "#dialogMainWidget QDialogButtonBox QPushButton {"
-    "   width: auto;"
-    "   height: auto;"
-    "   padding: 4px 8px;"
-    "   margin: 0;"
-    "}"
-);
+		"#dialogMainWidget QDialogButtonBox QPushButton {"
+		"   width: auto;"
+		"   height: auto;"
+		"   padding: 4px 8px;"
+		"   margin: 0;"
+		"}");
 
 	GetOBSSourceList();
 

@@ -170,7 +170,7 @@ void SettingsDialog::ConnectUISignalHandlers()
 			 &SettingsDialog::FormChangeDetected);
 
 	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::accepted, this,
-			 &SettingsDialog::ApplyButtonClicked);
+			 &SettingsDialog::OkButtonClicked);
 
 	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::rejected, this,
 			 &SettingsDialog::CancelButtonClicked);
@@ -179,7 +179,7 @@ void SettingsDialog::ConnectUISignalHandlers()
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply);
 	if (applyButton) {
 		connect(applyButton, &QPushButton::clicked, this,
-			&SettingsDialog::OkButtonClicked);
+			&SettingsDialog::ApplyButtonClicked);
 	}
 }
 

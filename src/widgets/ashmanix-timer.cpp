@@ -308,7 +308,8 @@ void AshmanixTimer::PressToTimeStopButton()
 
 void AshmanixTimer::UpdateStyles()
 {
-	Set toolbutton colour checked to darkened colour QColor bgColor =
+	// Set toolbutton colour checked to darkened colour
+	QColor bgColor =
 		ui->periodToolButton->palette().color(QPalette::Button);
 	QColor darkenedColor = bgColor.darker(150);
 	this->setStyleSheet(

@@ -308,12 +308,12 @@ void AshmanixTimer::PressToTimeStopButton()
 
 void AshmanixTimer::UpdateStyles()
 {
-	// Set toolbutton colour checked to darkened colour
+	Set toolbutton colour checked to darkened colour
 	QColor bgColor =
 		ui->periodToolButton->palette().color(QPalette::Button);
 	QColor darkenedColor = bgColor.darker(150);
 	this->setStyleSheet(
-		QString("QToolButton:checked { background-color: %1; } #mainTimerWidget { border-left: none; border-right: none; }")
+		QString("QToolButton:checked { background-color: %1; } ")
 			.arg(darkenedColor.name()));
 }
 

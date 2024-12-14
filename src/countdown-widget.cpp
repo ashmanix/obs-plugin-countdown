@@ -277,12 +277,6 @@ void CountdownDockWidget::UpdateWidgetStyles(
 			timerWidget->UpdateStyles();
 		}
 	}
-	// QColor bgColor =
-	// 	countdownDockWidget->ui->frame->palette().color(QPalette::Button);
-	// QColor darkenedColor = bgColor.darker(150);
-	// countdownDockWidget->setStyleSheet(
-	// 	QString("QToolButton:checked { background-color: %1; }")
-	// 		.arg(darkenedColor.name()));
 }
 
 void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,

@@ -313,7 +313,7 @@ void AshmanixTimer::UpdateStyles()
 		ui->periodToolButton->palette().color(QPalette::Button);
 	QColor darkenedColor = bgColor.darker(150);
 	this->setStyleSheet(
-		QString("QToolButton:checked { background-color: %1; } QWidget { border-left: none; border-right: none; }")
+		QString("QToolButton:checked { background-color: %1; } #mainTimerWidget { border-left: none; border-right: none; }")
 			.arg(darkenedColor.name()));
 }
 

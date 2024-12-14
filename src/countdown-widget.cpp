@@ -1,7 +1,7 @@
 #include "countdown-widget.hpp"
 
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
-	: QWidget(parent),
+	: OBSDock(parent),
 	  ui(new Ui::CountdownTimer)
 {
 	// Register custom type for signals and slots
@@ -110,6 +110,17 @@ void CountdownDockWidget::SetupCountdownWidgetUI()
 	ui->stopAllButton->setEnabled(true);
 	ui->stopAllButton->setToolTip(
 		obs_module_text("StopAllTimersButtonTip"));
+
+	this->setStyleSheet("#dialogMainWidget QDialogButtonBox QPushButton {"
+			    "   width: auto;"
+			    "   height: auto;"
+			    "   padding: 4px 8px;"
+			    "   margin: 0;"
+			    "}"
+			    "#mainTimerWidget {"
+			    "   border-left: none;"
+			    "   border-right: none;"
+			    "});");
 }
 
 void CountdownDockWidget::ConnectUISignalHandlers()
@@ -224,14 +235,7 @@ void CountdownDockWidget::AddTimer(obs_data_t *savedData)
 
 	timerListLayout->addWidget(newTimer);
 
-	AshmanixTimer *firstTimerWidget = GetFirstTimerWidget();
-
-	if (GetNumberOfTimers() == 1 && firstTimerWidget) {
-		firstTimerWidget->SetIsDeleteButtonDisabled(true);
-	} else {
-		firstTimerWidget->SetIsDeleteButtonDisabled(false);
-	}
-
+	ToggleUIForMultipleTimers();
 	UpdateTimerListMoveButtonState();
 }
 
@@ -523,6 +527,33 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(
 	}
 }
 
+void CountdownDockWidget::ToggleUIForMultipleTimers()
+{
+
+	AshmanixTimer *firstTimerWidget = nullptr;
+	int noOfTImers = GetNumberOfTimers();
+
+	if (noOfTImers == 1) {
+		// If only one timer left we use timer map to get last timer
+		// as deletion of timers is delayed and we might get an old
+		// reference when getting timer in layout
+		firstTimerWidget = static_cast<AshmanixTimer *>(
+			timerWidgetMap.begin().value());
+		if (firstTimerWidget) {
+			firstTimerWidget->SetHideMultiTimerUIButtons(true);
+			ui->playAllButton->hide();
+			ui->stopAllButton->hide();
+		}
+	} else {
+		firstTimerWidget = GetFirstTimerWidget();
+		if (firstTimerWidget) {
+			firstTimerWidget->SetHideMultiTimerUIButtons(false);
+			ui->playAllButton->show();
+			ui->stopAllButton->show();
+		}
+	}
+}
+
 // --------------------------------- Private Slots ----------------------------------
 
 void CountdownDockWidget::AddTimerButtonClicked()
@@ -542,13 +573,7 @@ void CountdownDockWidget::RemoveTimerButtonClicked(QString id)
 					  .c_str());
 	}
 
-	// There should always be 1 timer in list therefore we disable
-	// the delete button if only 1 timer is left.
-	AshmanixTimer *firstTimerWidget = GetFirstTimerWidget();
-	int noOfTImers = GetNumberOfTimers();
-	if (noOfTImers == 1 && firstTimerWidget) {
-		firstTimerWidget->SetIsDeleteButtonDisabled(true);
-	}
+	ToggleUIForMultipleTimers();
 	UpdateTimerListMoveButtonState();
 }
 

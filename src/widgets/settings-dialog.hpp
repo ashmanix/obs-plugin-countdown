@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QDialog>
+#include <QPushButton>
 
 #include <obs-frontend-api.h>
 #include <obs-module.h>

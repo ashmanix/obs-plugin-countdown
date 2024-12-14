@@ -120,7 +120,7 @@ void CountdownDockWidget::SetupCountdownWidgetUI()
 			    "#mainTimerWidget {"
 			    "   border-left: none;"
 			    "   border-right: none;"
-			    "});");
+			    "}");
 }
 
 void CountdownDockWidget::ConnectUISignalHandlers()

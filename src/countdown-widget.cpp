@@ -110,6 +110,17 @@ void CountdownDockWidget::SetupCountdownWidgetUI()
 	ui->stopAllButton->setEnabled(true);
 	ui->stopAllButton->setToolTip(
 		obs_module_text("StopAllTimersButtonTip"));
+
+	this->setStyleSheet("#dialogMainWidget QDialogButtonBox QPushButton {"
+			    "   width: auto;"
+			    "   height: auto;"
+			    "   padding: 4px 8px;"
+			    "   margin: 0;"
+			    "}"
+			    "#mainTimerWidget {"
+			    "   border-left: none;"
+			    "   border-right: none;"
+			    "});");
 }
 
 void CountdownDockWidget::ConnectUISignalHandlers()

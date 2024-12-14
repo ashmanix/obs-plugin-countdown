@@ -88,7 +88,13 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 	ui->timerTypeGroupBox->setTitle(
 		obs_module_text("DialogTimerTypeGroupBoxTitle"));
 
-	ui->applyPushButton->setEnabled(false);
+	ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+	ui->dialogButtonBox->button(QDialogButtonBox::Apply)
+		->setText(obs_module_text("DialogButtonApplyLabel"));
+	ui->dialogButtonBox->button(QDialogButtonBox::Ok)
+		->setText(obs_module_text("DialogButtonOkLabel"));
+	ui->dialogButtonBox->button(QDialogButtonBox::Cancel)
+		->setText(obs_module_text("DialogButtonCancelLabel"));
 
 	ui->byLabel->setText(obs_module_text("DialogInfoByLabel"));
 	ui->contributorsLabel->setText(
@@ -163,14 +169,18 @@ void SettingsDialog::ConnectUISignalHandlers()
 	QObject::connect(ui->countUpCheckBox, &QCheckBox::stateChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->applyPushButton, &QPushButton::clicked, this,
-			 &SettingsDialog::ApplyButtonClicked);
+	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::accepted, this,
+			 &SettingsDialog::OkButtonClicked);
 
-	QObject::connect(ui->cancelPushButton, &QPushButton::clicked, this,
+	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::rejected, this,
 			 &SettingsDialog::CancelButtonClicked);
 
-	QObject::connect(ui->okPushButton, &QPushButton::clicked, this,
-			 &SettingsDialog::OkButtonClicked);
+	QPushButton *applyButton =
+		ui->dialogButtonBox->button(QDialogButtonBox::Apply);
+	if (applyButton) {
+		connect(applyButton, &QPushButton::clicked, this,
+			&SettingsDialog::ApplyButtonClicked);
+	}
 }
 
 bool SettingsDialog::GetTextSources(void *list_property, obs_source_t *source)
@@ -228,7 +238,8 @@ void SettingsDialog::ApplyFormChanges()
 
 		timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
 
-		ui->applyPushButton->setEnabled(false);
+		ui->dialogButtonBox->button(QDialogButtonBox::Apply)
+			->setEnabled(false);
 		emit SettingsUpdated();
 	} else {
 		obs_log(LOG_WARNING, "No timer data found!");
@@ -278,7 +289,8 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 		ui->sceneSourceDropdownList->setEnabled(
 			settingsDialogData->showEndScene);
 
-		ui->applyPushButton->setEnabled(false);
+		ui->dialogButtonBox->button(QDialogButtonBox::Apply)
+			->setEnabled(false);
 	} else {
 		obs_log(LOG_WARNING, "No timer data found!");
 	}
@@ -382,7 +394,7 @@ int SettingsDialog::CheckSourceType(obs_source_t *source)
 
 void SettingsDialog::FormChangeDetected()
 {
-	ui->applyPushButton->setEnabled(true);
+	ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(true);
 }
 
 void SettingsDialog::EndMessageCheckBoxSelected(int state)

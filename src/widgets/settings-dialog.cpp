@@ -89,9 +89,12 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 		obs_module_text("DialogTimerTypeGroupBoxTitle"));
 
 	ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
-	ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setText(obs_module_text("DialogButtonApplyLabel"));
-	ui->dialogButtonBox->button(QDialogButtonBox::Ok)->setText(obs_module_text("DialogButtonOkLabel"));
-	ui->dialogButtonBox->button(QDialogButtonBox::Cancel)->setText(obs_module_text("DialogButtonCancelLabel"));
+	ui->dialogButtonBox->button(QDialogButtonBox::Apply)
+		->setText(obs_module_text("DialogButtonApplyLabel"));
+	ui->dialogButtonBox->button(QDialogButtonBox::Ok)
+		->setText(obs_module_text("DialogButtonOkLabel"));
+	ui->dialogButtonBox->button(QDialogButtonBox::Cancel)
+		->setText(obs_module_text("DialogButtonCancelLabel"));
 
 	ui->byLabel->setText(obs_module_text("DialogInfoByLabel"));
 	ui->contributorsLabel->setText(

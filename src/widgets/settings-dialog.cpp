@@ -18,6 +18,14 @@ SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData)
 
 SettingsDialog::~SettingsDialog()
 {
+	// Disconnect OBS signals before the dialog is destroyed
+	signal_handler_disconnect(obs_get_signal_handler(), "source_create",
+				  OBSSourceCreated, ui);
+	signal_handler_disconnect(obs_get_signal_handler(), "source_destroy",
+				  OBSSourceDeleted, ui);
+	signal_handler_disconnect(obs_get_signal_handler(), "source_rename",
+				  OBSSourceRenamed, ui);
+
 	this->deleteLater();
 }
 

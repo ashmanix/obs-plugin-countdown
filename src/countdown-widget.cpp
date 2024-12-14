@@ -110,16 +110,6 @@ void CountdownDockWidget::SetupCountdownWidgetUI()
 	ui->stopAllButton->setEnabled(true);
 	ui->stopAllButton->setToolTip(
 		obs_module_text("StopAllTimersButtonTip"));
-
-	// ui->addTimerButton->hide();
-	// ui->horizontalSpacer->changeSize(0, 0, QSizePolicy::Fixed, QSizePolicy::Fixed);
-	// ui->playAllButton->hide();
-	// ui->stopAllButton->hide();
-	// QToolBar *toolbar = new QToolBar(this);
-	// toolbar->addAction("1");
-	// toolbar->addAction("2");
-
-	// ui->mainWidget->layout()->addWidget(toolbar);
 }
 
 void CountdownDockWidget::ConnectUISignalHandlers()

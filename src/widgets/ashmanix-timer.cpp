@@ -414,7 +414,7 @@ void AshmanixTimer::SetupTimerWidgetUI()
 	ui->toTimeStopButton->setToolTip(
 		obs_module_text("ToTimeStopButtonTip"));
 
-	// ui->frame->setProperty("class", "bg-base");
+	ui->frame->setProperty("class", "bg-base");
 
 	deleteButtonSpacer =
 		new QSpacerItem(ui->deleteToolButton->sizeHint().width(),

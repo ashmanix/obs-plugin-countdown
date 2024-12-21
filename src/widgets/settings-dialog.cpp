@@ -1,11 +1,13 @@
 #include "settings-dialog.hpp"
 
-SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData)
+SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData,
+			       CountdownDockWidget *mWidget)
 	: QDialog(parent),
 	  ui(new Ui::SettingsDialog)
 {
 	ui->setupUi(this);
 	timerData = tData;
+	mainWidget = mWidget;
 	QString dialogTitle = QString("Timer %1").arg(timerData->timerId);
 	this->setWindowTitle(dialogTitle);
 
@@ -59,6 +61,9 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 		obs_module_text("StartOnStreamCheckBoxLabel"));
 	ui->startOnStreamStartCheckBox->setToolTip(
 		obs_module_text("StartOnStreamCheckBoxTip"));
+
+	ui->timerIdLineEdit->setToolTip(obs_module_text("timerIdLineEditTip"));
+	ui->timerIdLabel->setText(obs_module_text("TimerIdLabel"));
 
 	ui->textSourceDropdownList->setToolTip(
 		obs_module_text("TextSourceDropdownTip"));
@@ -138,6 +143,9 @@ void SettingsDialog::GetOBSSourceList()
 
 void SettingsDialog::ConnectUISignalHandlers()
 {
+	QObject::connect(ui->timerIdLineEdit, &QLineEdit::textChanged, this,
+			 &SettingsDialog::FormChangeDetected);
+
 	QObject::connect(ui->textSourceDropdownList,
 			 &QComboBox::currentTextChanged, this,
 			 &SettingsDialog::FormChangeDetected);
@@ -225,7 +233,32 @@ void SettingsDialog::ConnectObsSignalHandlers()
 
 void SettingsDialog::ApplyFormChanges()
 {
+	isError = false;
 	if (timerData != nullptr) {
+		QLineEdit *idLineEdit = ui->timerIdLineEdit;
+		QString setTImerId = idLineEdit->text();
+		if ((setTImerId != timerData->timerId && mainWidget)) {
+			Result updateIdResult = mainWidget->UpdateTimerList(
+				timerData->timerId, setTImerId);
+			if (updateIdResult.success == true) {
+				idLineEdit->setStyleSheet("");
+				QString dialogTitle =
+					QString("Timer %1").arg(setTImerId);
+				this->setWindowTitle(dialogTitle);
+			} else {
+				// Show popup with error
+				isError = true;
+				idLineEdit->setStyleSheet(
+					"border: 1px solid rgb(192, 0, 0);");
+				obs_log(LOG_WARNING, updateIdResult.errorMessage
+							     .toStdString()
+							     .c_str());
+				QMessageBox::warning(
+					this, ui->timerIdLabel->text(),
+					updateIdResult.errorMessage);
+				return;
+			}
+		}
 		timerData->selectedSource =
 			ui->textSourceDropdownList->currentText();
 
@@ -257,6 +290,8 @@ void SettingsDialog::ApplyFormChanges()
 void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 {
 	if (settingsDialogData != nullptr) {
+		ui->timerIdLineEdit->setText(settingsDialogData->timerId);
+
 		int textSelectIndex = ui->textSourceDropdownList->findText(
 			settingsDialogData->selectedSource);
 		if (textSelectIndex != -1)
@@ -400,6 +435,14 @@ int SettingsDialog::CheckSourceType(obs_source_t *source)
 	return 0;
 }
 
+void SettingsDialog::showEvent(QShowEvent *event)
+{
+	QDialog::showEvent(event);
+
+	// Reset stylings
+	ui->timerIdLineEdit->setStyleSheet("");
+}
+
 void SettingsDialog::FormChangeDetected()
 {
 	ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(true);
@@ -439,5 +482,6 @@ void SettingsDialog::CancelButtonClicked()
 void SettingsDialog::OkButtonClicked()
 {
 	ApplyFormChanges();
-	this->reject();
+	if (!isError)
+		this->reject();
 }

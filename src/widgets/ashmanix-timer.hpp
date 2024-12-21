@@ -22,7 +22,10 @@
 #include "../ui/ui_AshmanixTimer.h"
 #include "../utils/timer-utils.hpp"
 #include "../utils/obs-utils.hpp"
-#include "settings-dialog.hpp"
+
+// Forward declarations
+class SettingsDialog;
+class CountdownDockWidget;
 
 class AshmanixTimer : public QWidget {
 	Q_OBJECT
@@ -30,13 +33,15 @@ class AshmanixTimer : public QWidget {
 public:
 	explicit AshmanixTimer(QWidget *parent = nullptr,
 			       obs_websocket_vendor vendor = nullptr,
-			       obs_data_t *savedData = nullptr);
+			       obs_data_t *savedData = nullptr,
+			       CountdownDockWidget *mDockWidget = nullptr);
 	~AshmanixTimer();
 
 	void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject);
 	void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject);
 
 	QString GetTimerID();
+	void SetTimerID(QString newId);
 	TimerWidgetStruct *GetTimerData();
 	void SetHideMultiTimerUIButtons(bool shouldHide);
 	void SetIsUpButtonDisabled(bool isDisabled);
@@ -61,6 +66,7 @@ private:
 	obs_websocket_vendor vendor = nullptr;
 	long long lastDisplayedSeconds = -1;
 	QSpacerItem *deleteButtonSpacer;
+	CountdownDockWidget *mainDockWidget;
 
 	static inline const char *TIMERSTARTHOTKEYNAME =
 		"Ashmanix_Countdown_Timer_Start";

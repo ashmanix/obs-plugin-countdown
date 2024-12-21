@@ -1,4 +1,5 @@
 #include "countdown-widget.hpp"
+#include "widgets/ashmanix-timer.hpp"
 
 CountdownDockWidget::CountdownDockWidget(QWidget *parent)
 	: OBSDock(parent),
@@ -38,6 +39,34 @@ AshmanixTimer *CountdownDockWidget::GetFirstTimerWidget()
 			static_cast<AshmanixTimer *>(layout->widget());
 	}
 	return firstTimerWidget;
+}
+
+bool CountdownDockWidget::IsDuplicateTimerName(QString name)
+{
+	AshmanixTimer *result = timerWidgetMap.value(name, nullptr);
+	if (!result)
+		return false;
+	return true;
+}
+
+Result CountdownDockWidget::UpdateTimerList(QString oldId, QString newId)
+{
+	if (IsDuplicateTimerName(newId))
+		return {false, obs_module_text("DialogDuplicateIdError")};
+
+	AshmanixTimer *foundTimer = timerWidgetMap.take(oldId);
+	Result result = {false, ""};
+
+	if (!foundTimer) {
+		obs_log(LOG_ERROR, "Could not find timer ID %s in saved list!",
+			oldId.toStdString().c_str());
+		result = {false, obs_module_text("DialogTimerIdUpdateError")};
+	} else {
+		foundTimer->SetTimerID(newId);
+		timerWidgetMap.insert(newId, foundTimer);
+		result = {true, ""};
+	}
+	return result;
 }
 
 void CountdownDockWidget::ConfigureWebSocketConnection()
@@ -228,7 +257,8 @@ void CountdownDockWidget::UnregisterAllHotkeys()
 
 void CountdownDockWidget::AddTimer(obs_data_t *savedData)
 {
-	AshmanixTimer *newTimer = new AshmanixTimer(this, vendor, savedData);
+	AshmanixTimer *newTimer =
+		new AshmanixTimer(this, vendor, savedData, this);
 
 	timerWidgetMap.insert(newTimer->GetTimerID(), newTimer);
 	ConnectTimerSignalHandlers(newTimer);

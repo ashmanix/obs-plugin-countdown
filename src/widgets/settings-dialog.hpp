@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QDialog>
 #include <QPushButton>
+#include <QMessageBox>
 
 #include <obs-frontend-api.h>
 #include <obs-module.h>
@@ -11,13 +12,15 @@
 #include "../plugin-support.h"
 #include "../utils/timer-utils.hpp"
 #include "../ui/ui_SettingsDialog.h"
+#include "../countdown-widget.hpp"
 
 class SettingsDialog : public QDialog {
 	Q_OBJECT
 
 public:
 	explicit SettingsDialog(QWidget *parent = nullptr,
-				TimerWidgetStruct *tData = nullptr);
+				TimerWidgetStruct *tData = nullptr,
+				CountdownDockWidget *mWidget = nullptr);
 	~SettingsDialog();
 
 	void SetCountUpCheckBoxEnabled(bool isEnabled);
@@ -26,6 +29,8 @@ private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	Ui::SettingsDialog *ui;
 	TimerWidgetStruct *timerData;
+	CountdownDockWidget *mainWidget;
+	bool isError = false;
 
 	void SetupDialogUI(TimerWidgetStruct *settingsDialogData);
 	void GetOBSSourceList();
@@ -40,6 +45,9 @@ private:
 	static void OBSSourceRenamed(void *param, calldata_t *calldata);
 
 	static int CheckSourceType(obs_source_t *source);
+
+protected:
+	void showEvent(QShowEvent *event) override;
 
 signals:
 	void SettingsUpdated();

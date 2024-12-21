@@ -60,6 +60,11 @@ struct TimerWidgetStruct {
 	QWidget *datetimeVLayout;
 };
 
+struct Result {
+	bool success;
+	QString errorMessage;
+};
+
 const char *ConvertToConstChar(QString value);
 long long ConvertStringPeriodToMillis(const char *time_string);
 QString ConvertMillisToDateTimeString(long long timeInMillis);

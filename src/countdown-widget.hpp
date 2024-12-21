@@ -48,10 +48,11 @@
 #include "plugin-support.h"
 #include "ui/ui_CountdownTimer.h"
 #include "utils/timer-utils.hpp"
-#include "widgets/ashmanix-timer.hpp"
 #include "widgets/obs-dock-wrapper.hpp"
 
 #define CONFIG "config.json"
+
+class AshmanixTimer; // Forward declaration
 
 class CountdownDockWidget : public OBSDock {
 	Q_OBJECT
@@ -61,6 +62,8 @@ public:
 	void ConfigureWebSocketConnection();
 	int GetNumberOfTimers();
 	AshmanixTimer *GetFirstTimerWidget();
+	bool IsDuplicateTimerName(QString name);
+	Result UpdateTimerList(QString oldId, QString newId);
 
 	struct WebsocketCallbackData {
 		CountdownDockWidget *instance;

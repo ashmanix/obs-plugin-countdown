@@ -1,12 +1,17 @@
 #include "ashmanix-timer.hpp"
+#include "settings-dialog.hpp"
 
 AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor,
-			     obs_data_t *savedData)
+			     obs_data_t *savedData,
+			     CountdownDockWidget *mDockWidget)
 	: QWidget(parent),
 	  ui(new Ui::AshmanixTimer)
 {
 	// Register custom type for signals and slots
 	qRegisterMetaType<obs_data_t *>("obs_data_t*");
+	qRegisterMetaType<obs_data_t *>("CountdownDockWidget*");
+
+	mainDockWidget = mDockWidget;
 
 	countdownTimerData = TimerWidgetStruct();
 
@@ -178,6 +183,12 @@ void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
 QString AshmanixTimer::GetTimerID()
 {
 	return countdownTimerData.timerId;
+}
+
+void AshmanixTimer::SetTimerID(QString newId)
+{
+	countdownTimerData.timerId = newId;
+	ui->timerNameLabel->setText(QString("Timer: %1").arg(newId));
 }
 
 TimerWidgetStruct *AshmanixTimer::GetTimerData()
@@ -823,8 +834,8 @@ void AshmanixTimer::ToTimeStopButtonClicked()
 void AshmanixTimer::SettingsButtonClicked()
 {
 	if (!settingsDialogUi) {
-		settingsDialogUi =
-			new SettingsDialog(this, &countdownTimerData);
+		settingsDialogUi = new SettingsDialog(this, &countdownTimerData,
+						      mainDockWidget);
 
 		QObject::connect(settingsDialogUi,
 				 &SettingsDialog::SettingsUpdated, this,

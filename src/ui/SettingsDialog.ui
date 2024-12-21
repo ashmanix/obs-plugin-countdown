@@ -91,7 +91,7 @@
                <property name="fieldGrowthPolicy">
                 <enum>QFormLayout::ExpandingFieldsGrow</enum>
                </property>
-               <item row="0" column="0">
+               <item row="1" column="0">
                 <widget class="QLabel" name="textSourceDropdownLabel">
                  <property name="text">
                   <string>Source</string>
@@ -101,7 +101,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
+               <item row="1" column="1">
                 <widget class="QComboBox" name="textSourceDropdownList">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -110,6 +110,16 @@
                   </sizepolicy>
                  </property>
                 </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="timerIdLabel">
+                 <property name="text">
+                  <string>Timer ID</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="timerIdLineEdit"/>
                </item>
               </layout>
              </item>

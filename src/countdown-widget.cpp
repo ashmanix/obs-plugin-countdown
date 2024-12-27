@@ -360,24 +360,10 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data, 
 		AshmanixTimer *timer = AttemptToGetTimerWidgetById(countdownWidget, websocketTimerID);
 
 		if (timer != nullptr) {
-			long long timeInMillis = ConvertStringPeriodToMillis(websocketDataTime);
-
-			obs_log(LOG_INFO, "Time in millis: %ld", timeInMillis);
-
-			// if (timeInMillis > 0) {
 			bool result = timer->AlterTime(requestType, websocketDataTime);
 			const char *type_string = requestType == ADD_TIME ? "added" : "set";
 			obs_log(LOG_INFO, "Time %s due to websocket call: %s", type_string, websocketDataTime);
 			obs_data_set_bool(response_data, "success", result);
-			// } else {
-			// 	obs_log(LOG_WARNING,
-			// 		"Timer time NOT changed from websocket request.");
-			// 	obs_data_set_bool(response_data, "success",
-			// 			  false);
-			// 	obs_data_set_string(
-			// 		response_data, "message",
-			// 		"Timer time wasn't changed. Ensure time is in format \"dd:hh:mm:ss\"");
-			// }
 		} else {
 			obs_log(LOG_WARNING, "Countdown widget not found for websocket request!");
 			obs_data_set_bool(response_data, "success", false);

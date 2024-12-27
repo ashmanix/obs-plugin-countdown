@@ -39,9 +39,10 @@ PeriodData ConvertStringPeriodToPeriodData(const char *time_string)
 	return {days, hours, minutes, seconds};
 }
 
-PeriodData ConvertMillisToPeriodData(long long timeInMillis) {
+PeriodData ConvertMillisToPeriodData(long long timeInMillis)
+{
 	int days = 0, hours = 0, minutes = 0, seconds = 0;
-		long long daysFromMillis = timeInMillis / (24 * 60 * 60 * 1000);
+	long long daysFromMillis = timeInMillis / (24 * 60 * 60 * 1000);
 	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
 
 	QTime time = QTime::fromMSecsSinceStartOfDay(static_cast<int>(remainingMilliseconds));

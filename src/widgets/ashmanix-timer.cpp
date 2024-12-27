@@ -300,25 +300,34 @@ bool AshmanixTimer::AddTime(const char *stringTime, bool isCountingUp)
 bool AshmanixTimer::SetTime(const char *stringTime, bool isCountingUp)
 {
 	UNUSED_PARAMETER(isCountingUp);
+	long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
+
+	if (timeInMillis < 0)
+		return false;
+
 	bool result = false;
 	QDateTime currentDateTime = QDateTime::currentDateTime();
-	long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
-	long long timeToAdd = countdownTimerData.shouldCountUp ? -timeInMillis : timeInMillis;
-	if (countdownTimerData.selectedCountdownType == PERIOD) {
-		if (isCountingUp) {
+	long long timeToAdd = countdownTimerData.shouldCountUp ? -(timeInMillis)
+							       : (timeInMillis + TIMERPERIOD);
+	countdownTimerData.timeLeftInMillis = std::max((timeInMillis), 0ll);
 
-		} else {
-		}
+	if (countdownTimerData.selectedCountdownType == PERIOD) {
 		countdownTimerData.timeAtTimerStart = currentDateTime.addMSecs(timeToAdd);
 		result = true;
 	} else if (countdownTimerData.selectedCountdownType == DATETIME) {
 		QDateTime updatedDateTime;
 
-		updatedDateTime = QDateTime::currentDateTime().addMSecs(timeInMillis);
+		updatedDateTime = currentDateTime.addMSecs(timeInMillis);
 		ui->dateTimeEdit->setDateTime(updatedDateTime);
 		result = true;
 	}
-	countdownTimerData.timeLeftInMillis = std::max((countdownTimerData.timeLeftInMillis + timeInMillis), 0ll);
+
+	// if (!isCountingUp) {
+	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
+	// }
+
+	emit RequestTimerReset();
+
 	return result;
 }
 
@@ -553,6 +562,7 @@ void AshmanixTimer::InitialiseTimerTime()
 {
 	countdownTimerData.timer = new QTimer();
 	QObject::connect(countdownTimerData.timer, SIGNAL(timeout()), SLOT(TimerAdjust()));
+	QObject::connect(this, &AshmanixTimer::RequestTimerReset, this, &AshmanixTimer::HandleTimerReset);
 
 	countdownTimerData.timeLeftInMillis = GetMillisFromPeriodUI();
 }
@@ -882,8 +892,8 @@ void AshmanixTimer::TimerAdjust()
 
 void AshmanixTimer::HandleTimerReset()
 {
-	countdownTimerData.timer->stop();
-	countdownTimerData.timer->start(TIMERPERIOD);
+	if (countdownTimerData.timer && countdownTimerData.timer->isActive())
+		countdownTimerData.timer->start(0);
 }
 
 void AshmanixTimer::DaysChanged(QString newText)

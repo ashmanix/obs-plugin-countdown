@@ -114,7 +114,6 @@ private:
 						      void *priv_data);
 
 signals:
-	void RequestTimerReset();
 
 private slots:
 	void RemoveTimerButtonClicked(QString id);

@@ -18,8 +18,7 @@ class SettingsDialog : public QDialog {
 	Q_OBJECT
 
 public:
-	explicit SettingsDialog(QWidget *parent = nullptr,
-				TimerWidgetStruct *tData = nullptr,
+	explicit SettingsDialog(QWidget *parent = nullptr, TimerWidgetStruct *tData = nullptr,
 				CountdownDockWidget *mWidget = nullptr);
 	~SettingsDialog();
 

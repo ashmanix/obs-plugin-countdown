@@ -1,9 +1,7 @@
 #include "countdown-widget.hpp"
 #include "widgets/ashmanix-timer.hpp"
 
-CountdownDockWidget::CountdownDockWidget(QWidget *parent)
-	: OBSDock(parent),
-	  ui(new Ui::CountdownTimer)
+CountdownDockWidget::CountdownDockWidget(QWidget *parent) : OBSDock(parent), ui(new Ui::CountdownTimer)
 {
 	// Register custom type for signals and slots
 	qRegisterMetaType<obs_data_t *>("obs_data_t*");
@@ -35,8 +33,7 @@ AshmanixTimer *CountdownDockWidget::GetFirstTimerWidget()
 	QLayoutItem *layout = ui->timerMainLayout->itemAt(0);
 	AshmanixTimer *firstTimerWidget = nullptr;
 	if (layout) {
-		firstTimerWidget =
-			static_cast<AshmanixTimer *>(layout->widget());
+		firstTimerWidget = static_cast<AshmanixTimer *>(layout->widget());
 	}
 	return firstTimerWidget;
 }
@@ -58,8 +55,7 @@ Result CountdownDockWidget::UpdateTimerList(QString oldId, QString newId)
 	Result result = {false, ""};
 
 	if (!foundTimer) {
-		obs_log(LOG_ERROR, "Could not find timer ID %s in saved list!",
-			oldId.toStdString().c_str());
+		obs_log(LOG_ERROR, "Could not find timer ID %s in saved list!", oldId.toStdString().c_str());
 		result = {false, obs_module_text("DialogTimerIdUpdateError")};
 	} else {
 		foundTimer->SetTimerID(newId);
@@ -78,47 +74,32 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 		return;
 	}
 
-	obs_websocket_vendor_register_request(
-		vendor, "period_play", HandleWebsocketButtonPressRequest,
-		new WebsocketCallbackData{this, PERIOD_PLAY, NULL, TIMERIDKEY});
-	obs_websocket_vendor_register_request(
-		vendor, "period_pause", HandleWebsocketButtonPressRequest,
-		new WebsocketCallbackData{this, PERIOD_PAUSE, NULL,
-					  TIMERIDKEY});
-	obs_websocket_vendor_register_request(
-		vendor, "period_set", HandleWebsocketButtonPressRequest,
-		new WebsocketCallbackData{this, PERIOD_SET, NULL, TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "period_play", HandleWebsocketButtonPressRequest,
+					      new WebsocketCallbackData{this, PERIOD_PLAY, NULL, TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "period_pause", HandleWebsocketButtonPressRequest,
+					      new WebsocketCallbackData{this, PERIOD_PAUSE, NULL, TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "period_set", HandleWebsocketButtonPressRequest,
+					      new WebsocketCallbackData{this, PERIOD_SET, NULL, TIMERIDKEY});
 
-	obs_websocket_vendor_register_request(
-		vendor, "to_time_play", HandleWebsocketButtonPressRequest,
-		new WebsocketCallbackData{this, TO_TIME_PLAY, NULL,
-					  TIMERIDKEY});
-	obs_websocket_vendor_register_request(
-		vendor, "to_time_stop", HandleWebsocketButtonPressRequest,
-		new WebsocketCallbackData{this, TO_TIME_STOP, NULL,
-					  TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "to_time_play", HandleWebsocketButtonPressRequest,
+					      new WebsocketCallbackData{this, TO_TIME_PLAY, NULL, TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "to_time_stop", HandleWebsocketButtonPressRequest,
+					      new WebsocketCallbackData{this, TO_TIME_STOP, NULL, TIMERIDKEY});
 
-	obs_websocket_vendor_register_request(
-		vendor, "play_all", HandleWebsocketButtonPressRequest,
-		new WebsocketCallbackData{this, PLAY_ALL, NULL, NULL});
+	obs_websocket_vendor_register_request(vendor, "play_all", HandleWebsocketButtonPressRequest,
+					      new WebsocketCallbackData{this, PLAY_ALL, NULL, NULL});
 
-	obs_websocket_vendor_register_request(
-		vendor, "stop_all", HandleWebsocketButtonPressRequest,
-		new WebsocketCallbackData{this, STOP_ALL, NULL, NULL});
+	obs_websocket_vendor_register_request(vendor, "stop_all", HandleWebsocketButtonPressRequest,
+					      new WebsocketCallbackData{this, STOP_ALL, NULL, NULL});
 
-	obs_websocket_vendor_register_request(
-		vendor, "get_timer_state", GetTimerStateViaWebsocket,
-		new WebsocketCallbackData{this, GET_TIME, NULL, TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "get_timer_state", GetTimerStateViaWebsocket,
+					      new WebsocketCallbackData{this, GET_TIME, NULL, TIMERIDKEY});
 
-	obs_websocket_vendor_register_request(
-		vendor, "add_time", ChangeTimerTimeViaWebsocket,
-		new WebsocketCallbackData{this, ADD_TIME, "time_to_add",
-					  TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "add_time", ChangeTimerTimeViaWebsocket,
+					      new WebsocketCallbackData{this, ADD_TIME, "time_to_add", TIMERIDKEY});
 
-	obs_websocket_vendor_register_request(
-		vendor, "set_time", ChangeTimerTimeViaWebsocket,
-		new WebsocketCallbackData{this, SET_TIME, "time_to_set",
-					  TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "set_time", ChangeTimerTimeViaWebsocket,
+					      new WebsocketCallbackData{this, SET_TIME, "time_to_set", TIMERIDKEY});
 }
 
 void CountdownDockWidget::SetupCountdownWidgetUI()
@@ -131,14 +112,12 @@ void CountdownDockWidget::SetupCountdownWidgetUI()
 	ui->playAllButton->setProperty("themeID", "playIcon");
 	ui->playAllButton->setProperty("class", "icon-media-play");
 	ui->playAllButton->setEnabled(true);
-	ui->playAllButton->setToolTip(
-		obs_module_text("StartAllTimersButtonTip"));
+	ui->playAllButton->setToolTip(obs_module_text("StartAllTimersButtonTip"));
 
 	ui->stopAllButton->setProperty("themeID", "stopIcon");
 	ui->stopAllButton->setProperty("class", "icon-media-stop");
 	ui->stopAllButton->setEnabled(true);
-	ui->stopAllButton->setToolTip(
-		obs_module_text("StopAllTimersButtonTip"));
+	ui->stopAllButton->setToolTip(obs_module_text("StopAllTimersButtonTip"));
 
 	this->setStyleSheet("#dialogMainWidget QDialogButtonBox QPushButton {"
 			    "   width: auto;"
@@ -154,26 +133,21 @@ void CountdownDockWidget::SetupCountdownWidgetUI()
 
 void CountdownDockWidget::ConnectUISignalHandlers()
 {
-	QObject::connect(ui->addTimerButton, &QPushButton::clicked, this,
-			 &CountdownDockWidget::AddTimerButtonClicked);
+	QObject::connect(ui->addTimerButton, &QPushButton::clicked, this, &CountdownDockWidget::AddTimerButtonClicked);
 
-	QObject::connect(ui->playAllButton, &QPushButton::clicked, this,
-			 &CountdownDockWidget::StartAllTimers);
+	QObject::connect(ui->playAllButton, &QPushButton::clicked, this, &CountdownDockWidget::StartAllTimers);
 
-	QObject::connect(ui->stopAllButton, &QPushButton::clicked, this,
-			 &CountdownDockWidget::StopAllTimers);
+	QObject::connect(ui->stopAllButton, &QPushButton::clicked, this, &CountdownDockWidget::StopAllTimers);
 }
 
 void CountdownDockWidget::ConnectTimerSignalHandlers(AshmanixTimer *timerWidget)
 {
-	connect(timerWidget, &AshmanixTimer::RequestDelete, this,
-		&CountdownDockWidget::RemoveTimerButtonClicked);
+	connect(timerWidget, &AshmanixTimer::RequestDelete, this, &CountdownDockWidget::RemoveTimerButtonClicked);
 
 	connect(timerWidget, &AshmanixTimer::RequestSendWebsocketEvent, this,
 		&CountdownDockWidget::HandleWebsocketSendEvent);
 
-	connect(timerWidget, &AshmanixTimer::MoveTimer, this,
-		&CountdownDockWidget::MoveTimerInList);
+	connect(timerWidget, &AshmanixTimer::MoveTimer, this, &CountdownDockWidget::MoveTimerInList);
 }
 
 void CountdownDockWidget::SaveSettings()
@@ -186,19 +160,13 @@ void CountdownDockWidget::SaveSettings()
 	for (int i = 0; i < mainLayout->count(); ++i) {
 		QLayoutItem *item = mainLayout->itemAt(i);
 		if (item) {
-			AshmanixTimer *timerWidget =
-				qobject_cast<AshmanixTimer *>(item->widget());
+			AshmanixTimer *timerWidget = qobject_cast<AshmanixTimer *>(item->widget());
 			if (timerWidget) {
-				TimerWidgetStruct *timerData =
-					timerWidget->GetTimerData();
+				TimerWidgetStruct *timerData = timerWidget->GetTimerData();
 				if (timerData) {
-					obs_data_t *dataObject =
-						obs_data_create();
-					timerWidget
-						->SaveTimerWidgetDataToOBSSaveData(
-							dataObject);
-					obs_data_array_push_back(obsDataArray,
-								 dataObject);
+					obs_data_t *dataObject = obs_data_create();
+					timerWidget->SaveTimerWidgetDataToOBSSaveData(dataObject);
+					obs_data_array_push_back(obsDataArray, dataObject);
 
 					obs_data_release(dataObject);
 				}
@@ -231,22 +199,16 @@ void CountdownDockWidget::SaveSettings()
 void CountdownDockWidget::RegisterAllHotkeys(obs_data_t *savedData)
 {
 	LoadHotkey(
-		addTimerHotkeyId, addTimerHotkeyName,
-		obs_module_text("AddTimerHotkeyDescription"),
-		[this]() { ui->addTimerButton->click(); },
-		"Add Timer Hotkey Pressed", savedData);
+		addTimerHotkeyId, addTimerHotkeyName, obs_module_text("AddTimerHotkeyDescription"),
+		[this]() { ui->addTimerButton->click(); }, "Add Timer Hotkey Pressed", savedData);
 
 	LoadHotkey(
-		startAllTimersHotkeyId, startAllTimersHotkeyName,
-		obs_module_text("StartAllTimersHotkeyDescription"),
-		[this]() { ui->playAllButton->click(); },
-		"Start All Timers Hotkey Pressed", savedData);
+		startAllTimersHotkeyId, startAllTimersHotkeyName, obs_module_text("StartAllTimersHotkeyDescription"),
+		[this]() { ui->playAllButton->click(); }, "Start All Timers Hotkey Pressed", savedData);
 
 	LoadHotkey(
-		stopAllTimersHotkeyId, stopAllTimersHotkeyName,
-		obs_module_text("StopAllTimersHotkeyDescription"),
-		[this]() { ui->stopAllButton->click(); },
-		"Stop All Timers Hotkey Pressed", savedData);
+		stopAllTimersHotkeyId, stopAllTimersHotkeyName, obs_module_text("StopAllTimersHotkeyDescription"),
+		[this]() { ui->stopAllButton->click(); }, "Stop All Timers Hotkey Pressed", savedData);
 }
 
 void CountdownDockWidget::UnregisterAllHotkeys()
@@ -257,8 +219,7 @@ void CountdownDockWidget::UnregisterAllHotkeys()
 
 void CountdownDockWidget::AddTimer(obs_data_t *savedData)
 {
-	AshmanixTimer *newTimer =
-		new AshmanixTimer(this, vendor, savedData, this);
+	AshmanixTimer *newTimer = new AshmanixTimer(this, vendor, savedData, this);
 
 	timerWidgetMap.insert(newTimer->GetTimerID(), newTimer);
 	ConnectTimerSignalHandlers(newTimer);
@@ -273,8 +234,7 @@ void CountdownDockWidget::UpdateTimerListMoveButtonState()
 {
 	int timerWidgetCount = ui->timerMainLayout->count();
 	for (int i = 0; i < timerWidgetCount; i++) {
-		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
-			ui->timerMainLayout->itemAt(i)->widget());
+		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(ui->timerMainLayout->itemAt(i)->widget());
 		if (timerWidget) {
 			if (i == 0) {
 				timerWidget->SetIsUpButtonDisabled(true);
@@ -289,43 +249,34 @@ void CountdownDockWidget::UpdateTimerListMoveButtonState()
 		}
 	}
 }
-void CountdownDockWidget::StartTimersOnStreamStart(
-	CountdownDockWidget *countdownDockWidget)
+void CountdownDockWidget::StartTimersOnStreamStart(CountdownDockWidget *countdownDockWidget)
 {
-	int timerWidgetCount =
-		countdownDockWidget->ui->timerMainLayout->count();
+	int timerWidgetCount = countdownDockWidget->ui->timerMainLayout->count();
 	for (int i = 0; i < timerWidgetCount; i++) {
-		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
-			countdownDockWidget->ui->timerMainLayout->itemAt(i)
-				->widget());
-		if (timerWidget &&
-		    timerWidget->GetTimerData()->startOnStreamStart) {
+		AshmanixTimer *timerWidget =
+			static_cast<AshmanixTimer *>(countdownDockWidget->ui->timerMainLayout->itemAt(i)->widget());
+		if (timerWidget && timerWidget->GetTimerData()->startOnStreamStart) {
 			timerWidget->StartTimer();
 		}
 	}
 }
 
-void CountdownDockWidget::UpdateWidgetStyles(
-	CountdownDockWidget *countdownDockWidget)
+void CountdownDockWidget::UpdateWidgetStyles(CountdownDockWidget *countdownDockWidget)
 {
-	int timerWidgetCount =
-		countdownDockWidget->ui->timerMainLayout->count();
+	int timerWidgetCount = countdownDockWidget->ui->timerMainLayout->count();
 	for (int i = 0; i < timerWidgetCount; i++) {
-		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
-			countdownDockWidget->ui->timerMainLayout->itemAt(i)
-				->widget());
+		AshmanixTimer *timerWidget =
+			static_cast<AshmanixTimer *>(countdownDockWidget->ui->timerMainLayout->itemAt(i)->widget());
 		if (timerWidget) {
 			timerWidget->UpdateStyles();
 		}
 	}
 }
 
-void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
-						  void *private_data)
+void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event, void *private_data)
 {
 
-	CountdownDockWidget *countdownDockWidget =
-		(CountdownDockWidget *)private_data;
+	CountdownDockWidget *countdownDockWidget = (CountdownDockWidget *)private_data;
 
 	switch (event) {
 	case OBS_FRONTEND_EVENT_FINISHED_LOADING:
@@ -335,8 +286,7 @@ void CountdownDockWidget::OBSFrontendEventHandler(enum obs_frontend_event event,
 		CountdownDockWidget::UpdateWidgetStyles(countdownDockWidget);
 		break;
 	case OBS_FRONTEND_EVENT_STREAMING_STARTED:
-		CountdownDockWidget::StartTimersOnStreamStart(
-			countdownDockWidget);
+		CountdownDockWidget::StartTimersOnStreamStart(countdownDockWidget);
 		break;
 	default:
 		break;
@@ -353,13 +303,11 @@ void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 	}
 	if (data) {
 		// Get Save Data
-		obs_data_array_t *timersArray =
-			obs_data_get_array(data, "timer_widgets");
+		obs_data_array_t *timersArray = obs_data_get_array(data, "timer_widgets");
 		if (timersArray) {
 			size_t count = obs_data_array_count(timersArray);
 			for (size_t i = 0; i < count; ++i) {
-				obs_data_t *timerDataObj =
-					obs_data_array_item(timersArray, i);
+				obs_data_t *timerDataObj = obs_data_array_item(timersArray, i);
 				dockWidget->AddTimer(timerDataObj);
 			}
 		}
@@ -376,26 +324,22 @@ void CountdownDockWidget::LoadSavedSettings(CountdownDockWidget *dockWidget)
 	}
 }
 
-AshmanixTimer *CountdownDockWidget::AttemptToGetTimerWidgetById(
-	CountdownDockWidget *countdownWidget, const char *websocketTimerID)
+AshmanixTimer *CountdownDockWidget::AttemptToGetTimerWidgetById(CountdownDockWidget *countdownWidget,
+								const char *websocketTimerID)
 {
 	AshmanixTimer *timer = nullptr;
 	if (websocketTimerID != nullptr && strlen(websocketTimerID) > 0) {
-		timer = countdownWidget->timerWidgetMap.value(websocketTimerID,
-							      nullptr);
+		timer = countdownWidget->timerWidgetMap.value(websocketTimerID, nullptr);
 	} else if (countdownWidget->timerListLayout->count()) {
-		QLayoutItem *layoutItem =
-			countdownWidget->timerListLayout->itemAt(0);
+		QLayoutItem *layoutItem = countdownWidget->timerListLayout->itemAt(0);
 		if (layoutItem) {
-			timer = qobject_cast<AshmanixTimer *>(
-				layoutItem->widget());
+			timer = qobject_cast<AshmanixTimer *>(layoutItem->widget());
 		}
 	}
 	return timer;
 }
 
-void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
-						      obs_data_t *response_data,
+void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data, obs_data_t *response_data,
 						      void *priv_data)
 {
 	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
@@ -403,95 +347,60 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
 	const char *requestDataTimeKey = callback_data->requestDataKey;
 	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
 
-	const char *websocketDataTime =
-		obs_data_get_string(request_data, requestDataTimeKey);
+	const char *websocketDataTime = obs_data_get_string(request_data, requestDataTimeKey);
 
 	if (websocketDataTime == nullptr || strlen(websocketDataTime) == 0) {
 		obs_data_set_bool(response_data, "success", false);
-		QString error_message =
-			QString("%1 field is missing from request!")
-				.arg(requestDataTimeKey);
-		obs_data_set_string(response_data, "message",
-				    error_message.toStdString().c_str());
+		QString error_message = QString("%1 field is missing from request!").arg(requestDataTimeKey);
+		obs_data_set_string(response_data, "message", error_message.toStdString().c_str());
 	} else {
 		CountdownDockWidget *countdownWidget = callback_data->instance;
-		const char *websocketTimerID =
-			obs_data_get_string(request_data, requestTimerIdKey);
+		const char *websocketTimerID = obs_data_get_string(request_data, requestTimerIdKey);
 
-		AshmanixTimer *timer = AttemptToGetTimerWidgetById(
-			countdownWidget, websocketTimerID);
+		AshmanixTimer *timer = AttemptToGetTimerWidgetById(countdownWidget, websocketTimerID);
 
 		if (timer != nullptr) {
-			long long timeInMillis =
-				ConvertStringPeriodToMillis(websocketDataTime);
-
-			if (timeInMillis > 0) {
-				bool result = timer->AlterTime(requestType,
-							       timeInMillis);
-				const char *type_string =
-					requestType == ADD_TIME ? "added"
-								: "set";
-				obs_log(LOG_INFO,
-					"Time %s due to websocket call: %s",
-					type_string, websocketDataTime);
-				obs_data_set_bool(response_data, "success",
-						  result);
-			} else {
-				obs_log(LOG_WARNING,
-					"Timer time NOT changed from websocket request.");
-				obs_data_set_bool(response_data, "success",
-						  false);
-				obs_data_set_string(
-					response_data, "message",
-					"Timer time wasn't changed. Ensure time is in format \"dd:hh:mm:ss\"");
-			}
+			bool result = timer->AlterTime(requestType, websocketDataTime);
+			const char *type_string = requestType == ADD_TIME ? "added" : "set";
+			obs_log(LOG_INFO, "Time %s due to websocket call: %s", type_string, websocketDataTime);
+			obs_data_set_bool(response_data, "success", result);
 		} else {
-			obs_log(LOG_WARNING,
-				"Countdown widget not found for websocket request!");
+			obs_log(LOG_WARNING, "Countdown widget not found for websocket request!");
 			obs_data_set_bool(response_data, "success", false);
-			obs_data_set_string(response_data, "message",
-					    "Error trying to update time!");
+			obs_data_set_string(response_data, "message", "Error trying to update time!");
 		}
 	}
 }
 
-void CountdownDockWidget::GetTimerStateViaWebsocket(obs_data_t *request_data,
-						    obs_data_t *response_data,
+void CountdownDockWidget::GetTimerStateViaWebsocket(obs_data_t *request_data, obs_data_t *response_data,
 						    void *priv_data)
 {
 	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
 	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
 
 	CountdownDockWidget *countdownWidget = callback_data->instance;
-	const char *websocketTimerID =
-		obs_data_get_string(request_data, requestTimerIdKey);
+	const char *websocketTimerID = obs_data_get_string(request_data, requestTimerIdKey);
 
-	AshmanixTimer *timer =
-		AttemptToGetTimerWidgetById(countdownWidget, websocketTimerID);
+	AshmanixTimer *timer = AttemptToGetTimerWidgetById(countdownWidget, websocketTimerID);
 
 	if (timer != nullptr) {
 		TimerWidgetStruct *timerData = timer->GetTimerData();
-		obs_data_set_bool(response_data, "is_running",
-				  timerData->isPlaying);
-		obs_data_set_int(response_data, "time_left_ms",
-				 timerData->timeLeftInMillis);
+		obs_data_set_bool(response_data, "is_running", timerData->isPlaying);
+		obs_data_set_int(response_data, "time_left_ms", timerData->timeLeftInMillis);
 
-		obs_data_set_string(response_data, "timer_id",
-				    timerData->timerId.toStdString().c_str());
+		obs_data_set_string(response_data, "timer_id", timerData->timerId.toStdString().c_str());
 
 		obs_data_set_bool(response_data, "success", true);
 
 	} else {
-		obs_log(LOG_WARNING,
-			"Countdown widget not found for websocket request!");
+		obs_log(LOG_WARNING, "Countdown widget not found for websocket request!");
 		obs_data_set_bool(response_data, "success", false);
-		obs_data_set_string(response_data, "message",
-				    "Error trying to get timer data!");
+		obs_data_set_string(response_data, "message", "Error trying to get timer data!");
 	}
 }
 
-void CountdownDockWidget::HandleWebsocketButtonPressRequest(
-	obs_data_t *request_data, obs_data_t *response_data, void *priv_data)
+void CountdownDockWidget::HandleWebsocketButtonPressRequest(obs_data_t *request_data, obs_data_t *response_data,
+							    void *priv_data)
 {
 	auto *callback_data = static_cast<WebsocketCallbackData *>(priv_data);
 	WebsocketRequestType requestType = callback_data->requestType;
@@ -516,17 +425,13 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(
 	}
 
 	const char *requestTimerIdKey = callback_data->requestTimerIdKey;
-	const char *websocketTimerID =
-		obs_data_get_string(request_data, requestTimerIdKey);
-	AshmanixTimer *timer =
-		AttemptToGetTimerWidgetById(countdownWidget, websocketTimerID);
+	const char *websocketTimerID = obs_data_get_string(request_data, requestTimerIdKey);
+	AshmanixTimer *timer = AttemptToGetTimerWidgetById(countdownWidget, websocketTimerID);
 
 	if (!timer) {
-		obs_log(LOG_WARNING,
-			"Countdown widget not found for websocket timer state change request!");
+		obs_log(LOG_WARNING, "Countdown widget not found for websocket timer state change request!");
 		obs_data_set_bool(response_data, "success", false);
-		obs_data_set_string(response_data, "message",
-				    "Error trying to change timer state!");
+		obs_data_set_string(response_data, "message", "Error trying to change timer state!");
 		return;
 	}
 
@@ -567,8 +472,7 @@ void CountdownDockWidget::ToggleUIForMultipleTimers()
 		// If only one timer left we use timer map to get last timer
 		// as deletion of timers is delayed and we might get an old
 		// reference when getting timer in layout
-		firstTimerWidget = static_cast<AshmanixTimer *>(
-			timerWidgetMap.begin().value());
+		firstTimerWidget = static_cast<AshmanixTimer *>(timerWidgetMap.begin().value());
 		if (firstTimerWidget) {
 			firstTimerWidget->SetHideMultiTimerUIButtons(true);
 			ui->playAllButton->hide();
@@ -598,17 +502,14 @@ void CountdownDockWidget::RemoveTimerButtonClicked(QString id)
 	if (itemToBeRemoved) {
 		itemToBeRemoved->deleteLater();
 		timerWidgetMap.remove(id);
-		obs_log(LOG_INFO, (QString("Timer %1 deleted").arg(id))
-					  .toStdString()
-					  .c_str());
+		obs_log(LOG_INFO, (QString("Timer %1 deleted").arg(id)).toStdString().c_str());
 	}
 
 	ToggleUIForMultipleTimers();
 	UpdateTimerListMoveButtonState();
 }
 
-void CountdownDockWidget::HandleWebsocketSendEvent(const char *eventName,
-						   obs_data_t *eventData)
+void CountdownDockWidget::HandleWebsocketSendEvent(const char *eventName, obs_data_t *eventData)
 {
 	if (!vendor)
 		return;
@@ -623,13 +524,10 @@ void CountdownDockWidget::MoveTimerInList(QString direction, QString id)
 		//Gets the index of the widget within the layout
 		const int index = ui->timerMainLayout->indexOf(timerWidget);
 		if (!(direction == "up" && index == 0) &&
-		    !(direction == "down" &&
-		      index == (ui->timerMainLayout->count() - 1))) {
-			const int newIndex = direction == "up" ? index - 1
-							       : index + 1;
+		    !(direction == "down" && index == (ui->timerMainLayout->count() - 1))) {
+			const int newIndex = direction == "up" ? index - 1 : index + 1;
 			ui->timerMainLayout->removeWidget(timerWidget);
-			ui->timerMainLayout->insertWidget(newIndex,
-							  timerWidget);
+			ui->timerMainLayout->insertWidget(newIndex, timerWidget);
 			UpdateTimerListMoveButtonState();
 		}
 	}
@@ -639,8 +537,7 @@ void CountdownDockWidget::StartAllTimers()
 {
 	int timerWidgetCount = ui->timerMainLayout->count();
 	for (int i = 0; i < timerWidgetCount; i++) {
-		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
-			ui->timerMainLayout->itemAt(i)->widget());
+		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(ui->timerMainLayout->itemAt(i)->widget());
 		if (timerWidget) {
 			timerWidget->StartTimer();
 		}
@@ -651,8 +548,7 @@ void CountdownDockWidget::StopAllTimers()
 {
 	int timerWidgetCount = ui->timerMainLayout->count();
 	for (int i = 0; i < timerWidgetCount; i++) {
-		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(
-			ui->timerMainLayout->itemAt(i)->widget());
+		AshmanixTimer *timerWidget = static_cast<AshmanixTimer *>(ui->timerMainLayout->itemAt(i)->widget());
 		if (timerWidget) {
 			timerWidget->StopTimer();
 		}

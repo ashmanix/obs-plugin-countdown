@@ -79,12 +79,9 @@ private:
 	int startAllTimersHotkeyId = -1;
 	int stopAllTimersHotkeyId = -1;
 
-	static inline const char *addTimerHotkeyName =
-		"Ashmanix_Countdown_Timer_Add_Timer";
-	static inline const char *startAllTimersHotkeyName =
-		"Ashmanix_Countdown_Timer_Start_All_Timers";
-	static inline const char *stopAllTimersHotkeyName =
-		"Ashmanix_Countdown_Timer_Stop_All_Timers";
+	static inline const char *addTimerHotkeyName = "Ashmanix_Countdown_Timer_Add_Timer";
+	static inline const char *startAllTimersHotkeyName = "Ashmanix_Countdown_Timer_Start_All_Timers";
+	static inline const char *stopAllTimersHotkeyName = "Ashmanix_Countdown_Timer_Stop_All_Timers";
 
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 
@@ -104,35 +101,24 @@ private:
 	void AddTimer(obs_data_t *savedData = nullptr);
 	void UpdateTimerListMoveButtonState();
 	void ToggleUIForMultipleTimers();
-	static void
-	StartTimersOnStreamStart(CountdownDockWidget *countdownDockWidget);
-	static void
-	UpdateWidgetStyles(CountdownDockWidget *countdownDockWidget);
+	static void StartTimersOnStreamStart(CountdownDockWidget *countdownDockWidget);
+	static void UpdateWidgetStyles(CountdownDockWidget *countdownDockWidget);
 
-	static void OBSFrontendEventHandler(enum obs_frontend_event event,
-					    void *private_data);
+	static void OBSFrontendEventHandler(enum obs_frontend_event event, void *private_data);
 	static void LoadSavedSettings(CountdownDockWidget *timerWidgetMap);
-	static AshmanixTimer *
-	AttemptToGetTimerWidgetById(CountdownDockWidget *countdownWidget,
-				    const char *websocketTimerID);
-	static void ChangeTimerTimeViaWebsocket(obs_data_t *request_data,
-						obs_data_t *response_data,
-						void *priv_data);
-	static void GetTimerStateViaWebsocket(obs_data_t *request_data,
-					      obs_data_t *response_data,
-					      void *priv_data);
-	static void HandleWebsocketButtonPressRequest(obs_data_t *request_data,
-						      obs_data_t *response_data,
+	static AshmanixTimer *AttemptToGetTimerWidgetById(CountdownDockWidget *countdownWidget,
+							  const char *websocketTimerID);
+	static void ChangeTimerTimeViaWebsocket(obs_data_t *request_data, obs_data_t *response_data, void *priv_data);
+	static void GetTimerStateViaWebsocket(obs_data_t *request_data, obs_data_t *response_data, void *priv_data);
+	static void HandleWebsocketButtonPressRequest(obs_data_t *request_data, obs_data_t *response_data,
 						      void *priv_data);
 
 signals:
-	void RequestTimerReset();
 
 private slots:
 	void RemoveTimerButtonClicked(QString id);
 	void AddTimerButtonClicked();
-	void HandleWebsocketSendEvent(const char *eventName,
-				      obs_data_t *eventData);
+	void HandleWebsocketSendEvent(const char *eventName, obs_data_t *eventData);
 	void MoveTimerInList(QString direction, QString id);
 	void StartAllTimers();
 	void StopAllTimers();

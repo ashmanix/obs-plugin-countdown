@@ -105,7 +105,7 @@ private:
 	void UpdateTimerPeriod(PeriodData periodData);
 
 signals:
-	void RequestTimerReset(bool restartOnly= false);
+	void RequestTimerReset(bool restartOnly = false);
 	void RequestDelete(QString id);
 	void RequestSendWebsocketEvent(const char *eventName, obs_data_t *eventData);
 	void MoveTimer(QString direction, QString timerId);

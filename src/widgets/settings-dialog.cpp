@@ -1,7 +1,6 @@
 #include "settings-dialog.hpp"
 
-SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData,
-			       CountdownDockWidget *mWidget)
+SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData, CountdownDockWidget *mWidget)
 	: QDialog(parent),
 	  ui(new Ui::SettingsDialog)
 {
@@ -21,12 +20,9 @@ SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData,
 SettingsDialog::~SettingsDialog()
 {
 	// Disconnect OBS signals before the dialog is destroyed
-	signal_handler_disconnect(obs_get_signal_handler(), "source_create",
-				  OBSSourceCreated, ui);
-	signal_handler_disconnect(obs_get_signal_handler(), "source_destroy",
-				  OBSSourceDeleted, ui);
-	signal_handler_disconnect(obs_get_signal_handler(), "source_rename",
-				  OBSSourceRenamed, ui);
+	signal_handler_disconnect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui);
+	signal_handler_disconnect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui);
+	signal_handler_disconnect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui);
 
 	this->deleteLater();
 }
@@ -51,67 +47,49 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 	ui->secondsCheckBox->setToolTip(obs_module_text("SecondsCheckBoxTip"));
 
 	ui->leadZeroCheckBox->setText(obs_module_text("LeadZeroCheckboxLabel"));
-	ui->leadZeroCheckBox->setToolTip(
-		obs_module_text("LeadZeroCheckBoxTip"));
+	ui->leadZeroCheckBox->setToolTip(obs_module_text("LeadZeroCheckBoxTip"));
 
 	ui->countUpCheckBox->setText(obs_module_text("CountUpCheckBoxLabel"));
 	ui->countUpCheckBox->setToolTip(obs_module_text("CountUpCheckBoxTip"));
 
-	ui->startOnStreamStartCheckBox->setText(
-		obs_module_text("StartOnStreamCheckBoxLabel"));
-	ui->startOnStreamStartCheckBox->setToolTip(
-		obs_module_text("StartOnStreamCheckBoxTip"));
+	ui->startOnStreamStartCheckBox->setText(obs_module_text("StartOnStreamCheckBoxLabel"));
+	ui->startOnStreamStartCheckBox->setToolTip(obs_module_text("StartOnStreamCheckBoxTip"));
 
 	ui->timerIdLineEdit->setToolTip(obs_module_text("timerIdLineEditTip"));
 	ui->timerIdLabel->setText(obs_module_text("TimerIdLabel"));
 
-	ui->textSourceDropdownList->setToolTip(
-		obs_module_text("TextSourceDropdownTip"));
+	ui->textSourceDropdownList->setToolTip(obs_module_text("TextSourceDropdownTip"));
 	ui->textSourceDropdownList->addItem("");
-	ui->textSourceDropdownLabel->setText(
-		obs_module_text("TextSourceLabel"));
+	ui->textSourceDropdownLabel->setText(obs_module_text("TextSourceLabel"));
 
 	ui->endMessageCheckBox->setCheckState(Qt::Unchecked);
-	ui->endMessageCheckBox->setToolTip(
-		obs_module_text("EndMessageCheckBoxTip"));
+	ui->endMessageCheckBox->setToolTip(obs_module_text("EndMessageCheckBoxTip"));
 	ui->endMessageCheckBox->setText(obs_module_text("EndMessageLabel"));
 
 	ui->endMessageLineEdit->setEnabled(false);
-	ui->endMessageLineEdit->setToolTip(
-		obs_module_text("EndMessageLineEditTip"));
+	ui->endMessageLineEdit->setToolTip(obs_module_text("EndMessageLineEditTip"));
 
 	ui->switchSceneCheckBox->setCheckState(Qt::Unchecked);
-	ui->switchSceneCheckBox->setToolTip(
-		obs_module_text("SwitchSceneCheckBoxTip"));
+	ui->switchSceneCheckBox->setToolTip(obs_module_text("SwitchSceneCheckBoxTip"));
 	ui->switchSceneCheckBox->setText(obs_module_text("SwitchScene"));
 
 	ui->sceneSourceDropdownList->setEnabled(false);
-	ui->sceneSourceDropdownList->setToolTip(
-		obs_module_text("SceneSourceDropdownTip"));
+	ui->sceneSourceDropdownList->setToolTip(obs_module_text("SceneSourceDropdownTip"));
 	ui->sceneSourceDropdownList->addItem("");
 
-	ui->generalGroupBox->setTitle(
-		obs_module_text("DialogGeneralGroupBoxTitle"));
-	ui->timerStartGroupBox->setTitle(
-		obs_module_text("DialogTimerStartGroupBoxTitle"));
-	ui->timerEndGroupBox->setTitle(
-		obs_module_text("DialogTimerEndGroupBoxTitle"));
-	ui->timeFormatGroupBox->setTitle(
-		obs_module_text("DialogTimeFormatGroupBoxTitle"));
-	ui->timerTypeGroupBox->setTitle(
-		obs_module_text("DialogTimerTypeGroupBoxTitle"));
+	ui->generalGroupBox->setTitle(obs_module_text("DialogGeneralGroupBoxTitle"));
+	ui->timerStartGroupBox->setTitle(obs_module_text("DialogTimerStartGroupBoxTitle"));
+	ui->timerEndGroupBox->setTitle(obs_module_text("DialogTimerEndGroupBoxTitle"));
+	ui->timeFormatGroupBox->setTitle(obs_module_text("DialogTimeFormatGroupBoxTitle"));
+	ui->timerTypeGroupBox->setTitle(obs_module_text("DialogTimerTypeGroupBoxTitle"));
 
 	ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
-	ui->dialogButtonBox->button(QDialogButtonBox::Apply)
-		->setText(obs_module_text("DialogButtonApplyLabel"));
-	ui->dialogButtonBox->button(QDialogButtonBox::Ok)
-		->setText(obs_module_text("DialogButtonOkLabel"));
-	ui->dialogButtonBox->button(QDialogButtonBox::Cancel)
-		->setText(obs_module_text("DialogButtonCancelLabel"));
+	ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setText(obs_module_text("DialogButtonApplyLabel"));
+	ui->dialogButtonBox->button(QDialogButtonBox::Ok)->setText(obs_module_text("DialogButtonOkLabel"));
+	ui->dialogButtonBox->button(QDialogButtonBox::Cancel)->setText(obs_module_text("DialogButtonCancelLabel"));
 
 	ui->byLabel->setText(obs_module_text("DialogInfoByLabel"));
-	ui->contributorsLabel->setText(
-		obs_module_text("DialogInfoConstributorsLabel"));
+	ui->contributorsLabel->setText(obs_module_text("DialogInfoConstributorsLabel"));
 	ui->versionLabel->setText(obs_module_text("DialogInfoVersionLabel"));
 	ui->versionTextLabel->setText(PLUGIN_VERSION);
 
@@ -129,8 +107,7 @@ void SettingsDialog::GetOBSSourceList()
 	char **sceneList = obs_frontend_get_scene_names();
 
 	if (sceneList == nullptr) {
-		obs_log(LOG_INFO,
-			"No scenes found or failed to retrieve scenes");
+		obs_log(LOG_INFO, "No scenes found or failed to retrieve scenes");
 		return;
 	}
 
@@ -143,59 +120,44 @@ void SettingsDialog::GetOBSSourceList()
 
 void SettingsDialog::ConnectUISignalHandlers()
 {
-	QObject::connect(ui->timerIdLineEdit, &QLineEdit::textChanged, this,
+	QObject::connect(ui->timerIdLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
+
+	QObject::connect(ui->textSourceDropdownList, &QComboBox::currentTextChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->textSourceDropdownList,
-			 &QComboBox::currentTextChanged, this,
+	QObject::connect(ui->startOnStreamStartCheckBox, &QCheckBox::stateChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->startOnStreamStartCheckBox,
-			 &QCheckBox::stateChanged, this,
-			 &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->switchSceneCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::SceneSwitchCheckBoxSelected);
 
-	QObject::connect(ui->switchSceneCheckBox, &QCheckBox::stateChanged,
-			 this, &SettingsDialog::SceneSwitchCheckBoxSelected);
-
-	QObject::connect(ui->sceneSourceDropdownList,
-			 &QComboBox::currentTextChanged, this,
+	QObject::connect(ui->sceneSourceDropdownList, &QComboBox::currentTextChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 
 	QObject::connect(ui->endMessageCheckBox, &QCheckBox::stateChanged, this,
 			 &SettingsDialog::EndMessageCheckBoxSelected);
 
-	QObject::connect(ui->endMessageLineEdit, &QLineEdit::textChanged, this,
-			 &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->endMessageLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->daysCheckBox, &QCheckBox::stateChanged, this,
-			 &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->daysCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->hoursCheckBox, &QCheckBox::stateChanged, this,
-			 &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->hoursCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->minutesCheckBox, &QCheckBox::stateChanged, this,
-			 &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->minutesCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->secondsCheckBox, &QCheckBox::stateChanged, this,
-			 &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->secondsCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->leadZeroCheckBox, &QCheckBox::stateChanged, this,
-			 &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->leadZeroCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->countUpCheckBox, &QCheckBox::stateChanged, this,
-			 &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->countUpCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::accepted, this,
-			 &SettingsDialog::OkButtonClicked);
+	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::accepted, this, &SettingsDialog::OkButtonClicked);
 
-	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::rejected, this,
-			 &SettingsDialog::CancelButtonClicked);
+	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::rejected, this, &SettingsDialog::CancelButtonClicked);
 
-	QPushButton *applyButton =
-		ui->dialogButtonBox->button(QDialogButtonBox::Apply);
+	QPushButton *applyButton = ui->dialogButtonBox->button(QDialogButtonBox::Apply);
 	if (applyButton) {
-		connect(applyButton, &QPushButton::clicked, this,
-			&SettingsDialog::ApplyButtonClicked);
+		connect(applyButton, &QPushButton::clicked, this, &SettingsDialog::ApplyButtonClicked);
 	}
 }
 
@@ -221,14 +183,11 @@ bool SettingsDialog::GetTextSources(void *list_property, obs_source_t *source)
 void SettingsDialog::ConnectObsSignalHandlers()
 {
 	// Source Signals
-	signal_handler_connect(obs_get_signal_handler(), "source_create",
-			       OBSSourceCreated, ui);
+	signal_handler_connect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui);
 
-	signal_handler_connect(obs_get_signal_handler(), "source_destroy",
-			       OBSSourceDeleted, ui);
+	signal_handler_connect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui);
 
-	signal_handler_connect(obs_get_signal_handler(), "source_rename",
-			       OBSSourceRenamed, ui);
+	signal_handler_connect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui);
 }
 
 void SettingsDialog::ApplyFormChanges()
@@ -238,38 +197,28 @@ void SettingsDialog::ApplyFormChanges()
 		QLineEdit *idLineEdit = ui->timerIdLineEdit;
 		QString setTImerId = idLineEdit->text();
 		if ((setTImerId != timerData->timerId && mainWidget)) {
-			Result updateIdResult = mainWidget->UpdateTimerList(
-				timerData->timerId, setTImerId);
+			Result updateIdResult = mainWidget->UpdateTimerList(timerData->timerId, setTImerId);
 			if (updateIdResult.success == true) {
 				idLineEdit->setStyleSheet("");
-				QString dialogTitle =
-					QString("Timer %1").arg(setTImerId);
+				QString dialogTitle = QString("Timer %1").arg(setTImerId);
 				this->setWindowTitle(dialogTitle);
 			} else {
 				// Show popup with error
 				isError = true;
-				idLineEdit->setStyleSheet(
-					"border: 1px solid rgb(192, 0, 0);");
-				obs_log(LOG_WARNING, updateIdResult.errorMessage
-							     .toStdString()
-							     .c_str());
-				QMessageBox::warning(
-					this, ui->timerIdLabel->text(),
-					updateIdResult.errorMessage);
+				idLineEdit->setStyleSheet("border: 1px solid rgb(192, 0, 0);");
+				obs_log(LOG_WARNING, updateIdResult.errorMessage.toStdString().c_str());
+				QMessageBox::warning(this, ui->timerIdLabel->text(), updateIdResult.errorMessage);
 				return;
 			}
 		}
-		timerData->selectedSource =
-			ui->textSourceDropdownList->currentText();
+		timerData->selectedSource = ui->textSourceDropdownList->currentText();
 
-		timerData->startOnStreamStart =
-			ui->startOnStreamStartCheckBox->isChecked();
+		timerData->startOnStreamStart = ui->startOnStreamStartCheckBox->isChecked();
 
 		timerData->showEndMessage = ui->endMessageCheckBox->isChecked();
 		timerData->endMessage = ui->endMessageLineEdit->text();
 		timerData->showEndScene = ui->switchSceneCheckBox->isChecked();
-		timerData->selectedScene =
-			ui->sceneSourceDropdownList->currentText();
+		timerData->selectedScene = ui->sceneSourceDropdownList->currentText();
 
 		timerData->showDays = ui->daysCheckBox->isChecked();
 		timerData->showHours = ui->hoursCheckBox->isChecked();
@@ -279,8 +228,7 @@ void SettingsDialog::ApplyFormChanges()
 
 		timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
 
-		ui->dialogButtonBox->button(QDialogButtonBox::Apply)
-			->setEnabled(false);
+		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
 		emit SettingsUpdated();
 	} else {
 		obs_log(LOG_WARNING, "No timer data found!");
@@ -292,48 +240,34 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 	if (settingsDialogData != nullptr) {
 		ui->timerIdLineEdit->setText(settingsDialogData->timerId);
 
-		int textSelectIndex = ui->textSourceDropdownList->findText(
-			settingsDialogData->selectedSource);
+		int textSelectIndex = ui->textSourceDropdownList->findText(settingsDialogData->selectedSource);
 		if (textSelectIndex != -1)
-			ui->textSourceDropdownList->setCurrentIndex(
-				textSelectIndex);
+			ui->textSourceDropdownList->setCurrentIndex(textSelectIndex);
 
-		ui->startOnStreamStartCheckBox->setChecked(
-			settingsDialogData->startOnStreamStart);
+		ui->startOnStreamStartCheckBox->setChecked(settingsDialogData->startOnStreamStart);
 
-		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(
-			settingsDialogData->selectedScene);
+		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(settingsDialogData->selectedScene);
 		if (sceneSelectIndex != -1)
-			ui->sceneSourceDropdownList->setCurrentIndex(
-				sceneSelectIndex);
+			ui->sceneSourceDropdownList->setCurrentIndex(sceneSelectIndex);
 
 		ui->daysCheckBox->setChecked(settingsDialogData->showDays);
 		ui->hoursCheckBox->setChecked(settingsDialogData->showHours);
-		ui->minutesCheckBox->setChecked(
-			settingsDialogData->showMinutes);
-		ui->secondsCheckBox->setChecked(
-			settingsDialogData->showSeconds);
-		ui->leadZeroCheckBox->setChecked(
-			settingsDialogData->showLeadingZero);
+		ui->minutesCheckBox->setChecked(settingsDialogData->showMinutes);
+		ui->secondsCheckBox->setChecked(settingsDialogData->showSeconds);
+		ui->leadZeroCheckBox->setChecked(settingsDialogData->showLeadingZero);
 
-		ui->countUpCheckBox->setChecked(
-			settingsDialogData->shouldCountUp);
+		ui->countUpCheckBox->setChecked(settingsDialogData->shouldCountUp);
 		if (settingsDialogData->isPlaying)
 			ui->countUpCheckBox->setEnabled(false);
 
-		ui->endMessageCheckBox->setChecked(
-			settingsDialogData->showEndMessage);
-		ui->endMessageLineEdit->setEnabled(
-			settingsDialogData->showEndMessage);
+		ui->endMessageCheckBox->setChecked(settingsDialogData->showEndMessage);
+		ui->endMessageLineEdit->setEnabled(settingsDialogData->showEndMessage);
 		ui->endMessageLineEdit->setText(settingsDialogData->endMessage);
 
-		ui->switchSceneCheckBox->setChecked(
-			settingsDialogData->showEndScene);
-		ui->sceneSourceDropdownList->setEnabled(
-			settingsDialogData->showEndScene);
+		ui->switchSceneCheckBox->setChecked(settingsDialogData->showEndScene);
+		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->showEndScene);
 
-		ui->dialogButtonBox->button(QDialogButtonBox::Apply)
-			->setEnabled(false);
+		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
 	} else {
 		obs_log(LOG_WARNING, "No timer data found!");
 	}
@@ -379,12 +313,10 @@ void SettingsDialog::OBSSourceDeleted(void *param, calldata_t *calldata)
 	const char *name = obs_source_get_name(source);
 
 	if (sourceType == TEXT_SOURCE) {
-		int textIndexToRemove =
-			ui->textSourceDropdownList->findText(name);
+		int textIndexToRemove = ui->textSourceDropdownList->findText(name);
 		ui->textSourceDropdownList->removeItem(textIndexToRemove);
 	} else if (sourceType == SCENE_SOURCE) {
-		int sceneIndexToRemove =
-			ui->sceneSourceDropdownList->findText(name);
+		int sceneIndexToRemove = ui->sceneSourceDropdownList->findText(name);
 		ui->sceneSourceDropdownList->removeItem(sceneIndexToRemove);
 	}
 };
@@ -407,26 +339,22 @@ void SettingsDialog::OBSSourceRenamed(void *param, calldata_t *calldata)
 	const char *oldName = calldata_string(calldata, "prev_name");
 
 	if (sourceType == TEXT_SOURCE) {
-		int textListIndex =
-			ui->textSourceDropdownList->findText(oldName);
+		int textListIndex = ui->textSourceDropdownList->findText(oldName);
 		if (textListIndex == -1)
 			return;
 		ui->textSourceDropdownList->setItemText(textListIndex, newName);
 	} else if (sourceType == SCENE_SOURCE) {
-		int sceneListIndex =
-			ui->sceneSourceDropdownList->findText(oldName);
+		int sceneListIndex = ui->sceneSourceDropdownList->findText(oldName);
 		if (sceneListIndex == -1)
 			return;
-		ui->sceneSourceDropdownList->setItemText(sceneListIndex,
-							 newName);
+		ui->sceneSourceDropdownList->setItemText(sceneListIndex, newName);
 	}
 };
 
 int SettingsDialog::CheckSourceType(obs_source_t *source)
 {
 	const char *source_id = obs_source_get_unversioned_id(source);
-	if (strcmp(source_id, "text_ft2_source") == 0 ||
-	    strcmp(source_id, "text_gdiplus") == 0 ||
+	if (strcmp(source_id, "text_ft2_source") == 0 || strcmp(source_id, "text_gdiplus") == 0 ||
 	    strcmp(source_id, "text_pango_source") == 0) {
 		return TEXT_SOURCE;
 	} else if (strcmp(source_id, "scene") == 0) {

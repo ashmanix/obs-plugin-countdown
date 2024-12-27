@@ -60,18 +60,24 @@ struct TimerWidgetStruct {
 	QWidget *datetimeVLayout;
 };
 
+struct PeriodData {
+	int days;
+	int hours;
+	int minutes;
+	int seconds;
+};
+
 struct Result {
 	bool success;
 	QString errorMessage;
 };
 
 const char *ConvertToConstChar(QString value);
+PeriodData ConvertStringPeriodToPeriodData(const char *time_string);
 long long ConvertStringPeriodToMillis(const char *time_string);
 QString ConvertMillisToDateTimeString(long long timeInMillis);
-QString GetFormattedTimerString(bool daysState, bool hoursState,
-				bool minutesState, bool secondsState,
+QString GetFormattedTimerString(bool daysState, bool hoursState, bool minutesState, bool secondsState,
 				bool showLeadingZero, long long timeInMillis);
-long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo,
-					int countdownPeriod = 1000);
+long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdownPeriod = 1000);
 
 #endif // TIMERUTILS_H

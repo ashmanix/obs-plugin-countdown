@@ -102,6 +102,7 @@ private:
 	void UpdateTimeDisplayTooltip();
 	bool AddTime(const char *stringTime, bool isCountingUp);
 	bool SetTime(const char *stringTime, bool isCountingUp);
+	void UpdateTimerPeriod(PeriodData periodData);
 
 signals:
 	void RequestTimerReset();

@@ -178,10 +178,10 @@ void AshmanixTimer::SetTimerData()
 
 	ui->dateTimeEdit->setDateTime(countdownTimerData.dateTime);
 
-	ui->timerDays->setText(QString::number(countdownTimerData.periodDays));
-	ui->timerHours->setText(QString::number(countdownTimerData.periodHours));
-	ui->timerMinutes->setText(QString::number(countdownTimerData.periodMinutes));
-	ui->timerSeconds->setText(QString::number(countdownTimerData.periodSeconds));
+	ui->timerDays->setValue(countdownTimerData.periodDays);
+	ui->timerHours->setValue(countdownTimerData.periodHours);
+	ui->timerMinutes->setValue(countdownTimerData.periodMinutes);
+	ui->timerSeconds->setValue(countdownTimerData.periodSeconds);
 
 	ui->timerNameLabel->setText(QString("Timer: %1").arg(countdownTimerData.timerId));
 	InitialiseTimerTime();
@@ -273,10 +273,10 @@ void AshmanixTimer::UpdateTimerPeriod(PeriodData periodData)
 	countdownTimerData.periodMinutes = periodData.minutes;
 	countdownTimerData.periodSeconds = periodData.seconds;
 
-	ui->timerDays->setText(QString::number(countdownTimerData.periodDays));
-	ui->timerHours->setText(QString::number(countdownTimerData.periodHours));
-	ui->timerMinutes->setText(QString::number(countdownTimerData.periodMinutes));
-	ui->timerSeconds->setText(QString::number(countdownTimerData.periodSeconds));
+	ui->timerDays->setValue(countdownTimerData.periodDays);
+	ui->timerHours->setValue(countdownTimerData.periodHours);
+	ui->timerMinutes->setValue(countdownTimerData.periodMinutes);
+	ui->timerSeconds->setValue(countdownTimerData.periodSeconds);
 }
 
 void AshmanixTimer::PressPlayButton()
@@ -347,22 +347,16 @@ void AshmanixTimer::SetupTimerWidgetUI()
 	ui->dateTimeEdit->setMinimumDate(QDate::currentDate());
 	ui->dateTimeEdit->setMaximumDate(QDate::currentDate().addDays(999));
 
-	ui->timerDays->setMaxLength(3);
-	ui->timerDays->setValidator(new QRegularExpressionValidator(QRegularExpression("^(0|[1-9]\\d{0,2})$"), this));
+	ui->timerDays->setRange(0, 999);
 	ui->timerDays->setToolTip(obs_module_text("DaysCheckboxLabel"));
 
-	ui->timerHours->setMaxLength(2);
-	ui->timerHours->setValidator(
-		new QRegularExpressionValidator(QRegularExpression("^(0?[0-9]|1[0-9]|2[0-3])$"), this));
+	ui->timerHours->setRange(0, 23);
 	ui->timerHours->setToolTip(obs_module_text("HoursCheckboxLabel"));
 
-	ui->timerMinutes->setMaxLength(2);
-	ui->timerMinutes->setValidator(new QRegularExpressionValidator(QRegularExpression("^[1-5]?[0-9]"), this));
+	ui->timerMinutes->setRange(0, 59);
 	ui->timerMinutes->setToolTip(obs_module_text("MinutesCheckboxLabel"));
 
-	ui->timerSeconds->setAlignment(Qt::AlignCenter);
-	ui->timerSeconds->setMaxLength(2);
-	ui->timerSeconds->setValidator(new QRegularExpressionValidator(QRegularExpression("^[1-5]?[0-9]"), this));
+	ui->timerSeconds->setRange(0, 59);
 	ui->timerSeconds->setToolTip(obs_module_text("SecondsCheckboxLabel"));
 
 	countdownTimerData.periodVLayout = ui->periodWidget;
@@ -426,13 +420,13 @@ void AshmanixTimer::ConnectUISignalHandlers()
 
 	QObject::connect(ui->settingsToolButton, &QPushButton::clicked, this, &AshmanixTimer::SettingsButtonClicked);
 
-	QObject::connect(ui->timerDays, &QLineEdit::textChanged, this, &AshmanixTimer::DaysChanged);
+	QObject::connect(ui->timerDays, &QSpinBox::valueChanged, this, &AshmanixTimer::DaysChanged);
 
-	QObject::connect(ui->timerHours, &QLineEdit::textChanged, this, &AshmanixTimer::HoursChanged);
+	QObject::connect(ui->timerHours, &QSpinBox::valueChanged, this, &AshmanixTimer::HoursChanged);
 
-	QObject::connect(ui->timerMinutes, &QLineEdit::textChanged, this, &AshmanixTimer::MinutesChanged);
+	QObject::connect(ui->timerMinutes, &QSpinBox::valueChanged, this, &AshmanixTimer::MinutesChanged);
 
-	QObject::connect(ui->timerSeconds, &QLineEdit::textChanged, this, &AshmanixTimer::SecondsChanged);
+	QObject::connect(ui->timerSeconds, &QSpinBox::valueChanged, this, &AshmanixTimer::SecondsChanged);
 
 	QObject::connect(ui->dateTimeEdit, &QDateTimeEdit::dateTimeChanged, this, &AshmanixTimer::DateTimeChanged);
 
@@ -861,24 +855,24 @@ void AshmanixTimer::HandleTimerReset(bool restartOnly)
 	}
 }
 
-void AshmanixTimer::DaysChanged(QString newText)
+void AshmanixTimer::DaysChanged(int newValue)
 {
-	countdownTimerData.periodDays = newText.toInt();
+	countdownTimerData.periodDays = newValue;
 }
 
-void AshmanixTimer::HoursChanged(QString newText)
+void AshmanixTimer::HoursChanged(int newValue)
 {
-	countdownTimerData.periodHours = newText.toInt();
+	countdownTimerData.periodHours = newValue;
 }
 
-void AshmanixTimer::MinutesChanged(QString newText)
+void AshmanixTimer::MinutesChanged(int newValue)
 {
-	countdownTimerData.periodMinutes = newText.toInt();
+	countdownTimerData.periodMinutes = newValue;
 }
 
-void AshmanixTimer::SecondsChanged(QString newText)
+void AshmanixTimer::SecondsChanged(int newValue)
 {
-	countdownTimerData.periodSeconds = newText.toInt();
+	countdownTimerData.periodSeconds = newValue;
 }
 
 void AshmanixTimer::DateTimeChanged(QDateTime newDateTime)

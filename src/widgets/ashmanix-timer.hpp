@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QUuid>
 #include <QCryptographicHash>
+#include <QSpinBox>
 
 #include <obs.h>
 #include <obs.hpp>
@@ -125,10 +126,10 @@ private slots:
 	void TimerAdjust();
 	void HandleTimerReset(bool restartOnly = false);
 
-	void DaysChanged(QString newText);
-	void HoursChanged(QString newText);
-	void MinutesChanged(QString newText);
-	void SecondsChanged(QString newText);
+	void DaysChanged(int newValue);
+	void HoursChanged(int newValue);
+	void MinutesChanged(int newValue);
+	void SecondsChanged(int newValue);
 	void DateTimeChanged(QDateTime newDateTime);
 	void EmitMoveTimerDownSignal();
 	void EmitMoveTimerUpSignal();

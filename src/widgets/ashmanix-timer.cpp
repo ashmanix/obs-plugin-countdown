@@ -307,8 +307,7 @@ bool AshmanixTimer::SetTime(const char *stringTime, bool isCountingUp)
 
 	bool result = false;
 	QDateTime currentDateTime = QDateTime::currentDateTime();
-	long long timeToAdd = countdownTimerData.shouldCountUp ? -(timeInMillis)
-							       : (timeInMillis + TIMERPERIOD);
+	long long timeToAdd = countdownTimerData.shouldCountUp ? -(timeInMillis) : (timeInMillis + TIMERPERIOD);
 	countdownTimerData.timeLeftInMillis = std::max((timeInMillis), 0ll);
 
 	if (countdownTimerData.selectedCountdownType == PERIOD) {

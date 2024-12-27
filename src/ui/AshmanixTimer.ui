@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>312</width>
-    <height>206</height>
+    <width>311</width>
+    <height>214</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -257,14 +257,14 @@
                    <number>0</number>
                   </property>
                   <item>
-                   <layout class="QHBoxLayout" name="timerLayout">
+                   <layout class="QHBoxLayout" name="timerLayout" stretch="1,0,1,0,1,0,1">
                     <item>
-                     <widget class="QLineEdit" name="timerDays">
-                      <property name="text">
-                       <string>0</string>
-                      </property>
+                     <widget class="QSpinBox" name="timerDays">
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
                       </property>
                      </widget>
                     </item>
@@ -282,12 +282,12 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="timerHours">
-                      <property name="text">
-                       <string>0</string>
-                      </property>
+                     <widget class="QSpinBox" name="timerHours">
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
                       </property>
                      </widget>
                     </item>
@@ -305,12 +305,12 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="timerMinutes">
-                      <property name="text">
-                       <string>0</string>
-                      </property>
+                     <widget class="QSpinBox" name="timerMinutes">
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
                       </property>
                      </widget>
                     </item>
@@ -328,12 +328,12 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="timerSeconds">
-                      <property name="text">
-                       <string>0</string>
-                      </property>
+                     <widget class="QSpinBox" name="timerSeconds">
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="buttonSymbols">
+                       <enum>QAbstractSpinBox::NoButtons</enum>
                       </property>
                      </widget>
                     </item>
@@ -488,6 +488,9 @@
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>
+                      </property>
+                      <property name="displayFormat">
+                       <string>dd/MM/yyyy HH:mm:ss</string>
                       </property>
                       <property name="calendarPopup">
                        <bool>true</bool>

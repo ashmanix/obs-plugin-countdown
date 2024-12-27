@@ -1,6 +1,8 @@
 #ifndef ASHMANIXTIMER_H
 #define ASHMANIXTIMER_H
 
+#include <algorithm>
+
 #include <QWidget>
 #include <QDateTime>
 #include <QTabWidget>
@@ -9,6 +11,7 @@
 #include <QTimer>
 #include <QUuid>
 #include <QCryptographicHash>
+#include <QSpinBox>
 
 #include <obs.h>
 #include <obs.hpp>
@@ -31,10 +34,8 @@ class AshmanixTimer : public QWidget {
 	Q_OBJECT
 
 public:
-	explicit AshmanixTimer(QWidget *parent = nullptr,
-			       obs_websocket_vendor vendor = nullptr,
-			       obs_data_t *savedData = nullptr,
-			       CountdownDockWidget *mDockWidget = nullptr);
+	explicit AshmanixTimer(QWidget *parent = nullptr, obs_websocket_vendor vendor = nullptr,
+			       obs_data_t *savedData = nullptr, CountdownDockWidget *mDockWidget = nullptr);
 	~AshmanixTimer();
 
 	void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject);
@@ -47,8 +48,7 @@ public:
 	void SetIsUpButtonDisabled(bool isDisabled);
 	void SetIsDownButtonDisabled(bool isDisabled);
 	void SetTimerData();
-	bool AlterTime(WebsocketRequestType requestType,
-		       long long timeInMillis);
+	bool AlterTime(WebsocketRequestType requestType, const char *stringTime);
 
 	void PressPlayButton();
 	void PressResetButton();
@@ -68,16 +68,11 @@ private:
 	QSpacerItem *deleteButtonSpacer;
 	CountdownDockWidget *mainDockWidget;
 
-	static inline const char *TIMERSTARTHOTKEYNAME =
-		"Ashmanix_Countdown_Timer_Start";
-	static inline const char *TIMERPAUSEHOTKEYNAME =
-		"Ashmanix_Countdown_Timer_Pause";
-	static inline const char *TIMERSETHOTKEYNAME =
-		"Ashmanix_Countdown_Timer_Set";
-	static inline const char *TIMERTOTIMESTARTHOTKEYNAME =
-		"Ashmanix_Countdown_Timer_To_Time_Start";
-	static inline const char *TIMERTOTIMESTOPHOTKEYNAME =
-		"Ashmanix_Countdown_Timer_To_Time_Stop";
+	static inline const char *TIMERSTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_Start";
+	static inline const char *TIMERPAUSEHOTKEYNAME = "Ashmanix_Countdown_Timer_Pause";
+	static inline const char *TIMERSETHOTKEYNAME = "Ashmanix_Countdown_Timer_Set";
+	static inline const char *TIMERTOTIMESTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Start";
+	static inline const char *TIMERTOTIMESTOPHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Stop";
 
 	TimerWidgetStruct countdownTimerData;
 	Ui::AshmanixTimer *ui;
@@ -86,8 +81,7 @@ private:
 	void SetupTimerWidgetUI();
 	void ConnectUISignalHandlers();
 
-	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis,
-							bool showLeadingZero);
+	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
 	void StartTimerCounting();
 	void StopTimerCounting();
 	void InitialiseTimerTime();
@@ -104,16 +98,17 @@ private:
 	void RegisterAllHotkeys(obs_data_t *saved_data);
 	void UnregisterAllHotkeys();
 
-	std::string GetFullHotkeyName(std::string nameString,
-				      const char *joinText = "_");
+	std::string GetFullHotkeyName(std::string nameString, const char *joinText = "_");
 
 	void UpdateTimeDisplayTooltip();
+	bool AddTime(const char *stringTime, bool isCountingUp);
+	bool SetTime(const char *stringTime, bool isCountingUp);
+	void UpdateTimerPeriod(PeriodData periodData);
 
 signals:
-	void RequestTimerReset();
+	void RequestTimerReset(bool restartOnly = false);
 	void RequestDelete(QString id);
-	void RequestSendWebsocketEvent(const char *eventName,
-				       obs_data_t *eventData);
+	void RequestSendWebsocketEvent(const char *eventName, obs_data_t *eventData);
 	void MoveTimer(QString direction, QString timerId);
 
 public slots:
@@ -129,12 +124,12 @@ private slots:
 	void DeleteButtonClicked();
 
 	void TimerAdjust();
-	void HandleTimerReset();
+	void HandleTimerReset(bool restartOnly = false);
 
-	void DaysChanged(QString newText);
-	void HoursChanged(QString newText);
-	void MinutesChanged(QString newText);
-	void SecondsChanged(QString newText);
+	void DaysChanged(int newValue);
+	void HoursChanged(int newValue);
+	void MinutesChanged(int newValue);
+	void SecondsChanged(int newValue);
 	void DateTimeChanged(QDateTime newDateTime);
 	void EmitMoveTimerDownSignal();
 	void EmitMoveTimerUpSignal();

@@ -489,6 +489,9 @@
                       <property name="alignment">
                        <set>Qt::AlignCenter</set>
                       </property>
+                      <property name="displayFormat">
+                       <string>dd/MM/yyyy HH:mm:ss</string>
+                      </property>
                       <property name="calendarPopup">
                        <bool>true</bool>
                       </property>

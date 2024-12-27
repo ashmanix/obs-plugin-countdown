@@ -250,8 +250,7 @@ bool AshmanixTimer::AlterTime(WebsocketRequestType requestType, const char *stri
 	// 	UpdateDateTimeDisplay(new_time);
 	// 	result = true;
 	// }
-	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
-	emit RequestTimerReset();
+	// emit RequestTimerReset();
 	return result;
 }
 
@@ -261,37 +260,38 @@ bool AshmanixTimer::AddTime(const char *stringTime, bool isCountingUp)
 	QDateTime currentDateTime = QDateTime::currentDateTime();
 
 	if (countdownTimerData.selectedCountdownType == PERIOD) {
-		if (isCountingUp) {
-			PeriodData periodData = ConvertStringPeriodToPeriodData(stringTime);
-			countdownTimerData.periodDays = std::max((countdownTimerData.periodDays + periodData.days), 0);
-			countdownTimerData.periodHours =
-				std::max((countdownTimerData.periodHours + periodData.hours), 0);
-			countdownTimerData.periodMinutes =
-				std::max((countdownTimerData.periodMinutes + periodData.minutes), 0);
-			countdownTimerData.periodSeconds =
-				std::max((countdownTimerData.periodSeconds + periodData.seconds), 0);
+		long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
+		long long uiPeriodInMillis = GetMillisFromPeriodUI();
+		uiPeriodInMillis = std::max((uiPeriodInMillis + timeInMillis), 0ll);
 
-			ui->timerDays->setText(QString::number(countdownTimerData.periodDays));
-			ui->timerHours->setText(QString::number(countdownTimerData.periodHours));
-			ui->timerMinutes->setText(QString::number(countdownTimerData.periodMinutes));
-			ui->timerSeconds->setText(QString::number(countdownTimerData.periodSeconds));
+		PeriodData periodData = ConvertMillisToPeriodData(uiPeriodInMillis);
+		countdownTimerData.periodDays = periodData.days;
+		countdownTimerData.periodHours = periodData.hours;
+		countdownTimerData.periodMinutes = periodData.minutes;
+		countdownTimerData.periodSeconds = periodData.seconds;
 
-			result = true;
-		} else {
-			long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
+		ui->timerDays->setText(QString::number(countdownTimerData.periodDays));
+		ui->timerHours->setText(QString::number(countdownTimerData.periodHours));
+		ui->timerMinutes->setText(QString::number(countdownTimerData.periodMinutes));
+		ui->timerSeconds->setText(QString::number(countdownTimerData.periodSeconds));
+
+		if (!isCountingUp) {
 			countdownTimerData.timeAtTimerStart =
 				countdownTimerData.timeAtTimerStart.addMSecs(timeInMillis);
+			UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
+		} else {
 			countdownTimerData.timeLeftInMillis =
 				std::max((countdownTimerData.timeLeftInMillis + timeInMillis), 0ll);
-			result = true;
 		}
+
+		result = true;
 	} else if (countdownTimerData.selectedCountdownType == DATETIME) {
 		long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
 		QDateTime updatedDateTime;
 		updatedDateTime = ui->dateTimeEdit->dateTime().addMSecs(timeInMillis);
 		ui->dateTimeEdit->setDateTime(updatedDateTime);
 		countdownTimerData.timeLeftInMillis =
-				std::max((countdownTimerData.timeLeftInMillis + timeInMillis), 0ll);
+			std::max((countdownTimerData.timeLeftInMillis + timeInMillis), 0ll);
 		result = true;
 	}
 	return result;
@@ -305,6 +305,10 @@ bool AshmanixTimer::SetTime(const char *stringTime, bool isCountingUp)
 	long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
 	long long timeToAdd = countdownTimerData.shouldCountUp ? -timeInMillis : timeInMillis;
 	if (countdownTimerData.selectedCountdownType == PERIOD) {
+		if (isCountingUp) {
+
+		} else {
+		}
 		countdownTimerData.timeAtTimerStart = currentDateTime.addMSecs(timeToAdd);
 		result = true;
 	} else if (countdownTimerData.selectedCountdownType == DATETIME) {
@@ -314,6 +318,7 @@ bool AshmanixTimer::SetTime(const char *stringTime, bool isCountingUp)
 		ui->dateTimeEdit->setDateTime(updatedDateTime);
 		result = true;
 	}
+	countdownTimerData.timeLeftInMillis = std::max((countdownTimerData.timeLeftInMillis + timeInMillis), 0ll);
 	return result;
 }
 

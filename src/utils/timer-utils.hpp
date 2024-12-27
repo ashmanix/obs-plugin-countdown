@@ -74,6 +74,7 @@ struct Result {
 
 const char *ConvertToConstChar(QString value);
 PeriodData ConvertStringPeriodToPeriodData(const char *time_string);
+PeriodData ConvertMillisToPeriodData(long long timeInMillis);
 long long ConvertStringPeriodToMillis(const char *time_string);
 QString ConvertMillisToDateTimeString(long long timeInMillis);
 QString GetFormattedTimerString(bool daysState, bool hoursState, bool minutesState, bool secondsState,

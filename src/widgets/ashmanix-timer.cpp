@@ -225,7 +225,7 @@ bool AshmanixTimer::AddTime(const char *stringTime, bool isCountingUp)
 		result = true;
 	} else if (countdownTimerData.selectedCountdownType == DATETIME) {
 		QDateTime updatedDateTime;
-		updatedDateTime = ui->dateTimeEdit->dateTime().addMSecs(timeInMillis);
+		updatedDateTime = ui->dateTimeEdit->dateTime().addMSecs(timeInMillis + TIMERPERIOD);
 		ui->dateTimeEdit->setDateTime(updatedDateTime);
 		result = true;
 	}

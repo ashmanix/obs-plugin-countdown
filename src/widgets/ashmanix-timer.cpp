@@ -190,9 +190,6 @@ void AshmanixTimer::SetTimerData()
 bool AshmanixTimer::AlterTime(WebsocketRequestType requestType, const char *stringTime)
 {
 	bool result = false;
-	// QDateTime currentDateTime = QDateTime::currentDateTime();
-	// long long timeToAdd = countdownTimerData.shouldCountUp ? -timeInMillis
-	// 						       : timeInMillis;
 
 	switch (requestType) {
 	case ADD_TIME:
@@ -205,52 +202,6 @@ bool AshmanixTimer::AlterTime(WebsocketRequestType requestType, const char *stri
 		return false;
 		break;
 	}
-
-	// if (countdownTimerData.selectedCountdownType == PERIOD) {
-	// 	switch (requestType) {
-	// 	case ADD_TIME:
-	// 		countdownTimerData.timeAtTimerStart =
-	// 			countdownTimerData.timeAtTimerStart.addMSecs(
-	// 				timeToAdd);
-	// 		countdownTimerData.timeLeftInMillis =
-	// 			countdownTimerData.timeLeftInMillis +
-	// 			timeInMillis;
-	// 		break;
-	// 	case SET_TIME:
-	// 		countdownTimerData.timeAtTimerStart =
-	// 			currentDateTime.addMSecs(timeToAdd);
-	// 		break;
-	// 	default:
-	// 		return false;
-	// 		break;
-	// 	}
-
-	// 	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
-	// 	result = true;
-	// } else if (countdownTimerData.selectedCountdownType == DATETIME) {
-	// 	QDateTime updatedDateTime;
-
-	// 	switch (requestType) {
-	// 	case ADD_TIME:
-	// 		updatedDateTime = ui->dateTimeEdit->dateTime().addMSecs(
-	// 			timeInMillis);
-	// 		ui->dateTimeEdit->setDateTime(updatedDateTime);
-	// 		break;
-	// 	case SET_TIME:
-	// 		updatedDateTime = QDateTime::currentDateTime().addMSecs(
-	// 			timeInMillis);
-	// 		ui->dateTimeEdit->setDateTime(updatedDateTime);
-	// 		break;
-	// 	default:
-	// 		return false;
-	// 		break;
-	// 	}
-	// 	long long new_time = CalcToCurrentDateTimeInMillis(
-	// 		ui->dateTimeEdit->dateTime(), TIMERPERIOD);
-	// 	UpdateDateTimeDisplay(new_time);
-	// 	result = true;
-	// }
-	// emit RequestTimerReset();
 	return result;
 }
 
@@ -260,6 +211,10 @@ bool AshmanixTimer::AddTime(const char *stringTime, bool isCountingUp)
 	QDateTime currentDateTime = QDateTime::currentDateTime();
 	long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
 
+	long long newTimeLeftInMillis = std::max((countdownTimerData.timeLeftInMillis + timeInMillis), 0ll);
+
+	// obs_log(LOG_INFO, "timeinMillis: %lld", timeInMillis);
+
 	if (countdownTimerData.selectedCountdownType == PERIOD) {
 		long long uiPeriodInMillis = GetMillisFromPeriodUI();
 		uiPeriodInMillis = std::max((uiPeriodInMillis + timeInMillis), 0ll);
@@ -267,24 +222,20 @@ bool AshmanixTimer::AddTime(const char *stringTime, bool isCountingUp)
 		PeriodData periodData = ConvertMillisToPeriodData(uiPeriodInMillis);
 		UpdateTimerPeriod(periodData);
 
-		if (!isCountingUp) {
-			countdownTimerData.timeAtTimerStart =
-				countdownTimerData.timeAtTimerStart.addMSecs(timeInMillis);
-			UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
-		} else {
-			countdownTimerData.timeLeftInMillis =
-				std::max((countdownTimerData.timeLeftInMillis + timeInMillis), 0ll);
-		}
-
 		result = true;
 	} else if (countdownTimerData.selectedCountdownType == DATETIME) {
 		QDateTime updatedDateTime;
 		updatedDateTime = ui->dateTimeEdit->dateTime().addMSecs(timeInMillis);
 		ui->dateTimeEdit->setDateTime(updatedDateTime);
-		countdownTimerData.timeLeftInMillis =
-			std::max((countdownTimerData.timeLeftInMillis + timeInMillis), 0ll);
 		result = true;
 	}
+
+	if (!isCountingUp) {
+		countdownTimerData.timeAtTimerStart = countdownTimerData.timeAtTimerStart.addMSecs(timeInMillis);
+		UpdateDateTimeDisplay(newTimeLeftInMillis);
+		emit RequestTimerReset(true);
+	}
+
 	return result;
 }
 
@@ -887,21 +838,25 @@ void AshmanixTimer::TimerAdjust()
 	}
 }
 
-void AshmanixTimer::HandleTimerReset()
+void AshmanixTimer::HandleTimerReset(bool restartOnly)
 {
 	if (countdownTimerData.timer && countdownTimerData.timer->isActive()) {
-		switch (countdownTimerData.selectedCountdownType) {
-		case PERIOD:
-			ResetButtonClicked();
-			PlayButtonClicked();
-			break;
+		if (restartOnly) {
+			countdownTimerData.timer->start();
+		} else {
+			switch (countdownTimerData.selectedCountdownType) {
+			case PERIOD:
+				ResetButtonClicked();
+				PlayButtonClicked();
+				break;
 
-		case DATETIME:
-			ToTimePlayButtonClicked();
-			break;
+			case DATETIME:
+				ToTimePlayButtonClicked();
+				break;
 
-		default:
-			break;
+			default:
+				break;
+			}
 		}
 	}
 }

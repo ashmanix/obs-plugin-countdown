@@ -578,7 +578,7 @@ void AshmanixTimer::SendTimerTickEvent(QString timerId, long long timeLeftInMill
 	obs_data_set_string(eventData, "time_display", timeString.toStdString().c_str());
 	obs_data_set_int(eventData, "time_left_ms", timeLeftInMillis);
 
-	emit RequestSendWebsocketEvent("const char *eventName", eventData);
+	emit RequestSendWebsocketEvent("timer_tick", eventData);
 	obs_data_release(eventData);
 }
 

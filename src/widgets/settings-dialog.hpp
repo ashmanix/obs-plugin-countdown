@@ -55,6 +55,7 @@ private slots:
 	void FormChangeDetected();
 	void EndMessageCheckBoxSelected(int state);
 	void SceneSwitchCheckBoxSelected(int state);
+	void FormatOutputCheckBoxSelected(int state);
 	void ApplyButtonClicked();
 	void CancelButtonClicked();
 	void OkButtonClicked();

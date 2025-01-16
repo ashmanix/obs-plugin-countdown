@@ -46,6 +46,9 @@ struct TimerWidgetStruct {
 	bool showEndMessage = false;
 	bool showEndScene = false;
 
+	bool useFormattedOutput = false;
+	QString outputStringFormat = "Will be back in %time% see you soon!";
+
 	long long timeLeftInMillis = 0;
 	QDateTime timeAtTimerStart;
 	CountdownType selectedCountdownType = PERIOD;

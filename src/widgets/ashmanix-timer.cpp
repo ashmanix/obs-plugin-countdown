@@ -75,6 +75,8 @@ void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject)
 	obs_data_set_string(dataObject, "outputStringFormat",
 			    countdownTimerData.outputStringFormat.toStdString().c_str());
 
+	obs_data_set_bool(dataObject, "smoothenPeriodTimer", countdownTimerData.smoothenPeriodTimer);
+
 	obs_data_set_int(dataObject, "selectedCountdownType", countdownTimerData.selectedCountdownType);
 
 	obs_data_set_int(dataObject, "timeLeftInMillis", countdownTimerData.timeLeftInMillis);
@@ -125,6 +127,8 @@ void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
 
 	countdownTimerData.useFormattedOutput = (bool)obs_data_get_bool(dataObject, "useFormattedOutput");
 	countdownTimerData.outputStringFormat = (char *)obs_data_get_string(dataObject, "outputStringFormat");
+
+	countdownTimerData.smoothenPeriodTimer = (bool)obs_data_get_bool(dataObject, "smoothenPeriodTimer");
 
 	countdownTimerData.selectedCountdownType = (CountdownType)obs_data_get_int(dataObject, "selectedCountdownType");
 
@@ -481,7 +485,7 @@ void AshmanixTimer::StartTimerCounting()
 	ui->dateTimeEdit->setEnabled(false);
 
 	if (settingsDialogUi)
-		settingsDialogUi->SetCountUpCheckBoxEnabled(false);
+		settingsDialogUi->ToggleCounterCheckBoxes(false);
 
 	SendTimerStateEvent(countdownTimerData.timerId, "started");
 }
@@ -507,7 +511,7 @@ void AshmanixTimer::StopTimerCounting()
 	ui->dateTimeEdit->setEnabled(true);
 
 	if (settingsDialogUi)
-		settingsDialogUi->SetCountUpCheckBoxEnabled(true);
+		settingsDialogUi->ToggleCounterCheckBoxes(true);
 
 	SendTimerStateEvent(countdownTimerData.timerId, "stopped");
 }
@@ -782,8 +786,12 @@ void AshmanixTimer::TimerAdjust()
 		// Counting down
 		if (countdownTimerData.selectedCountdownType == PERIOD) {
 			// If selected tab is period
-			timerPeriodMillis = static_cast<long long>(
-				QDateTime::currentDateTime().msecsTo(countdownTimerData.timeAtTimerStart));
+			if (countdownTimerData.smoothenPeriodTimer) {
+				timerPeriodMillis -= TIMERPERIOD;
+			} else {
+				timerPeriodMillis = static_cast<long long>(
+					QDateTime::currentDateTime().msecsTo(countdownTimerData.timeAtTimerStart));
+			}
 		} else {
 			// If selected tab is datetime
 			timerPeriodMillis = static_cast<long long>(
@@ -796,8 +804,12 @@ void AshmanixTimer::TimerAdjust()
 
 		// Check if we need to end timer
 		if (countdownTimerData.selectedCountdownType == PERIOD) {
-			timerPeriodMillis = static_cast<long long>(
-				countdownTimerData.timeAtTimerStart.msecsTo(QDateTime::currentDateTime()));
+			if (countdownTimerData.smoothenPeriodTimer) {
+				timerPeriodMillis += TIMERPERIOD;
+			} else {
+				timerPeriodMillis = static_cast<long long>(
+					countdownTimerData.timeAtTimerStart.msecsTo(QDateTime::currentDateTime()));
+			}
 			// If selected tab is period
 			if (timerPeriodMillis >= GetMillisFromPeriodUI())
 				endTimer = true;
@@ -1000,10 +1012,16 @@ void AshmanixTimer::UpdateTimeDisplayTooltip()
 	detailsTooltip += obs_module_text("CountUpCheckBoxLabel");
 	detailsTooltip += " : ";
 	detailsTooltip += countdownTimerData.shouldCountUp ? "✓" : "-";
+	detailsTooltip += "\n";
 
 	detailsTooltip += obs_module_text("DialogFormatOutputLabel");
 	detailsTooltip += " : ";
 	detailsTooltip += countdownTimerData.useFormattedOutput ? "✓" : "-";
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("DialogSmoothTimerLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.smoothenPeriodTimer ? "✓" : "-";
 
 	ui->timeDisplay->setToolTip(detailsTooltip);
 }

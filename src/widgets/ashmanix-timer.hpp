@@ -84,7 +84,7 @@ private:
 	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
 	void StartTimerCounting();
 	void StopTimerCounting();
-	void InitialiseTimerTime();
+	void InitialiseTimerTime(bool setTimeLeftToUI = true);
 	bool IsSetTimeZero();
 
 	void UpdateDateTimeDisplay(long long timeInMillis);

@@ -71,6 +71,10 @@ void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject)
 	obs_data_set_bool(dataObject, "showEndMessage", countdownTimerData.showEndMessage);
 	obs_data_set_bool(dataObject, "showEndScene", countdownTimerData.showEndScene);
 
+	obs_data_set_bool(dataObject, "useFormattedOutput", countdownTimerData.useFormattedOutput);
+	obs_data_set_string(dataObject, "outputStringFormat",
+			    countdownTimerData.outputStringFormat.toStdString().c_str());
+
 	obs_data_set_int(dataObject, "selectedCountdownType", countdownTimerData.selectedCountdownType);
 
 	obs_data_set_int(dataObject, "timeLeftInMillis", countdownTimerData.timeLeftInMillis);
@@ -118,6 +122,10 @@ void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
 	countdownTimerData.showSeconds = (bool)obs_data_get_bool(dataObject, "showSeconds");
 	countdownTimerData.showEndMessage = (bool)obs_data_get_bool(dataObject, "showEndMessage");
 	countdownTimerData.showEndScene = (bool)obs_data_get_bool(dataObject, "showEndScene");
+
+	countdownTimerData.useFormattedOutput = (bool)obs_data_get_bool(dataObject, "useFormattedOutput");
+	countdownTimerData.outputStringFormat = (char *)obs_data_get_string(dataObject, "outputStringFormat");
+
 	countdownTimerData.selectedCountdownType = (CountdownType)obs_data_get_int(dataObject, "selectedCountdownType");
 
 	countdownTimerData.timeLeftInMillis = (long long)obs_data_get_int(dataObject, "timeLeftInMillis");
@@ -529,11 +537,20 @@ bool AshmanixTimer::IsSetTimeZero()
 
 void AshmanixTimer::UpdateDateTimeDisplay(long long timeInMillis)
 {
+
 	long long timeToUpdateInMillis = std::max(timeInMillis, 0ll);
 	ui->timeDisplay->display(ConvertMillisToDateTimeString(timeToUpdateInMillis));
 	QString formattedDisplayTime =
 		ConvertDateTimeToFormattedDisplayString(timeToUpdateInMillis, countdownTimerData.showLeadingZero);
-	SetSourceText(formattedDisplayTime);
+
+	QString outputString = formattedDisplayTime;
+
+	if (countdownTimerData.useFormattedOutput) {
+		outputString = countdownTimerData.outputStringFormat;
+		outputString.replace(TIMETEMPLATECODE, formattedDisplayTime);
+	}
+
+	SetSourceText(outputString);
 }
 
 void AshmanixTimer::SetSourceText(QString newText)
@@ -812,7 +829,12 @@ void AshmanixTimer::TimerAdjust()
 
 	if (endTimer == true) {
 		if (countdownTimerData.showEndMessage) {
-			SetSourceText(countdownTimerData.endMessage.toStdString().c_str());
+			QString outputEndMessageString = countdownTimerData.endMessage;
+			QString timeString = ConvertDateTimeToFormattedDisplayString(
+				countdownTimerData.timeLeftInMillis, countdownTimerData.showLeadingZero);
+			outputEndMessageString.replace(TIMETEMPLATECODE, timeString);
+
+			SetSourceText(outputEndMessageString.toStdString().c_str());
 		}
 		if (countdownTimerData.showEndScene) {
 			SetCurrentScene();
@@ -978,6 +1000,10 @@ void AshmanixTimer::UpdateTimeDisplayTooltip()
 	detailsTooltip += obs_module_text("CountUpCheckBoxLabel");
 	detailsTooltip += " : ";
 	detailsTooltip += countdownTimerData.shouldCountUp ? "✓" : "-";
+
+	detailsTooltip += obs_module_text("DialogFormatOutputLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.useFormattedOutput ? "✓" : "-";
 
 	ui->timeDisplay->setToolTip(detailsTooltip);
 }

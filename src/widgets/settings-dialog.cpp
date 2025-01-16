@@ -77,6 +77,9 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 	ui->sceneSourceDropdownList->setToolTip(obs_module_text("SceneSourceDropdownTip"));
 	ui->sceneSourceDropdownList->addItem("");
 
+	ui->formatOutputCheckBox->setText(obs_module_text("DialogFormatOutputLabel"));
+	ui->formatOutputCheckBox->setToolTip(obs_module_text("FormatOutputTip"));
+
 	ui->generalGroupBox->setTitle(obs_module_text("DialogGeneralGroupBoxTitle"));
 	ui->timerStartGroupBox->setTitle(obs_module_text("DialogTimerStartGroupBoxTitle"));
 	ui->timerEndGroupBox->setTitle(obs_module_text("DialogTimerEndGroupBoxTitle"));
@@ -136,6 +139,11 @@ void SettingsDialog::ConnectUISignalHandlers()
 
 	QObject::connect(ui->endMessageCheckBox, &QCheckBox::stateChanged, this,
 			 &SettingsDialog::EndMessageCheckBoxSelected);
+
+	QObject::connect(ui->formatOutputCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::FormatOutputCheckBoxSelected);
+
+	QObject::connect(ui->formatOutputLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
 
 	QObject::connect(ui->endMessageLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
 
@@ -226,6 +234,9 @@ void SettingsDialog::ApplyFormChanges()
 		timerData->showSeconds = ui->secondsCheckBox->isChecked();
 		timerData->showLeadingZero = ui->leadZeroCheckBox->isChecked();
 
+		timerData->useFormattedOutput = ui->formatOutputCheckBox->isChecked();
+		timerData->outputStringFormat = ui->formatOutputLineEdit->text();
+
 		timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
 
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
@@ -263,6 +274,11 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 		ui->endMessageCheckBox->setChecked(settingsDialogData->showEndMessage);
 		ui->endMessageLineEdit->setEnabled(settingsDialogData->showEndMessage);
 		ui->endMessageLineEdit->setText(settingsDialogData->endMessage);
+
+		ui->formatOutputCheckBox->setChecked(settingsDialogData->useFormattedOutput);
+		ui->formatOutputLineEdit->setText(settingsDialogData->outputStringFormat);
+		if (!settingsDialogData->useFormattedOutput)
+			ui->formatOutputLineEdit->setEnabled(false);
 
 		ui->switchSceneCheckBox->setChecked(settingsDialogData->showEndScene);
 		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->showEndScene);
@@ -392,6 +408,16 @@ void SettingsDialog::SceneSwitchCheckBoxSelected(int state)
 		ui->sceneSourceDropdownList->setEnabled(true);
 	} else {
 		ui->sceneSourceDropdownList->setEnabled(false);
+	}
+	FormChangeDetected();
+}
+
+void SettingsDialog::FormatOutputCheckBoxSelected(int state)
+{
+	if (state) {
+		ui->formatOutputLineEdit->setEnabled(true);
+	} else {
+		ui->formatOutputLineEdit->setEnabled(false);
 	}
 	FormChangeDetected();
 }

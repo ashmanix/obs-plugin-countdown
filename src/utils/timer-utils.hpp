@@ -47,7 +47,7 @@ struct TimerWidgetStruct {
 	bool showEndScene = false;
 
 	bool useFormattedOutput = false;
-	QString outputStringFormat = "Will be back in \%time\% see you soon!";
+	QString outputStringFormat = "Will be back in %time% see you soon!";
 
 	long long timeLeftInMillis = 0;
 	QDateTime timeAtTimerStart;

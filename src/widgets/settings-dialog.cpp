@@ -27,9 +27,10 @@ SettingsDialog::~SettingsDialog()
 	this->deleteLater();
 }
 
-void SettingsDialog::SetCountUpCheckBoxEnabled(bool isEnabled)
+void SettingsDialog::ToggleCounterCheckBoxes(bool isEnabled)
 {
 	ui->countUpCheckBox->setEnabled(isEnabled);
+	ui->smoothPeriodTimerCheckBox->setEnabled(isEnabled);
 }
 
 void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
@@ -79,6 +80,9 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 
 	ui->formatOutputCheckBox->setText(obs_module_text("DialogFormatOutputLabel"));
 	ui->formatOutputCheckBox->setToolTip(obs_module_text("FormatOutputTip"));
+
+	ui->smoothPeriodTimerCheckBox->setText(obs_module_text("DialogSmoothTimerLabel"));
+	ui->smoothPeriodTimerCheckBox->setToolTip(obs_module_text("SmoothPeriodTimerTip"));
 
 	ui->generalGroupBox->setTitle(obs_module_text("DialogGeneralGroupBoxTitle"));
 	ui->timerStartGroupBox->setTitle(obs_module_text("DialogTimerStartGroupBoxTitle"));
@@ -159,6 +163,9 @@ void SettingsDialog::ConnectUISignalHandlers()
 
 	QObject::connect(ui->countUpCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
 
+	QObject::connect(ui->smoothPeriodTimerCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::FormChangeDetected);
+
 	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::accepted, this, &SettingsDialog::OkButtonClicked);
 
 	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::rejected, this, &SettingsDialog::CancelButtonClicked);
@@ -237,6 +244,8 @@ void SettingsDialog::ApplyFormChanges()
 		timerData->useFormattedOutput = ui->formatOutputCheckBox->isChecked();
 		timerData->outputStringFormat = ui->formatOutputLineEdit->text();
 
+		timerData->smoothenPeriodTimer = ui->smoothPeriodTimerCheckBox->isChecked();
+
 		timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
 
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
@@ -279,6 +288,8 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 		ui->formatOutputLineEdit->setText(settingsDialogData->outputStringFormat);
 		if (!settingsDialogData->useFormattedOutput)
 			ui->formatOutputLineEdit->setEnabled(false);
+
+		ui->smoothPeriodTimerCheckBox->setChecked(settingsDialogData->smoothenPeriodTimer);
 
 		ui->switchSceneCheckBox->setChecked(settingsDialogData->showEndScene);
 		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->showEndScene);

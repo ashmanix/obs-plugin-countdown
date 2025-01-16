@@ -22,7 +22,7 @@ public:
 				CountdownDockWidget *mWidget = nullptr);
 	~SettingsDialog();
 
-	void SetCountUpCheckBoxEnabled(bool isEnabled);
+	void ToggleCounterCheckBoxes(bool isEnabled);
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };

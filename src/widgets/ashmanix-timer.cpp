@@ -16,8 +16,18 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor, ob
 
 	ui->setupUi(this);
 
+	this->setProperty("id", countdownTimerData.timerId);
+
+	vendor = &newVendor;
+
+	SetupTimerWidgetUI();
+
+	ConnectUISignalHandlers();
+
 	if (savedData) {
 		LoadTimerWidgetDataFromOBSSaveData(savedData);
+	} else {
+		InitialiseTimerTime();
 	}
 
 	if (countdownTimerData.timerId.size() == 0) {
@@ -27,16 +37,6 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor, ob
 		countdownTimerData.timerId =
 			QString(hash.toHex().left(8)); // We take the first 8 characters of the hash
 	}
-
-	this->setProperty("id", countdownTimerData.timerId);
-
-	vendor = &newVendor;
-
-	SetupTimerWidgetUI();
-
-	ConnectUISignalHandlers();
-
-	InitialiseTimerTime();
 
 	RegisterAllHotkeys(savedData);
 }
@@ -72,6 +72,8 @@ void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject)
 	obs_data_set_bool(dataObject, "showEndScene", countdownTimerData.showEndScene);
 
 	obs_data_set_int(dataObject, "selectedCountdownType", countdownTimerData.selectedCountdownType);
+
+	obs_data_set_int(dataObject, "timeLeftInMillis", countdownTimerData.timeLeftInMillis);
 
 	// ------------------------- Hotkeys -------------------------
 	SaveHotkey(dataObject, countdownTimerData.startCountdownHotkeyId, TIMERSTARTHOTKEYNAME);
@@ -117,6 +119,8 @@ void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
 	countdownTimerData.showEndMessage = (bool)obs_data_get_bool(dataObject, "showEndMessage");
 	countdownTimerData.showEndScene = (bool)obs_data_get_bool(dataObject, "showEndScene");
 	countdownTimerData.selectedCountdownType = (CountdownType)obs_data_get_int(dataObject, "selectedCountdownType");
+
+	countdownTimerData.timeLeftInMillis = (long long)obs_data_get_int(dataObject, "timeLeftInMillis");
 	countdownTimerData.startCountdownHotkeyId = (int)obs_data_get_int(dataObject, "startCountdownHotkeyId");
 	countdownTimerData.pauseCountdownHotkeyId = (int)obs_data_get_int(dataObject, "pauseCountdownHotkeyId");
 	countdownTimerData.setCountdownHotkeyId = (int)obs_data_get_int(dataObject, "setCountdownHotkeyId");
@@ -174,8 +178,6 @@ void AshmanixTimer::SetIsDownButtonDisabled(bool isDisabled)
 
 void AshmanixTimer::SetTimerData()
 {
-	ui->timerNameLabel->setText(QString("Timer: %1").arg(countdownTimerData.timerId));
-
 	ui->dateTimeEdit->setDateTime(countdownTimerData.dateTime);
 
 	ui->timerDays->setValue(countdownTimerData.periodDays);
@@ -184,7 +186,9 @@ void AshmanixTimer::SetTimerData()
 	ui->timerSeconds->setValue(countdownTimerData.periodSeconds);
 
 	ui->timerNameLabel->setText(QString("Timer: %1").arg(countdownTimerData.timerId));
-	InitialiseTimerTime();
+
+	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
+	InitialiseTimerTime(false);
 }
 
 bool AshmanixTimer::AlterTime(WebsocketRequestType requestType, const char *stringTime)
@@ -500,13 +504,13 @@ void AshmanixTimer::StopTimerCounting()
 	SendTimerStateEvent(countdownTimerData.timerId, "stopped");
 }
 
-void AshmanixTimer::InitialiseTimerTime()
+void AshmanixTimer::InitialiseTimerTime(bool setTimeLeftToUI)
 {
 	countdownTimerData.timer = new QTimer();
 	QObject::connect(countdownTimerData.timer, SIGNAL(timeout()), SLOT(TimerAdjust()));
 	QObject::connect(this, &AshmanixTimer::RequestTimerReset, this, &AshmanixTimer::HandleTimerReset);
-
-	countdownTimerData.timeLeftInMillis = GetMillisFromPeriodUI();
+	if (setTimeLeftToUI)
+		countdownTimerData.timeLeftInMillis = GetMillisFromPeriodUI();
 }
 
 bool AshmanixTimer::IsSetTimeZero()

@@ -163,7 +163,8 @@ void SettingsDialog::ConnectUISignalHandlers()
 
 	QObject::connect(ui->countUpCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->smoothPeriodTimerCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->smoothPeriodTimerCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
 	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::accepted, this, &SettingsDialog::OkButtonClicked);
 

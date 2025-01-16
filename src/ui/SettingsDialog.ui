@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>445</width>
-    <height>706</height>
+    <width>452</width>
+    <height>751</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -63,8 +63,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>421</width>
-           <height>640</height>
+           <width>428</width>
+           <height>685</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -492,6 +492,33 @@
                </item>
                <item>
                 <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QCheckBox" name="smoothPeriodTimerCheckBox">
+                 <property name="text">
+                  <string>smooth period timer</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_2">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>

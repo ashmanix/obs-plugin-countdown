@@ -199,6 +199,8 @@ void AshmanixTimer::SetTimerData()
 
 	ui->timerNameLabel->setText(QString("Timer: %1").arg(countdownTimerData.timerId));
 
+	ToggleTimeType(countdownTimerData.selectedCountdownType);
+
 	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
 	InitialiseTimerTime(false);
 }

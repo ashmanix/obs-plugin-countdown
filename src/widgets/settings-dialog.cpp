@@ -132,38 +132,39 @@ void SettingsDialog::ConnectUISignalHandlers()
 	QObject::connect(ui->textSourceDropdownList, &QComboBox::currentTextChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->startOnStreamStartCheckBox, &QCheckBox::stateChanged, this,
+	QObject::connect(ui->startOnStreamStartCheckBox, &QCheckBox::checkStateChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->switchSceneCheckBox, &QCheckBox::stateChanged, this,
+	QObject::connect(ui->switchSceneCheckBox, &QCheckBox::checkStateChanged, this,
 			 &SettingsDialog::SceneSwitchCheckBoxSelected);
 
 	QObject::connect(ui->sceneSourceDropdownList, &QComboBox::currentTextChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->endMessageCheckBox, &QCheckBox::stateChanged, this,
+	QObject::connect(ui->endMessageCheckBox, &QCheckBox::checkStateChanged, this,
 			 &SettingsDialog::EndMessageCheckBoxSelected);
 
-	QObject::connect(ui->formatOutputCheckBox, &QCheckBox::stateChanged, this,
+	QObject::connect(ui->formatOutputCheckBox, &QCheckBox::checkStateChanged, this,
 			 &SettingsDialog::FormatOutputCheckBoxSelected);
 
 	QObject::connect(ui->formatOutputLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
 
 	QObject::connect(ui->endMessageLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->daysCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->daysCheckBox, &QCheckBox::checkStateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->hoursCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->hoursCheckBox, &QCheckBox::checkStateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->minutesCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->minutesCheckBox, &QCheckBox::checkStateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->secondsCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->secondsCheckBox, &QCheckBox::checkStateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->leadZeroCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->leadZeroCheckBox, &QCheckBox::checkStateChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->countUpCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::FormChangeDetected);
+	QObject::connect(ui->countUpCheckBox, &QCheckBox::checkStateChanged, this, &SettingsDialog::FormChangeDetected);
 
-	QObject::connect(ui->smoothPeriodTimerCheckBox, &QCheckBox::stateChanged, this,
+	QObject::connect(ui->smoothPeriodTimerCheckBox, &QCheckBox::checkStateChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 
 	QObject::connect(ui->dialogButtonBox, &QDialogButtonBox::accepted, this, &SettingsDialog::OkButtonClicked);
@@ -403,9 +404,9 @@ void SettingsDialog::FormChangeDetected()
 	ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(true);
 }
 
-void SettingsDialog::EndMessageCheckBoxSelected(int state)
+void SettingsDialog::EndMessageCheckBoxSelected(Qt::CheckState state)
 {
-	if (state) {
+	if (state == Qt::CheckState::Checked) {
 		ui->endMessageLineEdit->setEnabled(true);
 	} else {
 		ui->endMessageLineEdit->setEnabled(false);
@@ -413,9 +414,9 @@ void SettingsDialog::EndMessageCheckBoxSelected(int state)
 	FormChangeDetected();
 }
 
-void SettingsDialog::SceneSwitchCheckBoxSelected(int state)
+void SettingsDialog::SceneSwitchCheckBoxSelected(Qt::CheckState state)
 {
-	if (state) {
+	if (state == Qt::CheckState::Checked) {
 		ui->sceneSourceDropdownList->setEnabled(true);
 	} else {
 		ui->sceneSourceDropdownList->setEnabled(false);
@@ -423,9 +424,9 @@ void SettingsDialog::SceneSwitchCheckBoxSelected(int state)
 	FormChangeDetected();
 }
 
-void SettingsDialog::FormatOutputCheckBoxSelected(int state)
+void SettingsDialog::FormatOutputCheckBoxSelected(Qt::CheckState state)
 {
-	if (state) {
+	if (state == Qt::CheckState::Checked) {
 		ui->formatOutputLineEdit->setEnabled(true);
 	} else {
 		ui->formatOutputLineEdit->setEnabled(false);

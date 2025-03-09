@@ -53,9 +53,9 @@ signals:
 
 private slots:
 	void FormChangeDetected();
-	void EndMessageCheckBoxSelected(int state);
-	void SceneSwitchCheckBoxSelected(int state);
-	void FormatOutputCheckBoxSelected(int state);
+	void EndMessageCheckBoxSelected(Qt::CheckState state);
+	void SceneSwitchCheckBoxSelected(Qt::CheckState state);
+	void FormatOutputCheckBoxSelected(Qt::CheckState state);
 	void ApplyButtonClicked();
 	void CancelButtonClicked();
 	void OkButtonClicked();

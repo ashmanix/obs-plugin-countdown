@@ -53,9 +53,15 @@ signals:
 
 private slots:
 	void FormChangeDetected();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	void EndMessageCheckBoxSelected(Qt::CheckState state);
+	void SceneSwitchCheckBoxSelected(Qt::CheckState state);
+	void FormatOutputCheckBoxSelected(Qt::CheckState state);
+#else
 	void EndMessageCheckBoxSelected(int state);
 	void SceneSwitchCheckBoxSelected(int state);
 	void FormatOutputCheckBoxSelected(int state);
+#endif
 	void ApplyButtonClicked();
 	void CancelButtonClicked();
 	void OkButtonClicked();

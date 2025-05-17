@@ -17,7 +17,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 */
 #include <countdown-widget.hpp>
 
-#include "plugin-support.h"
+#include "plugin-macros.generated.h"
 
 // void load_menu_option()
 // {
@@ -33,14 +33,16 @@ CountdownDockWidget *countdownWidget = nullptr;
 
 bool obs_module_load(void)
 {
-	const auto main_window = static_cast<QMainWindow *>(obs_frontend_get_main_window());
+	const auto main_window =
+		static_cast<QMainWindow *>(obs_frontend_get_main_window());
 	obs_frontend_push_ui_translation(obs_module_get_string);
 	countdownWidget = new CountdownDockWidget(main_window);
 
-	obs_frontend_add_dock_by_id("ashmanixCountdownWidget", obs_module_text("CountdownTimer"), countdownWidget);
+	obs_frontend_add_dock(countdownWidget);
 	obs_frontend_pop_ui_translation();
 
-	obs_log(LOG_INFO, "plugin loaded successfully (version %s)", PLUGIN_VERSION);
+	blog(LOG_INFO, "plugin loaded successfully (version %s)",
+	     PLUGIN_VERSION);
 	return true;
 }
 
@@ -51,7 +53,7 @@ void obs_module_post_load(void)
 
 void obs_module_unload()
 {
-	obs_log(LOG_INFO, "plugin unloaded");
+	blog(LOG_INFO, "plugin unloaded");
 }
 
 const char *obs_module_name(void)

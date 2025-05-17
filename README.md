@@ -1,14 +1,14 @@
-# OBS Countdown Timers Plugin
+# OBS Countdown Timer Plugin
 
 <p align="center">
-<image height="400px" src="/images/screenshot-version2.png">
+<image height="400px" src="/images/screenshotV2.png">
 </p>
 
 ## Introduction
 
-This plugin is designed to allow you to use text sources in OBS to show a countdown timer that updates in real time where you can have multiple timers. It is designed using the OBS C/C++ API and is therefore a native plugin.
+This plugin is designed to allow you to use a text source in OBS to show a countdown timer that updates in real time. It is designed using the OBS C/C++ API and is therefore a native plugin.
 
-This plugin is designed to be used with `OBS version 30` and above.
+This plugin is designed to be used with `OBS version 28` and above.
 
 ## Usage
 For usage instruction please refer to the [Wiki](https://github.com/ashmanix/obs-plugin-countdown/wiki).

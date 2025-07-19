@@ -43,7 +43,7 @@ BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
-BreakStringLiterals: false  # apparently unpredictable
+BreakStringLiterals: false # apparently unpredictable
 ColumnLimit: 120
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
@@ -54,10 +54,10 @@ DerivePointerAlignment: false
 DisableFormat: false
 FixNamespaceComments: true
 ForEachMacros:
-  - 'json_object_foreach'
-  - 'json_object_foreach_safe'
-  - 'json_array_foreach'
-  - 'HASH_ITER'
+  - "json_object_foreach"
+  - "json_object_foreach_safe"
+  - "json_array_foreach"
+  - "HASH_ITER"
 IncludeBlocks: Preserve
 IndentCaseLabels: false
 IndentPPDirectives: None
@@ -99,10 +99,10 @@ SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 StatementMacros:
-  - 'Q_OBJECT'
+  - "Q_OBJECT"
 TabWidth: 8
 TypenameMacros:
-  - 'DARRAY'
+  - "DARRAY"
 UseTab: ForContinuationAndIndentation
 ---
 Language: ObjC
@@ -120,7 +120,7 @@ AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: None
-AttributeMacros: ['__unused', '__autoreleasing', '_Nonnull', '__bridge']
+AttributeMacros: ["__unused", "__autoreleasing", "_Nonnull", "__bridge"]
 BitFieldColonSpacing: Both
 #BreakBeforeBraces: Webkit
 BreakBeforeBraces: Custom

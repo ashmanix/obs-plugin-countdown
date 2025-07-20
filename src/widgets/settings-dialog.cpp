@@ -56,6 +56,9 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 	ui->startOnStreamStartCheckBox->setText(obs_module_text("StartOnStreamCheckBoxLabel"));
 	ui->startOnStreamStartCheckBox->setToolTip(obs_module_text("StartOnStreamCheckBoxTip"));
 
+	ui->resetTimerOnStreamStartCheckBox->setText(obs_module_text("ResetOnStreamStartCheckBoxLabel"));
+	ui->resetTimerOnStreamStartCheckBox->setToolTip(obs_module_text("ResetOnStreamStartCheckBoxTip"));
+
 	ui->timerIdLineEdit->setToolTip(obs_module_text("timerIdLineEditTip"));
 	ui->timerIdLabel->setText(obs_module_text("TimerIdLabel"));
 
@@ -141,6 +144,8 @@ void SettingsDialog::ConnectUISignalHandlers()
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 	QObject::connect(ui->startOnStreamStartCheckBox, &QCheckBox::checkStateChanged, this,
+			 &SettingsDialog::StartOnStreamStartCheckBoxSelected);
+	QObject::connect(ui->resetTimerOnStreamStartCheckBox, &QCheckBox::checkStateChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 	QObject::connect(ui->switchSceneCheckBox, &QCheckBox::checkStateChanged, this,
 			 &SettingsDialog::SceneSwitchCheckBoxSelected);
@@ -164,6 +169,8 @@ void SettingsDialog::ConnectUISignalHandlers()
 			 &SettingsDialog::FormChangeDetected);
 #else
 	QObject::connect(ui->startOnStreamStartCheckBox, &QCheckBox::stateChanged, this,
+			 &SettingsDialog::StartOnStreamStartCheckBoxSelected);
+	QObject::connect(ui->resetTimerOnStreamStartCheckBox, &QCheckBox::stateChanged, this,
 			 &SettingsDialog::FormChangeDetected);
 	QObject::connect(ui->switchSceneCheckBox, &QCheckBox::stateChanged, this,
 			 &SettingsDialog::SceneSwitchCheckBoxSelected);
@@ -249,6 +256,7 @@ void SettingsDialog::ApplyFormChanges()
 		timerData->selectedSource = ui->textSourceDropdownList->currentText();
 
 		timerData->startOnStreamStart = ui->startOnStreamStartCheckBox->isChecked();
+		timerData->resetTimerOnStreamStart = ui->resetTimerOnStreamStartCheckBox->isChecked();
 
 		timerData->showEndMessage = ui->endMessageCheckBox->isChecked();
 		timerData->endMessage = ui->endMessageLineEdit->text();
@@ -285,6 +293,9 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 			ui->textSourceDropdownList->setCurrentIndex(textSelectIndex);
 
 		ui->startOnStreamStartCheckBox->setChecked(settingsDialogData->startOnStreamStart);
+		ui->resetTimerOnStreamStartCheckBox->setChecked(settingsDialogData->resetTimerOnStreamStart);
+
+		ui->resetTimerOnStreamStartCheckBox->setEnabled(settingsDialogData->startOnStreamStart);
 
 		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(settingsDialogData->selectedScene);
 		if (sceneSelectIndex != -1)
@@ -425,6 +436,16 @@ void SettingsDialog::FormChangeDetected()
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 
+void SettingsDialog::StartOnStreamStartCheckBoxSelected(Qt::CheckState state)
+{
+	if (state == Qt::CheckState::Checked) {
+		ui->resetTimerOnStreamStartCheckBox->setEnabled(true);
+	} else {
+		ui->resetTimerOnStreamStartCheckBox->setEnabled(false);
+	}
+	FormChangeDetected();
+}
+
 void SettingsDialog::EndMessageCheckBoxSelected(Qt::CheckState state)
 {
 	if (state == Qt::CheckState::Checked) {
@@ -456,6 +477,16 @@ void SettingsDialog::FormatOutputCheckBoxSelected(Qt::CheckState state)
 }
 
 #else
+
+void SettingsDialog::StartOnStreamStartCheckBoxSelected(int state)
+{
+	if (state) {
+		ui->resetTimerOnStreamStartCheckBox->setEnabled(true);
+	} else {
+		ui->resetTimerOnStreamStartCheckBox->setEnabled(false);
+	}
+	FormChangeDetected();
+}
 
 void SettingsDialog::EndMessageCheckBoxSelected(int state)
 {

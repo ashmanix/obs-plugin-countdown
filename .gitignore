@@ -8,14 +8,13 @@
 !/data
 !/src
 !.clang-format
-!.cmake-format.json
+!.gersemirc
 !.gitignore
 !buildspec.json
 !CMakeLists.txt
 !CMakePresets.json
 !LICENSE
 !README.md
-!/images
 
 # Exclude lock files
 *.lock.json
@@ -26,4 +25,4 @@
 # Exclude CMake build number cache
 /cmake/.CMakeBuildNumber
 
-local-test-script
+!local-test-script.sh

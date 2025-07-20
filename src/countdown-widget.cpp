@@ -255,8 +255,9 @@ void CountdownDockWidget::StartTimersOnStreamStart(CountdownDockWidget *countdow
 	for (int i = 0; i < timerWidgetCount; i++) {
 		AshmanixTimer *timerWidget =
 			static_cast<AshmanixTimer *>(countdownDockWidget->ui->timerMainLayout->itemAt(i)->widget());
-		if (timerWidget && timerWidget->GetTimerData()->startOnStreamStart) {
-			timerWidget->StartTimer();
+		TimerWidgetStruct *timerData = timerWidget->GetTimerData();
+		if (timerWidget && timerData->startOnStreamStart) {
+			timerWidget->StartTimer(timerData->resetTimerOnStreamStart);
 		}
 	}
 }

@@ -56,7 +56,7 @@ public:
 	void PressToTimePlayButton();
 	void PressToTimeStopButton();
 	void UpdateStyles();
-	void StartTimer();
+	void StartTimer(bool shouldReset = false);
 	void StopTimer();
 
 private:

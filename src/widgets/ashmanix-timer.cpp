@@ -51,6 +51,7 @@ void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject)
 {
 	obs_data_set_string(dataObject, "timerId", countdownTimerData.timerId.toStdString().c_str());
 	obs_data_set_bool(dataObject, "startOnStreamStart", countdownTimerData.startOnStreamStart);
+	obs_data_set_bool(dataObject, "resetTimerOnStreamStart", countdownTimerData.resetTimerOnStreamStart);
 	obs_data_set_bool(dataObject, "shouldCountUp", countdownTimerData.shouldCountUp);
 	obs_data_set_bool(dataObject, "showLeadingZero", countdownTimerData.showLeadingZero);
 
@@ -98,6 +99,7 @@ void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
 
 	countdownTimerData.timerId = (char *)obs_data_get_string(dataObject, "timerId");
 	countdownTimerData.startOnStreamStart = (bool)obs_data_get_bool(dataObject, "startOnStreamStart");
+	countdownTimerData.resetTimerOnStreamStart = (bool)obs_data_get_bool(dataObject, "resetTimerOnStreamStart");
 	countdownTimerData.shouldCountUp = (bool)obs_data_get_bool(dataObject, "shouldCountUp");
 	countdownTimerData.showLeadingZero = (bool)obs_data_get_bool(dataObject, "showLeadingZero");
 	countdownTimerData.selectedSource = (char *)obs_data_get_string(dataObject, "selectedSource");
@@ -966,6 +968,11 @@ void AshmanixTimer::UpdateTimeDisplayTooltip()
 	detailsTooltip += countdownTimerData.startOnStreamStart ? "✓" : "-";
 	detailsTooltip += "\n";
 
+	detailsTooltip += obs_module_text("ResetOnStreamStartCheckBoxLabel");
+	detailsTooltip += " : ";
+	detailsTooltip += countdownTimerData.resetTimerOnStreamStart ? "✓" : "-";
+	detailsTooltip += "\n";
+
 	detailsTooltip += obs_module_text("EndMessageLabel");
 	detailsTooltip += " : ";
 	if (countdownTimerData.showEndMessage) {
@@ -1028,10 +1035,12 @@ void AshmanixTimer::UpdateTimeDisplayTooltip()
 	ui->timeDisplay->setToolTip(detailsTooltip);
 }
 
-void AshmanixTimer::StartTimer()
+void AshmanixTimer::StartTimer(bool shouldReset)
 {
 	switch (countdownTimerData.selectedCountdownType) {
 	case PERIOD:
+		if (shouldReset)
+			PressResetButton();
 		PressPlayButton();
 		break;
 

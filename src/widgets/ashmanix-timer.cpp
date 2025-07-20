@@ -252,6 +252,10 @@ bool AshmanixTimer::AddTime(const char *stringTime, bool isCountingUp)
 
 	if (!isCountingUp) {
 		countdownTimerData.timeAtTimerStart = countdownTimerData.timeAtTimerStart.addMSecs(timeInMillis);
+		// If we are using the smooth period timer option then we need to set time left in millis
+		if (countdownTimerData.selectedCountdownType == PERIOD && countdownTimerData.smoothenPeriodTimer)
+			countdownTimerData.timeLeftInMillis = newTimeLeftInMillis;
+
 		UpdateDateTimeDisplay(newTimeLeftInMillis);
 		emit RequestTimerReset(true);
 	}

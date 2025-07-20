@@ -25,4 +25,4 @@
 # Exclude CMake build number cache
 /cmake/.CMakeBuildNumber
 
-local-test-script
+!local-test-script.sh

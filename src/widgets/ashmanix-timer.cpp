@@ -286,7 +286,6 @@ bool AshmanixTimer::SetTime(const char *stringTime, bool isCountingUp)
 
 void AshmanixTimer::UpdateTimerPeriod(PeriodData periodData)
 {
-	PressStopButton();
 	countdownTimerData.periodDays = periodData.days;
 	countdownTimerData.periodHours = periodData.hours;
 	countdownTimerData.periodMinutes = periodData.minutes;
@@ -296,7 +295,6 @@ void AshmanixTimer::UpdateTimerPeriod(PeriodData periodData)
 	ui->timerHours->setValue(countdownTimerData.periodHours);
 	ui->timerMinutes->setValue(countdownTimerData.periodMinutes);
 	ui->timerSeconds->setValue(countdownTimerData.periodSeconds);
-	PressResetButton();
 }
 
 void AshmanixTimer::PressPlayButton()

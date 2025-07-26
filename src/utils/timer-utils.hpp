@@ -7,9 +7,9 @@
 #include <QTabWidget>
 #include <QTime>
 
-enum CountdownType { PERIOD = 0, DATETIME = 1 };
+enum class CountdownType { PERIOD = 0, DATETIME = 1 };
 
-enum WebsocketRequestType {
+enum class WebsocketRequestType {
 	ADD_TIME = 1,
 	SET_TIME = 2,
 	GET_TIME = 3,
@@ -22,45 +22,57 @@ enum WebsocketRequestType {
 	STOP_ALL = 10
 };
 
-struct TimerWidgetStruct {
-	QString timerId;
-	bool isPlaying;
-	bool shouldCountUp = false;
-	bool showLeadingZero = true;
-	bool startOnStreamStart = false;
-	bool resetTimerOnStreamStart = false;
-	QString selectedSource = "";
-	QString selectedScene = "";
-	QString endMessage = "";
-	QTimer *timer;
-	QDateTime dateTime;
+struct TimerDuration {
+	int days = 0;
+	int hours = 0;
+	int minutes = 0;
+	int seconds = 0;
+};
 
-	int periodDays = 0;
-	int periodHours = 0;
-	int periodMinutes = 0;
-	int periodSeconds = 0;
-
+struct DisplayOptions {
 	bool showDays = true;
 	bool showHours = true;
 	bool showMinutes = true;
 	bool showSeconds = true;
+	bool showLeadingZero = true;
 	bool showEndMessage = false;
 	bool showEndScene = false;
-
 	bool useFormattedOutput = false;
 	QString outputStringFormat = "Will be back in %time% see you soon!";
+	QString endMessage;
+};
 
-	bool smoothenPeriodTimer = false;
+struct SourceConfig {
+	QString selectedSource;
+	QString selectedScene;
+};
 
-	long long timeLeftInMillis = 0;
-	QDateTime timeAtTimerStart;
-	CountdownType selectedCountdownType = PERIOD;
-
+struct HotkeyBindings {
 	int startCountdownHotkeyId = -1;
 	int pauseCountdownHotkeyId = -1;
 	int setCountdownHotkeyId = -1;
 	int startCountdownToTimeHotkeyId = -1;
 	int stopCountdownToTimeHotkeyId = -1;
+};
+
+struct TimerWidgetStruct {
+	QString timerId;
+	bool isPlaying;
+	bool shouldCountUp = false;
+	bool startOnStreamStart = false;
+	bool resetTimerOnStreamStart = false;
+	CountdownType selectedCountdownType = CountdownType::PERIOD;
+
+	QTimer *timer = nullptr;
+	QDateTime dateTime;
+	QDateTime timeAtTimerStart;
+	long long timeLeftInMillis = 0;
+	bool smoothenPeriodTimer = false;
+
+	TimerDuration periodDuration;
+	DisplayOptions display;
+	SourceConfig source;
+	HotkeyBindings hotkeys;
 
 	QWidget *periodVLayout;
 	QWidget *datetimeVLayout;

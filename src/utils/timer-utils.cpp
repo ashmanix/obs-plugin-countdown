@@ -9,7 +9,10 @@ const char *ConvertToConstChar(QString value)
 
 PeriodData ConvertStringPeriodToPeriodData(const char *time_string)
 {
-	int days = 0, hours = 0, minutes = 0, seconds = 0;
+	int days = 0;
+	int hours = 0;
+	int minutes = 0;
+	int seconds = 0;
 
 	// Count the number of colons in the string
 	int colonCount = 0;
@@ -41,7 +44,11 @@ PeriodData ConvertStringPeriodToPeriodData(const char *time_string)
 
 PeriodData ConvertMillisToPeriodData(long long timeInMillis)
 {
-	int days = 0, hours = 0, minutes = 0, seconds = 0;
+	int days = 0;
+	int hours = 0;
+	int minutes = 0;
+	int seconds = 0;
+
 	long long daysFromMillis = timeInMillis / (24 * 60 * 60 * 1000);
 	long long remainingMilliseconds = timeInMillis % (24 * 60 * 60 * 1000);
 

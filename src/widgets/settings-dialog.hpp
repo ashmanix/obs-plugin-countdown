@@ -20,7 +20,7 @@ class SettingsDialog : public QDialog {
 public:
 	explicit SettingsDialog(QWidget *parent = nullptr, TimerWidgetStruct *tData = nullptr,
 				CountdownDockWidget *mWidget = nullptr);
-	~SettingsDialog();
+	~SettingsDialog() override;
 
 	void ToggleCounterCheckBoxes(bool isEnabled);
 

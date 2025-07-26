@@ -253,24 +253,24 @@ void SettingsDialog::ApplyFormChanges()
 				return;
 			}
 		}
-		timerData->selectedSource = ui->textSourceDropdownList->currentText();
+		timerData->source.selectedSource = ui->textSourceDropdownList->currentText();
 
 		timerData->startOnStreamStart = ui->startOnStreamStartCheckBox->isChecked();
 		timerData->resetTimerOnStreamStart = ui->resetTimerOnStreamStartCheckBox->isChecked();
 
-		timerData->showEndMessage = ui->endMessageCheckBox->isChecked();
-		timerData->endMessage = ui->endMessageLineEdit->text();
-		timerData->showEndScene = ui->switchSceneCheckBox->isChecked();
-		timerData->selectedScene = ui->sceneSourceDropdownList->currentText();
+		timerData->display.showEndMessage = ui->endMessageCheckBox->isChecked();
+		timerData->display.endMessage = ui->endMessageLineEdit->text();
+		timerData->display.showEndScene = ui->switchSceneCheckBox->isChecked();
+		timerData->source.selectedScene = ui->sceneSourceDropdownList->currentText();
 
-		timerData->showDays = ui->daysCheckBox->isChecked();
-		timerData->showHours = ui->hoursCheckBox->isChecked();
-		timerData->showMinutes = ui->minutesCheckBox->isChecked();
-		timerData->showSeconds = ui->secondsCheckBox->isChecked();
-		timerData->showLeadingZero = ui->leadZeroCheckBox->isChecked();
+		timerData->periodDuration.days = ui->daysCheckBox->isChecked();
+		timerData->periodDuration.hours = ui->hoursCheckBox->isChecked();
+		timerData->periodDuration.minutes = ui->minutesCheckBox->isChecked();
+		timerData->periodDuration.seconds = ui->secondsCheckBox->isChecked();
+		timerData->display.showLeadingZero = ui->leadZeroCheckBox->isChecked();
 
-		timerData->useFormattedOutput = ui->formatOutputCheckBox->isChecked();
-		timerData->outputStringFormat = ui->formatOutputLineEdit->text();
+		timerData->display.useFormattedOutput = ui->formatOutputCheckBox->isChecked();
+		timerData->display.outputStringFormat = ui->formatOutputLineEdit->text();
 
 		timerData->smoothenPeriodTimer = ui->smoothPeriodTimerCheckBox->isChecked();
 
@@ -288,7 +288,7 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 	if (settingsDialogData != nullptr) {
 		ui->timerIdLineEdit->setText(settingsDialogData->timerId);
 
-		int textSelectIndex = ui->textSourceDropdownList->findText(settingsDialogData->selectedSource);
+		int textSelectIndex = ui->textSourceDropdownList->findText(settingsDialogData->source.selectedSource);
 		if (textSelectIndex != -1)
 			ui->textSourceDropdownList->setCurrentIndex(textSelectIndex);
 
@@ -297,33 +297,33 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 
 		ui->resetTimerOnStreamStartCheckBox->setEnabled(settingsDialogData->startOnStreamStart);
 
-		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(settingsDialogData->selectedScene);
+		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(settingsDialogData->source.selectedScene);
 		if (sceneSelectIndex != -1)
 			ui->sceneSourceDropdownList->setCurrentIndex(sceneSelectIndex);
 
-		ui->daysCheckBox->setChecked(settingsDialogData->showDays);
-		ui->hoursCheckBox->setChecked(settingsDialogData->showHours);
-		ui->minutesCheckBox->setChecked(settingsDialogData->showMinutes);
-		ui->secondsCheckBox->setChecked(settingsDialogData->showSeconds);
-		ui->leadZeroCheckBox->setChecked(settingsDialogData->showLeadingZero);
+		ui->daysCheckBox->setChecked(settingsDialogData->display.showDays);
+		ui->hoursCheckBox->setChecked(settingsDialogData->display.showHours);
+		ui->minutesCheckBox->setChecked(settingsDialogData->display.showMinutes);
+		ui->secondsCheckBox->setChecked(settingsDialogData->display.showSeconds);
+		ui->leadZeroCheckBox->setChecked(settingsDialogData->display.showLeadingZero);
 
 		ui->countUpCheckBox->setChecked(settingsDialogData->shouldCountUp);
 		if (settingsDialogData->isPlaying)
 			ui->countUpCheckBox->setEnabled(false);
 
-		ui->endMessageCheckBox->setChecked(settingsDialogData->showEndMessage);
-		ui->endMessageLineEdit->setEnabled(settingsDialogData->showEndMessage);
-		ui->endMessageLineEdit->setText(settingsDialogData->endMessage);
+		ui->endMessageCheckBox->setChecked(settingsDialogData->display.showEndMessage);
+		ui->endMessageLineEdit->setEnabled(settingsDialogData->display.showEndMessage);
+		ui->endMessageLineEdit->setText(settingsDialogData->display.endMessage);
 
-		ui->formatOutputCheckBox->setChecked(settingsDialogData->useFormattedOutput);
-		ui->formatOutputLineEdit->setText(settingsDialogData->outputStringFormat);
-		if (!settingsDialogData->useFormattedOutput)
+		ui->formatOutputCheckBox->setChecked(settingsDialogData->display.useFormattedOutput);
+		ui->formatOutputLineEdit->setText(settingsDialogData->display.outputStringFormat);
+		if (!settingsDialogData->display.useFormattedOutput)
 			ui->formatOutputLineEdit->setEnabled(false);
 
 		ui->smoothPeriodTimerCheckBox->setChecked(settingsDialogData->smoothenPeriodTimer);
 
-		ui->switchSceneCheckBox->setChecked(settingsDialogData->showEndScene);
-		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->showEndScene);
+		ui->switchSceneCheckBox->setChecked(settingsDialogData->display.showEndScene);
+		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->display.showEndScene);
 
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
 	} else {

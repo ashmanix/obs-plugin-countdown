@@ -36,7 +36,7 @@ class AshmanixTimer : public QWidget {
 public:
 	explicit AshmanixTimer(QWidget *parent = nullptr, obs_websocket_vendor vendor = nullptr,
 			       obs_data_t *savedData = nullptr, CountdownDockWidget *mDockWidget = nullptr);
-	~AshmanixTimer();
+	~AshmanixTimer() override;
 
 	void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject);
 	void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject);

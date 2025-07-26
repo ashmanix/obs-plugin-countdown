@@ -75,31 +75,41 @@ void CountdownDockWidget::ConfigureWebSocketConnection()
 	}
 
 	obs_websocket_vendor_register_request(vendor, "period_play", HandleWebsocketButtonPressRequest,
-					      new WebsocketCallbackData{this, PERIOD_PLAY, NULL, TIMERIDKEY});
+					      new WebsocketCallbackData{this, WebsocketRequestType::PERIOD_PLAY, NULL,
+									TIMERIDKEY});
 	obs_websocket_vendor_register_request(vendor, "period_pause", HandleWebsocketButtonPressRequest,
-					      new WebsocketCallbackData{this, PERIOD_PAUSE, NULL, TIMERIDKEY});
+					      new WebsocketCallbackData{this, WebsocketRequestType::PERIOD_PAUSE, NULL,
+									TIMERIDKEY});
 	obs_websocket_vendor_register_request(vendor, "period_set", HandleWebsocketButtonPressRequest,
-					      new WebsocketCallbackData{this, PERIOD_SET, NULL, TIMERIDKEY});
+					      new WebsocketCallbackData{this, WebsocketRequestType::PERIOD_SET, NULL,
+									TIMERIDKEY});
 
 	obs_websocket_vendor_register_request(vendor, "to_time_play", HandleWebsocketButtonPressRequest,
-					      new WebsocketCallbackData{this, TO_TIME_PLAY, NULL, TIMERIDKEY});
+					      new WebsocketCallbackData{this, WebsocketRequestType::TO_TIME_PLAY, NULL,
+									TIMERIDKEY});
 	obs_websocket_vendor_register_request(vendor, "to_time_stop", HandleWebsocketButtonPressRequest,
-					      new WebsocketCallbackData{this, TO_TIME_STOP, NULL, TIMERIDKEY});
+					      new WebsocketCallbackData{this, WebsocketRequestType::TO_TIME_STOP, NULL,
+									TIMERIDKEY});
 
 	obs_websocket_vendor_register_request(vendor, "play_all", HandleWebsocketButtonPressRequest,
-					      new WebsocketCallbackData{this, PLAY_ALL, NULL, NULL});
+					      new WebsocketCallbackData{this, WebsocketRequestType::PLAY_ALL, NULL,
+									NULL});
 
 	obs_websocket_vendor_register_request(vendor, "stop_all", HandleWebsocketButtonPressRequest,
-					      new WebsocketCallbackData{this, STOP_ALL, NULL, NULL});
+					      new WebsocketCallbackData{this, WebsocketRequestType::STOP_ALL, NULL,
+									NULL});
 
 	obs_websocket_vendor_register_request(vendor, "get_timer_state", GetTimerStateViaWebsocket,
-					      new WebsocketCallbackData{this, GET_TIME, NULL, TIMERIDKEY});
+					      new WebsocketCallbackData{this, WebsocketRequestType::GET_TIME, NULL,
+									TIMERIDKEY});
 
 	obs_websocket_vendor_register_request(vendor, "add_time", ChangeTimerTimeViaWebsocket,
-					      new WebsocketCallbackData{this, ADD_TIME, "time_to_add", TIMERIDKEY});
+					      new WebsocketCallbackData{this, WebsocketRequestType::ADD_TIME,
+									"time_to_add", TIMERIDKEY});
 
 	obs_websocket_vendor_register_request(vendor, "set_time", ChangeTimerTimeViaWebsocket,
-					      new WebsocketCallbackData{this, SET_TIME, "time_to_set", TIMERIDKEY});
+					      new WebsocketCallbackData{this, WebsocketRequestType::SET_TIME,
+									"time_to_set", TIMERIDKEY});
 }
 
 void CountdownDockWidget::SetupCountdownWidgetUI()
@@ -362,7 +372,7 @@ void CountdownDockWidget::ChangeTimerTimeViaWebsocket(obs_data_t *request_data, 
 
 		if (timer != nullptr) {
 			bool result = timer->AlterTime(requestType, websocketDataTime);
-			const char *type_string = requestType == ADD_TIME ? "added" : "set";
+			const char *type_string = requestType == WebsocketRequestType::ADD_TIME ? "added" : "set";
 			obs_log(LOG_INFO, "Time %s due to websocket call: %s", type_string, websocketDataTime);
 			obs_data_set_bool(response_data, "success", result);
 		} else {
@@ -413,11 +423,11 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(obs_data_t *request_
 	};
 
 	switch (requestType) {
-	case PLAY_ALL:
+	case WebsocketRequestType::PLAY_ALL:
 		countdownWidget->StartAllTimers();
 		setResponse(true, "Start All Timers button pressed");
 		return;
-	case STOP_ALL:
+	case WebsocketRequestType::STOP_ALL:
 		countdownWidget->StopAllTimers();
 		setResponse(true, "Stop All Timers button pressed");
 		return;
@@ -437,23 +447,23 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(obs_data_t *request_
 	}
 
 	switch (requestType) {
-	case PERIOD_PLAY:
+	case WebsocketRequestType::PERIOD_PLAY:
 		timer->PressPlayButton();
 		setResponse(true, "Play button pressed");
 		break;
-	case PERIOD_PAUSE:
+	case WebsocketRequestType::PERIOD_PAUSE:
 		timer->PressStopButton();
 		setResponse(true, "Pause button pressed");
 		break;
-	case PERIOD_SET:
+	case WebsocketRequestType::PERIOD_SET:
 		timer->PressResetButton();
 		setResponse(true, "Reset button pressed");
 		break;
-	case TO_TIME_PLAY:
+	case WebsocketRequestType::TO_TIME_PLAY:
 		timer->PressToTimePlayButton();
 		setResponse(true, "To Time play button pressed");
 		break;
-	case TO_TIME_STOP:
+	case WebsocketRequestType::TO_TIME_STOP:
 		timer->PressToTimeStopButton();
 		setResponse(true, "To Time stop button pressed");
 		break;

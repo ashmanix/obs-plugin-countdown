@@ -15,21 +15,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along
 with this program. If not, see <https://www.gnu.org/licenses/>
 */
+#include <QPointer>
 #include <countdown-widget.hpp>
 
 #include "plugin-support.h"
-
-// void load_menu_option()
-// {
-// 	obs_frontend_add_tools_menu_item("Add Countdown Timer",
-// 					 callback_function, NULL);
-// }
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_AUTHOR("Ashmanix")
 OBS_MODULE_USE_DEFAULT_LOCALE(PLUGIN_NAME, "en-GB")
 
-CountdownDockWidget *countdownWidget = nullptr;
+static QPointer<CountdownDockWidget> countdownWidget = nullptr;
 
 bool obs_module_load(void)
 {
@@ -46,7 +41,8 @@ bool obs_module_load(void)
 
 void obs_module_post_load(void)
 {
-	countdownWidget->ConfigureWebSocketConnection();
+	if (countdownWidget)
+		countdownWidget->ConfigureWebSocketConnection();
 }
 
 void obs_module_unload()

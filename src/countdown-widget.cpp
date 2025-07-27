@@ -175,7 +175,7 @@ void CountdownDockWidget::SaveSettings()
 				TimerWidgetStruct *timerData = timerWidget->GetTimerData();
 				if (timerData) {
 					obs_data_t *dataObject = obs_data_create();
-					timerWidget->SaveTimerWidgetDataToOBSSaveData(dataObject);
+					timerWidget->SaveData(dataObject);
 					obs_data_array_push_back(obsDataArray, dataObject);
 
 					obs_data_release(dataObject);
@@ -448,23 +448,23 @@ void CountdownDockWidget::HandleWebsocketButtonPressRequest(obs_data_t *request_
 
 	switch (requestType) {
 	case WebsocketRequestType::PERIOD_PLAY:
-		timer->PressPlayButton();
+		timer->ActivateTimerAction(TimerAction::Play);
 		setResponse(true, "Play button pressed");
 		break;
 	case WebsocketRequestType::PERIOD_PAUSE:
-		timer->PressStopButton();
+		timer->ActivateTimerAction(TimerAction::Pause);
 		setResponse(true, "Pause button pressed");
 		break;
 	case WebsocketRequestType::PERIOD_SET:
-		timer->PressResetButton();
+		timer->ActivateTimerAction(TimerAction::Reset);
 		setResponse(true, "Reset button pressed");
 		break;
 	case WebsocketRequestType::TO_TIME_PLAY:
-		timer->PressToTimePlayButton();
+		timer->ActivateTimerAction(TimerAction::ToTimePlay);
 		setResponse(true, "To Time play button pressed");
 		break;
 	case WebsocketRequestType::TO_TIME_STOP:
-		timer->PressToTimeStopButton();
+		timer->ActivateTimerAction(TimerAction::ToTimeStop);
 		setResponse(true, "To Time stop button pressed");
 		break;
 	default:

@@ -9,7 +9,7 @@ TimerEngine::TimerEngine(AshmanixTimer *parent, TimerWidgetStruct *data) : paren
 
 // ------------------------------ Public Functions ----------------------------------
 
-void TimerEngine::Initialise(bool setTimeLeftToUI)
+void TimerEngine::Initialise()
 {
 	if (qtimer == nullptr)
 		qtimer = new QTimer();

@@ -6,6 +6,7 @@
 #include <QSpacerItem>
 #include <QDateTime>
 
+#include "../../ui/ui_AshmanixTimer.h"
 #include "../../utils/timer-utils.hpp"
 
 // Forward declarations
@@ -37,14 +38,12 @@ public:
 	void SetHideMultiTimerUIButtons(bool shouldHide);
 	void SetIsUpButtonDisabled(bool isDisabled);
 	void SetIsDownButtonDisabled(bool isDisabled);
+	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
 
 signals:
 	void RequestDelete(QString id);
-	void RequestSendWebsocketEvent(const char *eventName, obs_data_t *eventData);
 	void MoveTimer(QString direction, QString timerId);
 	void UpdateSource(QString sourceString);
-	void EmitMoveTimerDownSignal();
-	void EmitMoveTimerUpSignal();
 	void StartTimer(QString timerId);
 	void StopTimer(QString timerId);
 
@@ -56,6 +55,8 @@ private slots:
 	void DeleteButtonClicked();
 	void HandleTimerValueChange(const QString &type, int value);
 	void DateTimeChanged(QDateTime newDateTime);
+	void EmitMoveTimerDownSignal();
+	void EmitMoveTimerUpSignal();
 
 private:
 	static inline const char *ZEROSTRING = "00:00:00:00";
@@ -68,7 +69,6 @@ private:
 	SettingsDialog *settingsDialogUi;
 	QSpacerItem *deleteButtonSpacer;
 
-	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
 	void StartTimerCounting();
 	void StopTimerCounting();
 };

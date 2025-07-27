@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <obs-data.h>
+#include <obs-websocket-api.h>
 
 struct TimerWidgetStruct;
 

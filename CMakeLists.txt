@@ -55,6 +55,8 @@ target_sources(
     src/widgets/ashmanix-timer/timer-engine.hpp
     src/widgets/ashmanix-timer/websocket-notifier.cpp
     src/widgets/ashmanix-timer/websocket-notifier.hpp
+    src/widgets/ashmanix-timer/timer-persistence.cpp
+    src/widgets/ashmanix-timer/timer-persistence.hpp
     src/utils/timer-utils.cpp
     src/utils/timer-utils.hpp
     src/utils/obs-utils.cpp

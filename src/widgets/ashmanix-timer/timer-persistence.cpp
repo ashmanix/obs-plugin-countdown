@@ -99,6 +99,4 @@ void TimerPersistence::LoadTimerWidgetDataFromOBSSaveData(TimerWidgetStruct *tim
 		(int)obs_data_get_int(dataObject, "startCountdownToTimeHotkeyId");
 	timerData->hotkeys.stopCountdownToTimeHotkeyId =
 		(int)obs_data_get_int(dataObject, "stopCountdownToTimeHotkeyId");
-
-	SetTimerData();
 }

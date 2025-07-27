@@ -401,16 +401,6 @@ void TimerUIManager::UpdateTimerPeriod(PeriodData periodData)
 	ui->timerSeconds->setValue(data->periodDuration.seconds);
 }
 
-void TimerUIManager::EmitMoveTimerDownSignal()
-{
-	emit MoveTimer(QString("down"), data->timerId);
-}
-
-void TimerUIManager::EmitMoveTimerUpSignal()
-{
-	emit MoveTimer(QString("up"), data->timerId);
-}
-
 void TimerUIManager::SetHideMultiTimerUIButtons(bool shouldHide)
 {
 	if (shouldHide) {
@@ -437,6 +427,15 @@ void TimerUIManager::SetIsUpButtonDisabled(bool isDisabled)
 void TimerUIManager::SetIsDownButtonDisabled(bool isDisabled)
 {
 	ui->moveDownToolButton->setDisabled(isDisabled);
+}
+
+QString TimerUIManager::ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero)
+{
+	QString formattedDateTimeString = GetFormattedTimerString(data->display.showDays, data->display.showHours,
+								  data->display.showMinutes, data->display.showSeconds,
+								  showLeadingZero, timeInMillis);
+
+	return (formattedDateTimeString == "") ? "Nothing selected!" : formattedDateTimeString;
 }
 
 // --------------------------------- Public Slots ----------------------------------
@@ -554,16 +553,17 @@ void TimerUIManager::DateTimeChanged(QDateTime newDateTime)
 	data->dateTime = newDateTime;
 }
 
-// ------------------------------ Private Functions ----------------------------------
-
-QString TimerUIManager::ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero)
+void TimerUIManager::EmitMoveTimerDownSignal()
 {
-	QString formattedDateTimeString = GetFormattedTimerString(data->display.showDays, data->display.showHours,
-								  data->display.showMinutes, data->display.showSeconds,
-								  showLeadingZero, timeInMillis);
-
-	return (formattedDateTimeString == "") ? "Nothing selected!" : formattedDateTimeString;
+	emit MoveTimer(QString("down"), data->timerId);
 }
+
+void TimerUIManager::EmitMoveTimerUpSignal()
+{
+	emit MoveTimer(QString("up"), data->timerId);
+}
+
+// ------------------------------ Private Functions ----------------------------------
 
 void TimerUIManager::StartTimerCounting()
 {

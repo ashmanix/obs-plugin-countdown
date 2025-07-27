@@ -138,6 +138,16 @@ void AshmanixTimer::StopTimer()
 	}
 }
 
+void AshmanixTimer::ActivateTimerAction(TimerAction action)
+{
+	uiManager->HandleTimerAction(action);
+}
+
+void AshmanixTimer::SaveData(obs_data_t *dataObject)
+{
+	timerPersistence->SaveTimerWidgetDataToOBSSaveData(&countdownTimerData, dataObject);
+}
+
 // --------------------------------- Private ----------------------------------
 
 void AshmanixTimer::ConnectSignalHandlers()
@@ -177,16 +187,6 @@ void AshmanixTimer::ConnectSignalHandlers()
 	// 			 [this]() { ToggleTimeType(CountdownType::DATETIME); });
 }
 
-QString AshmanixTimer::ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero)
-{
-	QString formattedDateTimeString =
-		GetFormattedTimerString(countdownTimerData.display.showDays, countdownTimerData.display.showHours,
-					countdownTimerData.display.showMinutes, countdownTimerData.display.showSeconds,
-					showLeadingZero, timeInMillis);
-
-	return (formattedDateTimeString == "") ? "Nothing selected!" : formattedDateTimeString;
-}
-
 void AshmanixTimer::StartTimerCounting()
 {
 	countdownTimerData.isPlaying = true;
@@ -210,7 +210,8 @@ void AshmanixTimer::StartTimerCounting()
 	if (settingsDialogUi)
 		settingsDialogUi->ToggleCounterCheckBoxes(false);
 
-	SendTimerStateEvent(countdownTimerData.timerId, "started");
+	websocketNotifier->SendStateEvent(countdownTimerData.timerId, "started",
+					  countdownTimerData.source.selectedSource);
 }
 
 void AshmanixTimer::StopTimerCounting()
@@ -236,7 +237,8 @@ void AshmanixTimer::StopTimerCounting()
 	if (settingsDialogUi)
 		settingsDialogUi->ToggleCounterCheckBoxes(true);
 
-	SendTimerStateEvent(countdownTimerData.timerId, "stopped");
+	websocketNotifier->SendStateEvent(countdownTimerData.timerId, "stopped",
+					  countdownTimerData.source.selectedSource);
 }
 
 void AshmanixTimer::InitialiseTimerTime(bool setTimeLeftToUI)
@@ -245,24 +247,6 @@ void AshmanixTimer::InitialiseTimerTime(bool setTimeLeftToUI)
 	QObject::connect(this, &AshmanixTimer::RequestTimerReset, this, &AshmanixTimer::HandleTimerReset);
 	if (setTimeLeftToUI)
 		countdownTimerData.timeLeftInMillis = uiManager->GetMillisFromPeriodUI();
-}
-
-void AshmanixTimer::UpdateDateTimeDisplay(long long timeInMillis)
-{
-
-	long long timeToUpdateInMillis = std::max(timeInMillis, 0ll);
-	ui->timeDisplay->display(ConvertMillisToDateTimeString(timeToUpdateInMillis));
-	QString formattedDisplayTime = ConvertDateTimeToFormattedDisplayString(
-		timeToUpdateInMillis, countdownTimerData.display.showLeadingZero);
-
-	QString outputString = formattedDisplayTime;
-
-	if (countdownTimerData.display.useFormattedOutput) {
-		outputString = countdownTimerData.display.outputStringFormat;
-		outputString.replace(TIMETEMPLATECODE, formattedDisplayTime);
-	}
-
-	SetSourceText(outputString);
 }
 
 void AshmanixTimer::SetSourceText(QString newText)
@@ -289,37 +273,6 @@ void AshmanixTimer::SetCurrentScene()
 			obs_source_release(source);
 		}
 	}
-}
-
-void AshmanixTimer::SendTimerTickEvent(QString timerId, long long timeLeftInMillis)
-{
-	obs_data_t *eventData = obs_data_create();
-
-	// Convert milliseconds to readable format
-	QString timeString =
-		ConvertDateTimeToFormattedDisplayString(timeLeftInMillis, countdownTimerData.display.showLeadingZero);
-
-	obs_data_set_string(eventData, "timer_id", timerId.toStdString().c_str());
-	obs_data_set_string(eventData, "time_display", timeString.toStdString().c_str());
-	obs_data_set_int(eventData, "time_left_ms", timeLeftInMillis);
-
-	emit RequestSendWebsocketEvent("timer_tick", eventData);
-	obs_data_release(eventData);
-}
-
-void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
-{
-	obs_data_t *eventData = obs_data_create();
-	obs_data_set_string(eventData, "timer_id", timerId.toStdString().c_str());
-	obs_data_set_string(eventData, "state", state);
-
-	if (countdownTimerData.source.selectedSource.length() > 0) {
-		obs_data_set_string(eventData, "text_source",
-				    countdownTimerData.source.selectedSource.toStdString().c_str());
-	}
-
-	emit RequestSendWebsocketEvent("timer_state_changed", eventData);
-	obs_data_release(eventData);
 }
 
 std::string AshmanixTimer::GetFullHotkeyName(std::string name, const char *joinText)
@@ -408,16 +361,20 @@ void AshmanixTimer::TimerAdjust()
 	if (lastDisplayedSeconds != (countdownTimerData.timeLeftInMillis / 1000)) {
 		lastDisplayedSeconds = countdownTimerData.timeLeftInMillis / 1000;
 
-		UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
+		uiManager->UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
 
 		// Send tick event
-		SendTimerTickEvent(countdownTimerData.timerId, countdownTimerData.timeLeftInMillis);
+		QString timeString = uiManager->ConvertDateTimeToFormattedDisplayString(
+			countdownTimerData.timeLeftInMillis, countdownTimerData.display.showLeadingZero);
+
+		websocketNotifier->SendTickEvent(countdownTimerData.timerId, timeString,
+						 countdownTimerData.timeLeftInMillis);
 	}
 
 	if (endTimer == true) {
 		if (countdownTimerData.display.showEndMessage) {
 			QString outputEndMessageString = countdownTimerData.display.endMessage;
-			QString timeString = ConvertDateTimeToFormattedDisplayString(
+			QString timeString = uiManager->ConvertDateTimeToFormattedDisplayString(
 				countdownTimerData.timeLeftInMillis, countdownTimerData.display.showLeadingZero);
 			outputEndMessageString.replace(TIMETEMPLATECODE, timeString);
 
@@ -436,10 +393,11 @@ void AshmanixTimer::TimerAdjust()
 				countdownTimerData.timeLeftInMillis =
 					countdownTimerData.timeAtTimerStart.msecsTo(ui->dateTimeEdit->dateTime());
 			}
-			UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
+			uiManager->UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
 		}
 		// Send completion event
-		SendTimerStateEvent(countdownTimerData.timerId, "completed");
+		websocketNotifier->SendStateEvent(countdownTimerData.timerId, "completed",
+						  countdownTimerData.source.selectedSource);
 		StopTimerCounting();
 		return;
 	}
@@ -450,19 +408,15 @@ void AshmanixTimer::HandleTimerReset(bool restartOnly)
 	if (countdownTimerData.timer && countdownTimerData.timer->isActive()) {
 		if (restartOnly) {
 			timerEngine->Start();
-			// countdownTimerData.timer->start();
 		} else {
 			switch (countdownTimerData.selectedCountdownType) {
 			case CountdownType::PERIOD:
 				uiManager->HandleTimerAction(TimerAction::Reset);
 				uiManager->HandleTimerAction(TimerAction::Play);
-				// ResetButtonClicked();
-				// PlayButtonClicked();
 				break;
 
 			case CountdownType::DATETIME:
 				uiManager->HandleTimerAction(TimerAction::ToTimePlay);
-				// ToTimePlayButtonClicked();
 				break;
 
 			default:

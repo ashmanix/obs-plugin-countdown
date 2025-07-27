@@ -43,9 +43,6 @@ public:
 			       obs_data_t *savedData = nullptr, CountdownDockWidget *mDockWidget = nullptr);
 	~AshmanixTimer() override;
 
-	void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject);
-	void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject);
-
 	QString GetTimerID();
 	void SetTimerID(QString newId);
 	TimerWidgetStruct *GetTimerData();
@@ -58,6 +55,8 @@ public:
 	void UpdateStyles();
 	void StartTimer(bool shouldReset = false);
 	void StopTimer();
+	void ActivateTimerAction(TimerAction action);
+	void SaveData(obs_data_t *dataObject);
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
@@ -81,17 +80,12 @@ private:
 
 	void ConnectSignalHandlers();
 
-	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
 	void StartTimerCounting();
 	void StopTimerCounting();
 	void InitialiseTimerTime(bool setTimeLeftToUI = true);
 
-	void UpdateDateTimeDisplay(long long timeInMillis);
 	void SetSourceText(QString newText);
 	void SetCurrentScene();
-
-	void SendTimerTickEvent(QString timerId, long long timeLeftInMillis);
-	void SendTimerStateEvent(QString timerId, const char *state);
 
 	std::string GetFullHotkeyName(std::string nameString, const char *joinText = "_");
 

@@ -15,7 +15,7 @@ class TimerEngine : public QObject {
 
 public:
 	explicit TimerEngine(AshmanixTimer *parent, TimerWidgetStruct *data);
-	void Initialise(bool setTimeLeftToUI = false);
+	void Initialise();
 	void Start();
 	void Stop();
 	void Set(long long millis, bool reset);

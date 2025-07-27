@@ -1,5 +1,4 @@
 #include "websocket-notifier.hpp"
-#include <obs-websocket-api.h>
 
 WebsocketNotifier::WebsocketNotifier(obs_websocket_vendor vendor)
 {

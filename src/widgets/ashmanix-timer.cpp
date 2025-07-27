@@ -11,21 +11,23 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor, ob
 	qRegisterMetaType<obs_data_t *>("CountdownDockWidget*");
 
 	mainDockWidget = mDockWidget;
+	vendor = &newVendor;
 
 	countdownTimerData = TimerWidgetStruct();
 
-	ui->setupUi(this);
+	uiManager = new TimerUIManager(this, ui, &countdownTimerData, mDockWidget, settingsDialogUi);
+	timerEngine = new TimerEngine(this, &countdownTimerData);
+	timerPersistence = new TimerPersistence();
+	hotkeyManager = new HotkeyManager(this, ui, &countdownTimerData);
+	websocketNotifier = new WebsocketNotifier(vendor);
 
 	this->setProperty("id", countdownTimerData.timerId);
 
-	vendor = &newVendor;
-
-	SetupTimerWidgetUI();
-
-	ConnectUISignalHandlers();
+	ConnectSignalHandlers();
 
 	if (savedData) {
-		LoadTimerWidgetDataFromOBSSaveData(savedData);
+		timerPersistence->LoadTimerWidgetDataFromOBSSaveData(&countdownTimerData, savedData);
+		SetTimerData();
 	} else {
 		InitialiseTimerTime();
 	}
@@ -38,114 +40,13 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor, ob
 			QString(hash.toHex().left(8)); // We take the first 8 characters of the hash
 	}
 
-	RegisterAllHotkeys(savedData);
+	hotkeyManager->RegisterAllHotkeys(savedData);
 }
 
 AshmanixTimer::~AshmanixTimer()
 {
-	UnregisterAllHotkeys();
+	hotkeyManager->UnregisterAllHotkeys();
 	this->deleteLater();
-}
-
-void AshmanixTimer::SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject)
-{
-	obs_data_set_string(dataObject, "timerId", countdownTimerData.timerId.toStdString().c_str());
-	obs_data_set_bool(dataObject, "startOnStreamStart", countdownTimerData.startOnStreamStart);
-	obs_data_set_bool(dataObject, "resetTimerOnStreamStart", countdownTimerData.resetTimerOnStreamStart);
-	obs_data_set_bool(dataObject, "shouldCountUp", countdownTimerData.shouldCountUp);
-	obs_data_set_bool(dataObject, "showLeadingZero", countdownTimerData.display.showLeadingZero);
-
-	obs_data_set_string(dataObject, "selectedSource",
-			    countdownTimerData.source.selectedSource.toStdString().c_str());
-	obs_data_set_string(dataObject, "selectedScene", countdownTimerData.source.selectedScene.toStdString().c_str());
-	obs_data_set_string(dataObject, "endMessage", countdownTimerData.display.endMessage.toStdString().c_str());
-	obs_data_set_string(dataObject, "dateTime", countdownTimerData.dateTime.toString().toStdString().c_str());
-
-	obs_data_set_int(dataObject, "periodDays", countdownTimerData.periodDuration.days);
-	obs_data_set_int(dataObject, "periodHours", countdownTimerData.periodDuration.hours);
-	obs_data_set_int(dataObject, "periodMinutes", countdownTimerData.periodDuration.minutes);
-	obs_data_set_int(dataObject, "periodSeconds", countdownTimerData.periodDuration.seconds);
-
-	obs_data_set_bool(dataObject, "showDays", countdownTimerData.display.showDays);
-	obs_data_set_bool(dataObject, "showHours", countdownTimerData.display.showHours);
-	obs_data_set_bool(dataObject, "showMinutes", countdownTimerData.display.showMinutes);
-	obs_data_set_bool(dataObject, "showSeconds", countdownTimerData.display.showSeconds);
-	obs_data_set_bool(dataObject, "showEndMessage", countdownTimerData.display.showEndMessage);
-	obs_data_set_bool(dataObject, "showEndScene", countdownTimerData.display.showEndScene);
-
-	obs_data_set_bool(dataObject, "useFormattedOutput", countdownTimerData.display.useFormattedOutput);
-	obs_data_set_string(dataObject, "outputStringFormat",
-			    countdownTimerData.display.outputStringFormat.toStdString().c_str());
-
-	obs_data_set_bool(dataObject, "smoothenPeriodTimer", countdownTimerData.smoothenPeriodTimer);
-
-	obs_data_set_int(dataObject, "selectedCountdownType",
-			 static_cast<int>(countdownTimerData.selectedCountdownType));
-
-	obs_data_set_int(dataObject, "timeLeftInMillis", countdownTimerData.timeLeftInMillis);
-
-	// ------------------------- Hotkeys -------------------------
-	SaveHotkey(dataObject, countdownTimerData.hotkeys.startCountdownHotkeyId, TIMERSTARTHOTKEYNAME);
-
-	SaveHotkey(dataObject, countdownTimerData.hotkeys.pauseCountdownHotkeyId, TIMERPAUSEHOTKEYNAME);
-
-	SaveHotkey(dataObject, countdownTimerData.hotkeys.setCountdownHotkeyId, TIMERSETHOTKEYNAME);
-
-	SaveHotkey(dataObject, countdownTimerData.hotkeys.startCountdownToTimeHotkeyId, TIMERTOTIMESTARTHOTKEYNAME);
-
-	SaveHotkey(dataObject, countdownTimerData.hotkeys.stopCountdownToTimeHotkeyId, TIMERTOTIMESTOPHOTKEYNAME);
-}
-
-void AshmanixTimer::LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject)
-{
-
-	countdownTimerData.timerId = (char *)obs_data_get_string(dataObject, "timerId");
-	countdownTimerData.startOnStreamStart = (bool)obs_data_get_bool(dataObject, "startOnStreamStart");
-	countdownTimerData.resetTimerOnStreamStart = (bool)obs_data_get_bool(dataObject, "resetTimerOnStreamStart");
-	countdownTimerData.shouldCountUp = (bool)obs_data_get_bool(dataObject, "shouldCountUp");
-	countdownTimerData.display.showLeadingZero = (bool)obs_data_get_bool(dataObject, "showLeadingZero");
-	countdownTimerData.source.selectedSource = (char *)obs_data_get_string(dataObject, "selectedSource");
-	countdownTimerData.source.selectedScene = (char *)obs_data_get_string(dataObject, "selectedScene");
-	countdownTimerData.display.endMessage = (char *)obs_data_get_string(dataObject, "endMessage");
-
-	QDateTime savedTime = QDateTime::fromString((char *)obs_data_get_string(dataObject, "dateTime"));
-	QDateTime currentTime = QDateTime::currentDateTime();
-	if (currentTime > savedTime) {
-		savedTime = savedTime.addDays(1);
-		if (currentTime > savedTime)
-			savedTime = savedTime.addDays(1);
-	}
-	countdownTimerData.dateTime = savedTime;
-
-	countdownTimerData.periodDuration.days = (int)obs_data_get_int(dataObject, "periodDays");
-	countdownTimerData.periodDuration.hours = (int)obs_data_get_int(dataObject, "periodHours");
-	countdownTimerData.periodDuration.minutes = (int)obs_data_get_int(dataObject, "periodMinutes");
-	countdownTimerData.periodDuration.seconds = (int)obs_data_get_int(dataObject, "periodSeconds");
-
-	countdownTimerData.display.showDays = (bool)obs_data_get_bool(dataObject, "showDays");
-	countdownTimerData.display.showHours = (bool)obs_data_get_bool(dataObject, "showHours");
-	countdownTimerData.display.showMinutes = (bool)obs_data_get_bool(dataObject, "showMinutes");
-	countdownTimerData.display.showSeconds = (bool)obs_data_get_bool(dataObject, "showSeconds");
-	countdownTimerData.display.showEndMessage = (bool)obs_data_get_bool(dataObject, "showEndMessage");
-	countdownTimerData.display.showEndScene = (bool)obs_data_get_bool(dataObject, "showEndScene");
-
-	countdownTimerData.display.useFormattedOutput = (bool)obs_data_get_bool(dataObject, "useFormattedOutput");
-	countdownTimerData.display.outputStringFormat = (char *)obs_data_get_string(dataObject, "outputStringFormat");
-
-	countdownTimerData.smoothenPeriodTimer = (bool)obs_data_get_bool(dataObject, "smoothenPeriodTimer");
-
-	countdownTimerData.selectedCountdownType = (CountdownType)obs_data_get_int(dataObject, "selectedCountdownType");
-
-	countdownTimerData.timeLeftInMillis = (long long)obs_data_get_int(dataObject, "timeLeftInMillis");
-	countdownTimerData.hotkeys.startCountdownHotkeyId = (int)obs_data_get_int(dataObject, "startCountdownHotkeyId");
-	countdownTimerData.hotkeys.pauseCountdownHotkeyId = (int)obs_data_get_int(dataObject, "pauseCountdownHotkeyId");
-	countdownTimerData.hotkeys.setCountdownHotkeyId = (int)obs_data_get_int(dataObject, "setCountdownHotkeyId");
-	countdownTimerData.hotkeys.startCountdownToTimeHotkeyId =
-		(int)obs_data_get_int(dataObject, "startCountdownToTimeHotkeyId");
-	countdownTimerData.hotkeys.stopCountdownToTimeHotkeyId =
-		(int)obs_data_get_int(dataObject, "stopCountdownToTimeHotkeyId");
-
-	SetTimerData();
 }
 
 QString AshmanixTimer::GetTimerID()
@@ -166,46 +67,22 @@ TimerWidgetStruct *AshmanixTimer::GetTimerData()
 
 void AshmanixTimer::SetHideMultiTimerUIButtons(bool shouldHide)
 {
-	if (shouldHide) {
-
-		ui->deleteToolButton->setDisabled(true);
-		ui->deleteToolButton->hide();
-		ui->timerTitleHLayout->insertItem(0, deleteButtonSpacer);
-		ui->moveUpToolButton->hide();
-		ui->moveDownToolButton->hide();
-	} else {
-		ui->timerTitleHLayout->removeItem(deleteButtonSpacer);
-		ui->deleteToolButton->setDisabled(false);
-		ui->deleteToolButton->show();
-		ui->moveUpToolButton->show();
-		ui->moveDownToolButton->show();
-	}
+	uiManager->SetHideMultiTimerUIButtons(shouldHide);
 }
 
 void AshmanixTimer::SetIsUpButtonDisabled(bool isDisabled)
 {
-	ui->moveUpToolButton->setDisabled(isDisabled);
+	uiManager->SetIsUpButtonDisabled(isDisabled);
 }
 
 void AshmanixTimer::SetIsDownButtonDisabled(bool isDisabled)
 {
-	ui->moveDownToolButton->setDisabled(isDisabled);
+	uiManager->SetIsDownButtonDisabled(isDisabled);
 }
 
 void AshmanixTimer::SetTimerData()
 {
-	ui->dateTimeEdit->setDateTime(countdownTimerData.dateTime);
-
-	ui->timerDays->setValue(countdownTimerData.periodDuration.days);
-	ui->timerHours->setValue(countdownTimerData.periodDuration.hours);
-	ui->timerMinutes->setValue(countdownTimerData.periodDuration.minutes);
-	ui->timerSeconds->setValue(countdownTimerData.periodDuration.seconds);
-
-	ui->timerNameLabel->setText(QString("Timer: %1").arg(countdownTimerData.timerId));
-
-	ToggleTimeType(countdownTimerData.selectedCountdownType);
-
-	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
+	uiManager->SetTimeUI();
 	InitialiseTimerTime(false);
 }
 
@@ -218,7 +95,7 @@ bool AshmanixTimer::AlterTime(WebsocketRequestType requestType, const char *stri
 		result = AddTime(stringTime, countdownTimerData.shouldCountUp);
 		break;
 	case WebsocketRequestType::SET_TIME:
-		result = SetTime(stringTime, countdownTimerData.shouldCountUp);
+		result = SetTime(stringTime);
 		break;
 	default:
 		return false;
@@ -227,243 +104,77 @@ bool AshmanixTimer::AlterTime(WebsocketRequestType requestType, const char *stri
 	return result;
 }
 
-bool AshmanixTimer::AddTime(const char *stringTime, bool isCountingUp)
-{
-	bool result = false;
-	QDateTime currentDateTime = QDateTime::currentDateTime();
-	long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
-
-	long long newTimeLeftInMillis = std::max((countdownTimerData.timeLeftInMillis + timeInMillis), 0ll);
-
-	if (countdownTimerData.selectedCountdownType == CountdownType::PERIOD) {
-		long long uiPeriodInMillis = GetMillisFromPeriodUI();
-		uiPeriodInMillis = std::max((uiPeriodInMillis + timeInMillis), 0ll);
-
-		PeriodData periodData = ConvertMillisToPeriodData(uiPeriodInMillis);
-		UpdateTimerPeriod(periodData);
-
-		result = true;
-	} else if (countdownTimerData.selectedCountdownType == CountdownType::DATETIME) {
-		QDateTime updatedDateTime;
-		updatedDateTime = ui->dateTimeEdit->dateTime().addMSecs(timeInMillis + TIMERPERIOD);
-		ui->dateTimeEdit->setDateTime(updatedDateTime);
-		result = true;
-	}
-
-	if (!isCountingUp) {
-		countdownTimerData.timeAtTimerStart = countdownTimerData.timeAtTimerStart.addMSecs(timeInMillis);
-		// If we are using the smooth period timer option then we need to set time left in millis
-		if (countdownTimerData.selectedCountdownType == CountdownType::PERIOD &&
-		    countdownTimerData.smoothenPeriodTimer)
-			countdownTimerData.timeLeftInMillis = newTimeLeftInMillis;
-
-		UpdateDateTimeDisplay(newTimeLeftInMillis);
-		emit RequestTimerReset(true);
-	}
-
-	return result;
-}
-
-bool AshmanixTimer::SetTime(const char *stringTime, bool isCountingUp)
-{
-	UNUSED_PARAMETER(isCountingUp);
-	long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
-
-	if (timeInMillis < 0)
-		return false;
-
-	bool result = false;
-	QDateTime currentDateTime = QDateTime::currentDateTime();
-
-	if (countdownTimerData.selectedCountdownType == CountdownType::PERIOD) {
-		PeriodData periodData = ConvertMillisToPeriodData(timeInMillis);
-		UpdateTimerPeriod(periodData);
-		result = true;
-	} else if (countdownTimerData.selectedCountdownType == CountdownType::DATETIME) {
-		QDateTime updatedDateTime;
-		updatedDateTime = currentDateTime.addMSecs(timeInMillis + TIMERPERIOD);
-		ui->dateTimeEdit->setDateTime(updatedDateTime);
-		result = true;
-	}
-
-	emit RequestTimerReset();
-
-	return result;
-}
-
-void AshmanixTimer::UpdateTimerPeriod(PeriodData periodData)
-{
-	countdownTimerData.periodDuration.days = periodData.days;
-	countdownTimerData.periodDuration.hours = periodData.hours;
-	countdownTimerData.periodDuration.minutes = periodData.minutes;
-	countdownTimerData.periodDuration.seconds = periodData.seconds;
-
-	ui->timerDays->setValue(countdownTimerData.periodDuration.days);
-	ui->timerHours->setValue(countdownTimerData.periodDuration.hours);
-	ui->timerMinutes->setValue(countdownTimerData.periodDuration.minutes);
-	ui->timerSeconds->setValue(countdownTimerData.periodDuration.seconds);
-}
-
-void AshmanixTimer::PressPlayButton()
-{
-	ui->playButton->click();
-}
-
-void AshmanixTimer::PressResetButton()
-{
-	ui->resetButton->click();
-}
-
-void AshmanixTimer::PressStopButton()
-{
-	ui->pauseButton->click();
-}
-
-void AshmanixTimer::PressToTimePlayButton()
-{
-	ui->toTimePlayButton->click();
-}
-
-void AshmanixTimer::PressToTimeStopButton()
-{
-	ui->toTimeStopButton->click();
-}
-
 void AshmanixTimer::UpdateStyles()
 {
-	// Set toolbutton colour checked to darkened colour
-	QColor bgColor = ui->periodToolButton->palette().color(QPalette::Button);
-	QColor darkenedColor = bgColor.darker(150);
-	this->setStyleSheet(QString("QToolButton:checked { background-color: %1; } ").arg(darkenedColor.name()));
+	uiManager->UpdateStyles();
+}
+
+void AshmanixTimer::StartTimer(bool shouldReset)
+{
+	switch (countdownTimerData.selectedCountdownType) {
+	case CountdownType::PERIOD:
+		if (shouldReset)
+			uiManager->HandleTimerAction(TimerAction::Reset);
+
+		uiManager->HandleTimerAction(TimerAction::Play);
+		break;
+
+	case CountdownType::DATETIME:
+		uiManager->HandleTimerAction(TimerAction::ToTimePlay);
+		break;
+	}
+}
+
+void AshmanixTimer::StopTimer()
+{
+	switch (countdownTimerData.selectedCountdownType) {
+	case CountdownType::PERIOD:
+		uiManager->HandleTimerAction(TimerAction::Reset);
+		break;
+
+	case CountdownType::DATETIME:
+		uiManager->HandleTimerAction(TimerAction::ToTimeStop);
+		break;
+	}
 }
 
 // --------------------------------- Private ----------------------------------
 
-void AshmanixTimer::SetupTimerWidgetUI()
+void AshmanixTimer::ConnectSignalHandlers()
 {
-	ui->timerNameLabel->setText(QString("Timer: %1").arg(countdownTimerData.timerId));
+	// 	QObject::connect(ui->playButton, &QPushButton::clicked, this, &AshmanixTimer::PlayButtonClicked);
 
-	ui->settingsToolButton->setProperty("themeID", "propertiesIconSmall");
-	ui->settingsToolButton->setProperty("class", "icon-gear");
-	ui->settingsToolButton->setText("");
-	ui->settingsToolButton->setEnabled(true);
-	ui->settingsToolButton->setToolTip(obs_module_text("SettingsButtonTip"));
+	// 	QObject::connect(ui->pauseButton, &QPushButton::clicked, this, &AshmanixTimer::PauseButtonClicked);
 
-	ui->deleteToolButton->setProperty("themeID", "removeIconSmall");
-	ui->deleteToolButton->setProperty("class", "icon-trash");
-	ui->deleteToolButton->setText("");
-	ui->deleteToolButton->setEnabled(true);
-	ui->deleteToolButton->setToolTip(obs_module_text("DeleteTimerButtonTip"));
+	// 	QObject::connect(ui->resetButton, &QPushButton::clicked, this, &AshmanixTimer::ResetButtonClicked);
 
-	ui->moveUpToolButton->setProperty("themeID", "upArrowIconSmall");
-	ui->moveUpToolButton->setProperty("class", "icon-up");
-	ui->moveUpToolButton->setText("");
-	ui->moveUpToolButton->setEnabled(true);
-	ui->moveUpToolButton->setToolTip(obs_module_text("MoveTimerUpButtonTip"));
+	// 	QObject::connect(ui->toTimePlayButton, &QPushButton::clicked, this, &AshmanixTimer::ToTimePlayButtonClicked);
 
-	ui->moveDownToolButton->setProperty("themeID", "downArrowIconSmall");
-	ui->moveDownToolButton->setProperty("class", "icon-down");
-	ui->moveDownToolButton->setText("");
-	ui->moveDownToolButton->setEnabled(true);
-	ui->moveDownToolButton->setToolTip(obs_module_text("MoveTimerDownButtonTip"));
+	// 	QObject::connect(ui->toTimeStopButton, &QPushButton::clicked, this, &AshmanixTimer::ToTimeStopButtonClicked);
 
-	ui->timeDisplay->display(AshmanixTimer::ZEROSTRING);
+	// 	QObject::connect(ui->deleteToolButton, &QPushButton::clicked, this, &AshmanixTimer::DeleteButtonClicked);
 
-	ui->dateTimeEdit->setMinimumDate(QDate::currentDate());
-	ui->dateTimeEdit->setMaximumDate(QDate::currentDate().addDays(999));
+	// 	QObject::connect(ui->settingsToolButton, &QPushButton::clicked, this, &AshmanixTimer::SettingsButtonClicked);
 
-	ui->timerDays->setRange(0, 999);
-	ui->timerDays->setToolTip(obs_module_text("DaysCheckboxLabel"));
+	// 	QObject::connect(ui->timerDays, &QSpinBox::valueChanged, this, &AshmanixTimer::DaysChanged);
 
-	ui->timerHours->setRange(0, 23);
-	ui->timerHours->setToolTip(obs_module_text("HoursCheckboxLabel"));
+	// 	QObject::connect(ui->timerHours, &QSpinBox::valueChanged, this, &AshmanixTimer::HoursChanged);
 
-	ui->timerMinutes->setRange(0, 59);
-	ui->timerMinutes->setToolTip(obs_module_text("MinutesCheckboxLabel"));
+	// 	QObject::connect(ui->timerMinutes, &QSpinBox::valueChanged, this, &AshmanixTimer::MinutesChanged);
 
-	ui->timerSeconds->setRange(0, 59);
-	ui->timerSeconds->setToolTip(obs_module_text("SecondsCheckboxLabel"));
+	// 	QObject::connect(ui->timerSeconds, &QSpinBox::valueChanged, this, &AshmanixTimer::SecondsChanged);
 
-	countdownTimerData.periodVLayout = ui->periodWidget;
-	ui->periodToolButton->setText(obs_module_text("SetPeriodTabLabel"));
-	ui->periodToolButton->setToolTip(obs_module_text("SetPeriodTabTip"));
-	countdownTimerData.datetimeVLayout = ui->datetimeWidget;
-	ui->datetimeToolButton->setText(obs_module_text("SetDatetimeTabLabel"));
-	ui->datetimeToolButton->setToolTip(obs_module_text("SetDatetimeTabTip"));
-	UpdateStyles();
-	ToggleTimeType(countdownTimerData.selectedCountdownType);
+	// 	QObject::connect(ui->dateTimeEdit, &QDateTimeEdit::dateTimeChanged, this, &AshmanixTimer::DateTimeChanged);
 
-	ui->playButton->setProperty("themeID", "playIcon");
-	ui->playButton->setProperty("class", "icon-media-play");
-	ui->playButton->setEnabled(true);
-	ui->playButton->setToolTip(obs_module_text("PlayButtonTip"));
+	// 	QObject::connect(ui->moveUpToolButton, &QPushButton::clicked, this, &AshmanixTimer::EmitMoveTimerUpSignal);
 
-	ui->pauseButton->setProperty("themeID", "pauseIcon");
-	ui->pauseButton->setProperty("class", "icon-media-pause");
-	ui->pauseButton->setEnabled(false);
-	ui->pauseButton->setToolTip(obs_module_text("PauseButtonTip"));
+	// 	QObject::connect(ui->moveDownToolButton, &QPushButton::clicked, this, &AshmanixTimer::EmitMoveTimerDownSignal);
 
-	ui->resetButton->setProperty("themeID", "restartIcon");
-	ui->resetButton->setProperty("class", "icon-media-restart");
-	ui->resetButton->setToolTip(obs_module_text("ResetButtonTip"));
+	// 	QObject::connect(ui->periodToolButton, &QPushButton::clicked, this,
+	// 			 [this]() { ToggleTimeType(CountdownType::PERIOD); });
 
-	ui->toTimePlayButton->setProperty("themeID", "playIcon");
-	ui->toTimePlayButton->setProperty("class", "icon-media-play");
-	ui->toTimePlayButton->setEnabled(true);
-	ui->toTimePlayButton->setToolTip(
-
-		obs_module_text("ToTimePlayButtonTip"));
-	ui->toTimeStopButton->setProperty("themeID", "stopIcon");
-	ui->toTimeStopButton->setProperty("class", "icon-media-stop");
-	ui->toTimeStopButton->setEnabled(false);
-	ui->toTimeStopButton->setToolTip(obs_module_text("ToTimeStopButtonTip"));
-
-	ui->frame->setProperty("class", "bg-base");
-
-	deleteButtonSpacer = new QSpacerItem(ui->deleteToolButton->sizeHint().width(),
-					     ui->deleteToolButton->sizeHint().height(), QSizePolicy::Fixed,
-					     QSizePolicy::Fixed);
-
-	UpdateTimeDisplayTooltip();
-
-	countdownTimerData.isPlaying = false;
-}
-
-void AshmanixTimer::ConnectUISignalHandlers()
-{
-	QObject::connect(ui->playButton, &QPushButton::clicked, this, &AshmanixTimer::PlayButtonClicked);
-
-	QObject::connect(ui->pauseButton, &QPushButton::clicked, this, &AshmanixTimer::PauseButtonClicked);
-
-	QObject::connect(ui->resetButton, &QPushButton::clicked, this, &AshmanixTimer::ResetButtonClicked);
-
-	QObject::connect(ui->toTimePlayButton, &QPushButton::clicked, this, &AshmanixTimer::ToTimePlayButtonClicked);
-
-	QObject::connect(ui->toTimeStopButton, &QPushButton::clicked, this, &AshmanixTimer::ToTimeStopButtonClicked);
-
-	QObject::connect(ui->deleteToolButton, &QPushButton::clicked, this, &AshmanixTimer::DeleteButtonClicked);
-
-	QObject::connect(ui->settingsToolButton, &QPushButton::clicked, this, &AshmanixTimer::SettingsButtonClicked);
-
-	QObject::connect(ui->timerDays, &QSpinBox::valueChanged, this, &AshmanixTimer::DaysChanged);
-
-	QObject::connect(ui->timerHours, &QSpinBox::valueChanged, this, &AshmanixTimer::HoursChanged);
-
-	QObject::connect(ui->timerMinutes, &QSpinBox::valueChanged, this, &AshmanixTimer::MinutesChanged);
-
-	QObject::connect(ui->timerSeconds, &QSpinBox::valueChanged, this, &AshmanixTimer::SecondsChanged);
-
-	QObject::connect(ui->dateTimeEdit, &QDateTimeEdit::dateTimeChanged, this, &AshmanixTimer::DateTimeChanged);
-
-	QObject::connect(ui->moveUpToolButton, &QPushButton::clicked, this, &AshmanixTimer::EmitMoveTimerUpSignal);
-
-	QObject::connect(ui->moveDownToolButton, &QPushButton::clicked, this, &AshmanixTimer::EmitMoveTimerDownSignal);
-
-	QObject::connect(ui->periodToolButton, &QPushButton::clicked, this,
-			 [this]() { ToggleTimeType(CountdownType::PERIOD); });
-
-	QObject::connect(ui->datetimeToolButton, &QPushButton::clicked, this,
-			 [this]() { ToggleTimeType(CountdownType::DATETIME); });
+	// 	QObject::connect(ui->datetimeToolButton, &QPushButton::clicked, this,
+	// 			 [this]() { ToggleTimeType(CountdownType::DATETIME); });
 }
 
 QString AshmanixTimer::ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero)
@@ -530,25 +241,10 @@ void AshmanixTimer::StopTimerCounting()
 
 void AshmanixTimer::InitialiseTimerTime(bool setTimeLeftToUI)
 {
-	countdownTimerData.timer = new QTimer();
-	QObject::connect(countdownTimerData.timer, SIGNAL(timeout()), SLOT(TimerAdjust()));
+	timerEngine->Initialise();
 	QObject::connect(this, &AshmanixTimer::RequestTimerReset, this, &AshmanixTimer::HandleTimerReset);
 	if (setTimeLeftToUI)
-		countdownTimerData.timeLeftInMillis = GetMillisFromPeriodUI();
-}
-
-bool AshmanixTimer::IsSetTimeZero()
-{
-	bool isZero = false;
-
-	if (countdownTimerData.timeLeftInMillis == 0) {
-		isZero = true;
-	} else if (ui->timerDays->text().toInt() == 0 && ui->timerHours->text().toInt() == 0 &&
-		   ui->timerMinutes->text().toInt() == 0 && ui->timerSeconds->text().toInt() == 0) {
-		isZero = true;
-	}
-
-	return isZero;
+		countdownTimerData.timeLeftInMillis = uiManager->GetMillisFromPeriodUI();
 }
 
 void AshmanixTimer::UpdateDateTimeDisplay(long long timeInMillis)
@@ -595,16 +291,6 @@ void AshmanixTimer::SetCurrentScene()
 	}
 }
 
-long long AshmanixTimer::GetMillisFromPeriodUI()
-{
-	long long days_ms = static_cast<long long>(ui->timerDays->text().toInt()) * 24 * 60 * 60 * 1000;
-	long long hours_ms = static_cast<long long>(ui->timerHours->text().toInt()) * 60 * 60 * 1000;
-	long long minutes_ms = static_cast<long long>(ui->timerMinutes->text().toInt()) * 60 * 1000;
-	long long seconds_ms = static_cast<long long>(ui->timerSeconds->text().toInt()) * 1000;
-
-	return days_ms + hours_ms + minutes_ms + seconds_ms;
-}
-
 void AshmanixTimer::SendTimerTickEvent(QString timerId, long long timeLeftInMillis)
 {
 	obs_data_t *eventData = obs_data_create();
@@ -636,52 +322,6 @@ void AshmanixTimer::SendTimerStateEvent(QString timerId, const char *state)
 	obs_data_release(eventData);
 }
 
-void AshmanixTimer::RegisterAllHotkeys(obs_data_t *savedData)
-{
-	LoadHotkey(
-		countdownTimerData.hotkeys.startCountdownHotkeyId, TIMERSTARTHOTKEYNAME,
-		GetFullHotkeyName(obs_module_text("StartCountdownHotkeyDescription"), " - ").c_str(),
-		[this]() { ui->playButton->click(); }, GetFullHotkeyName("Play Hotkey Pressed", " "), savedData);
-
-	LoadHotkey(
-		countdownTimerData.hotkeys.pauseCountdownHotkeyId, TIMERPAUSEHOTKEYNAME,
-		GetFullHotkeyName(obs_module_text("PauseCountdownHotkeyDescription"), " - ").c_str(),
-		[this]() { ui->pauseButton->animateClick(); }, GetFullHotkeyName("Pause Hotkey Pressed", " "),
-		savedData);
-
-	LoadHotkey(
-		countdownTimerData.hotkeys.setCountdownHotkeyId, TIMERSETHOTKEYNAME,
-		GetFullHotkeyName(obs_module_text("SetCountdownHotkeyDescription"), " - ").c_str(),
-		[this]() { ui->resetButton->animateClick(); }, GetFullHotkeyName("Set Hotkey Pressed", " "), savedData);
-
-	LoadHotkey(
-		countdownTimerData.hotkeys.startCountdownToTimeHotkeyId, TIMERTOTIMESTARTHOTKEYNAME,
-		GetFullHotkeyName(obs_module_text("StartCountdownToTimeHotkeyDescription"), " - ").c_str(),
-		[this]() { ui->toTimePlayButton->animateClick(); },
-		GetFullHotkeyName("To Time Start Hotkey Pressed", " "), savedData);
-
-	LoadHotkey(
-		countdownTimerData.hotkeys.stopCountdownToTimeHotkeyId, TIMERTOTIMESTOPHOTKEYNAME,
-		GetFullHotkeyName(obs_module_text("StopCountdownToTimeHotkeyDescription"), " - ").c_str(),
-		[this]() { ui->toTimeStopButton->animateClick(); },
-		GetFullHotkeyName("To Time Stop Hotkey Pressed", " "), savedData);
-}
-
-void AshmanixTimer::UnregisterAllHotkeys()
-{
-	if (countdownTimerData.hotkeys.startCountdownHotkeyId)
-		obs_hotkey_unregister(countdownTimerData.hotkeys.startCountdownHotkeyId);
-	if (countdownTimerData.hotkeys.pauseCountdownHotkeyId)
-		obs_hotkey_unregister(countdownTimerData.hotkeys.pauseCountdownHotkeyId);
-	if (countdownTimerData.hotkeys.setCountdownHotkeyId)
-		obs_hotkey_unregister(countdownTimerData.hotkeys.setCountdownHotkeyId);
-
-	if (countdownTimerData.hotkeys.startCountdownToTimeHotkeyId)
-		obs_hotkey_unregister(countdownTimerData.hotkeys.startCountdownToTimeHotkeyId);
-	if (countdownTimerData.hotkeys.stopCountdownToTimeHotkeyId)
-		obs_hotkey_unregister(countdownTimerData.hotkeys.stopCountdownToTimeHotkeyId);
-}
-
 std::string AshmanixTimer::GetFullHotkeyName(std::string name, const char *joinText)
 {
 	static std::string fullName;
@@ -689,106 +329,26 @@ std::string AshmanixTimer::GetFullHotkeyName(std::string name, const char *joinT
 	return fullName;
 }
 
+bool AshmanixTimer::AddTime(const char *stringTime, bool isCountingUp)
+{
+	bool result = uiManager->AddTime(stringTime, isCountingUp);
+
+	if (!isCountingUp)
+		emit RequestTimerReset(true);
+
+	return result;
+}
+
+bool AshmanixTimer::SetTime(const char *stringTime)
+{
+	bool result = uiManager->SetTime(stringTime);
+	emit RequestTimerReset();
+
+	return result;
+}
 // --------------------------------- Public Slots ----------------------------------
 
-void AshmanixTimer::PlayButtonClicked()
-{
-	if (countdownTimerData.selectedCountdownType == CountdownType::DATETIME) {
-		ToggleTimeType(CountdownType::PERIOD);
-	}
-	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
-
-	long long periodUIInMillis = GetMillisFromPeriodUI();
-	QDateTime currentDateTime = QDateTime::currentDateTime();
-
-	if ((!countdownTimerData.shouldCountUp && IsSetTimeZero()) ||
-	    (countdownTimerData.shouldCountUp && countdownTimerData.timeLeftInMillis >= periodUIInMillis))
-		return;
-
-	if (countdownTimerData.shouldCountUp) {
-		countdownTimerData.timeAtTimerStart = currentDateTime.addMSecs(-(countdownTimerData.timeLeftInMillis));
-	} else {
-		countdownTimerData.timeAtTimerStart = currentDateTime.addMSecs(countdownTimerData.timeLeftInMillis);
-	}
-
-	StartTimerCounting();
-}
-
-void AshmanixTimer::PauseButtonClicked()
-{
-	if (countdownTimerData.selectedCountdownType == CountdownType::DATETIME) {
-		ToggleTimeType(CountdownType::PERIOD);
-	}
-
-	StopTimerCounting();
-	SendTimerStateEvent(countdownTimerData.timerId, "paused");
-}
-
-void AshmanixTimer::ResetButtonClicked()
-{
-	if (countdownTimerData.selectedCountdownType == CountdownType::DATETIME) {
-		ToggleTimeType(CountdownType::PERIOD);
-	}
-
-	StopTimerCounting();
-	countdownTimerData.shouldCountUp ? countdownTimerData.timeLeftInMillis = 0
-					 : countdownTimerData.timeLeftInMillis = GetMillisFromPeriodUI();
-
-	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
-}
-
-void AshmanixTimer::ToTimePlayButtonClicked()
-{
-	if (countdownTimerData.selectedCountdownType == CountdownType::PERIOD) {
-		ToggleTimeType(CountdownType::DATETIME);
-	}
-
-	countdownTimerData.timeAtTimerStart = QDateTime::currentDateTime();
-
-	if (countdownTimerData.shouldCountUp) {
-		countdownTimerData.timeLeftInMillis = 0;
-	} else {
-		countdownTimerData.timeLeftInMillis =
-			countdownTimerData.timeAtTimerStart.msecsTo(ui->dateTimeEdit->dateTime());
-		if (countdownTimerData.timeLeftInMillis < 0)
-			countdownTimerData.timeLeftInMillis = 0;
-	}
-
-	UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
-	StartTimerCounting();
-}
-
-void AshmanixTimer::ToTimeStopButtonClicked()
-{
-	if (countdownTimerData.selectedCountdownType == CountdownType::PERIOD) {
-		ToggleTimeType(CountdownType::DATETIME);
-	}
-
-	StopTimerCounting();
-}
-
 // ------------------------------- Private Slots ----------------------------------
-
-void AshmanixTimer::SettingsButtonClicked()
-{
-	if (!settingsDialogUi) {
-		settingsDialogUi = new SettingsDialog(this, &countdownTimerData, mainDockWidget);
-
-		QObject::connect(settingsDialogUi, &SettingsDialog::SettingsUpdated, this,
-				 [this]() { UpdateTimeDisplayTooltip(); });
-	}
-	if (settingsDialogUi->isVisible()) {
-		settingsDialogUi->raise();
-		settingsDialogUi->activateWindow();
-	} else {
-		settingsDialogUi->setVisible(true);
-	}
-}
-
-void AshmanixTimer::DeleteButtonClicked()
-{
-	emit RequestDelete(countdownTimerData.timerId);
-}
 
 void AshmanixTimer::TimerAdjust()
 {
@@ -826,7 +386,7 @@ void AshmanixTimer::TimerAdjust()
 					countdownTimerData.timeAtTimerStart.msecsTo(QDateTime::currentDateTime()));
 			}
 			// If selected tab is period
-			if (timerPeriodMillis >= GetMillisFromPeriodUI())
+			if (timerPeriodMillis >= uiManager->GetMillisFromPeriodUI())
 				endTimer = true;
 		} else {
 			timerPeriodMillis = static_cast<long long>(
@@ -871,7 +431,7 @@ void AshmanixTimer::TimerAdjust()
 			countdownTimerData.timeLeftInMillis = 0;
 		} else {
 			if (countdownTimerData.selectedCountdownType == CountdownType::PERIOD) {
-				countdownTimerData.timeLeftInMillis = GetMillisFromPeriodUI();
+				countdownTimerData.timeLeftInMillis = uiManager->GetMillisFromPeriodUI();
 			} else {
 				countdownTimerData.timeLeftInMillis =
 					countdownTimerData.timeAtTimerStart.msecsTo(ui->dateTimeEdit->dateTime());
@@ -889,16 +449,20 @@ void AshmanixTimer::HandleTimerReset(bool restartOnly)
 {
 	if (countdownTimerData.timer && countdownTimerData.timer->isActive()) {
 		if (restartOnly) {
-			countdownTimerData.timer->start();
+			timerEngine->Start();
+			// countdownTimerData.timer->start();
 		} else {
 			switch (countdownTimerData.selectedCountdownType) {
 			case CountdownType::PERIOD:
-				ResetButtonClicked();
-				PlayButtonClicked();
+				uiManager->HandleTimerAction(TimerAction::Reset);
+				uiManager->HandleTimerAction(TimerAction::Play);
+				// ResetButtonClicked();
+				// PlayButtonClicked();
 				break;
 
 			case CountdownType::DATETIME:
-				ToTimePlayButtonClicked();
+				uiManager->HandleTimerAction(TimerAction::ToTimePlay);
+				// ToTimePlayButtonClicked();
 				break;
 
 			default:
@@ -906,31 +470,6 @@ void AshmanixTimer::HandleTimerReset(bool restartOnly)
 			}
 		}
 	}
-}
-
-void AshmanixTimer::DaysChanged(int newValue)
-{
-	countdownTimerData.periodDuration.days = newValue;
-}
-
-void AshmanixTimer::HoursChanged(int newValue)
-{
-	countdownTimerData.periodDuration.hours = newValue;
-}
-
-void AshmanixTimer::MinutesChanged(int newValue)
-{
-	countdownTimerData.periodDuration.minutes = newValue;
-}
-
-void AshmanixTimer::SecondsChanged(int newValue)
-{
-	countdownTimerData.periodDuration.seconds = newValue;
-}
-
-void AshmanixTimer::DateTimeChanged(QDateTime newDateTime)
-{
-	countdownTimerData.dateTime = newDateTime;
 }
 
 void AshmanixTimer::EmitMoveTimerDownSignal()
@@ -941,135 +480,4 @@ void AshmanixTimer::EmitMoveTimerDownSignal()
 void AshmanixTimer::EmitMoveTimerUpSignal()
 {
 	emit MoveTimer(QString("up"), countdownTimerData.timerId);
-}
-
-void AshmanixTimer::ToggleTimeType(CountdownType type)
-{
-	if (countdownTimerData.periodVLayout && countdownTimerData.datetimeVLayout) {
-		countdownTimerData.datetimeVLayout->hide();
-		countdownTimerData.periodVLayout->hide();
-		ui->periodToolButton->setChecked(false);
-		ui->datetimeToolButton->setChecked(false);
-
-		if (type == CountdownType::PERIOD) {
-			countdownTimerData.periodVLayout->show();
-			countdownTimerData.selectedCountdownType = type;
-			ui->periodToolButton->setChecked(true);
-		} else if (type == CountdownType::DATETIME) {
-			countdownTimerData.datetimeVLayout->show();
-			countdownTimerData.selectedCountdownType = type;
-			ui->datetimeToolButton->setChecked(true);
-		}
-	} else {
-		obs_log(LOG_WARNING, "Period and/or Datetime layouts not found!");
-	}
-}
-
-void AshmanixTimer::UpdateTimeDisplayTooltip()
-{
-	QString detailsTooltip = "";
-
-	detailsTooltip += obs_module_text("TextSourceLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.source.selectedSource;
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("StartOnStreamCheckBoxLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.startOnStreamStart ? "✓" : "-";
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("ResetOnStreamStartCheckBoxLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.resetTimerOnStreamStart ? "✓" : "-";
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("EndMessageLabel");
-	detailsTooltip += " : ";
-	if (countdownTimerData.display.showEndMessage) {
-		detailsTooltip += "✓ ";
-		detailsTooltip += countdownTimerData.display.endMessage;
-	} else {
-		detailsTooltip += "-";
-	}
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("SwitchScene");
-	detailsTooltip += " : ";
-	if (countdownTimerData.display.showEndScene) {
-		detailsTooltip += "✓ ";
-		detailsTooltip += countdownTimerData.source.selectedScene;
-	} else {
-		detailsTooltip += "-";
-	}
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("DaysCheckboxLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.display.showDays ? "✓" : "-";
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("HoursCheckboxLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.display.showHours ? "✓" : "-";
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("MinutesCheckboxLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.display.showMinutes ? "✓" : "-";
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("SecondsCheckboxLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.display.showSeconds ? "✓" : "-";
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("LeadZeroCheckboxLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.display.showLeadingZero ? "✓" : "-";
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("CountUpCheckBoxLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.shouldCountUp ? "✓" : "-";
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("DialogFormatOutputLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.display.useFormattedOutput ? "✓" : "-";
-	detailsTooltip += "\n";
-
-	detailsTooltip += obs_module_text("DialogSmoothTimerLabel");
-	detailsTooltip += " : ";
-	detailsTooltip += countdownTimerData.smoothenPeriodTimer ? "✓" : "-";
-
-	ui->timeDisplay->setToolTip(detailsTooltip);
-}
-
-void AshmanixTimer::StartTimer(bool shouldReset)
-{
-	switch (countdownTimerData.selectedCountdownType) {
-	case CountdownType::PERIOD:
-		if (shouldReset)
-			PressResetButton();
-		PressPlayButton();
-		break;
-
-	case CountdownType::DATETIME:
-		PressToTimePlayButton();
-		break;
-	}
-}
-
-void AshmanixTimer::StopTimer()
-{
-	switch (countdownTimerData.selectedCountdownType) {
-	case CountdownType::PERIOD:
-		PressStopButton();
-		break;
-
-	case CountdownType::DATETIME:
-		PressToTimeStopButton();
-		break;
-	}
 }

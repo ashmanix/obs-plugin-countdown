@@ -7,6 +7,10 @@
 #include <QTabWidget>
 #include <QTime>
 
+const int TIMERPERIOD = 1000;
+
+enum class TimerAction { Play, Pause, Reset, ToTimePlay, ToTimeStop };
+
 enum class CountdownType { PERIOD = 0, DATETIME = 1 };
 
 enum class WebsocketRequestType {

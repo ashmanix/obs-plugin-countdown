@@ -25,6 +25,11 @@
 #include "../ui/ui_AshmanixTimer.h"
 #include "../utils/timer-utils.hpp"
 #include "../utils/obs-utils.hpp"
+#include "./ashmanix-timer/timer-ui-manager.hpp"
+#include "./ashmanix-timer/timer-engine.hpp"
+#include "./ashmanix-timer/timer-persistence.hpp"
+#include "./ashmanix-timer/hotkey-manager.hpp"
+#include "./ashmanix-timer/websocket-notifier.hpp"
 
 // Forward declarations
 class SettingsDialog;
@@ -50,11 +55,6 @@ public:
 	void SetTimerData();
 	bool AlterTime(WebsocketRequestType requestType, const char *stringTime);
 
-	void PressPlayButton();
-	void PressResetButton();
-	void PressStopButton();
-	void PressToTimePlayButton();
-	void PressToTimeStopButton();
 	void UpdateStyles();
 	void StartTimer(bool shouldReset = false);
 	void StopTimer();
@@ -69,42 +69,34 @@ private:
 	QSpacerItem *deleteButtonSpacer;
 	CountdownDockWidget *mainDockWidget;
 
-	static inline const char *TIMERSTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_Start";
-	static inline const char *TIMERPAUSEHOTKEYNAME = "Ashmanix_Countdown_Timer_Pause";
-	static inline const char *TIMERSETHOTKEYNAME = "Ashmanix_Countdown_Timer_Set";
-	static inline const char *TIMERTOTIMESTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Start";
-	static inline const char *TIMERTOTIMESTOPHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Stop";
-
 	TimerWidgetStruct countdownTimerData;
 	Ui::AshmanixTimer *ui;
 	SettingsDialog *settingsDialogUi = nullptr;
 
-	void SetupTimerWidgetUI();
-	void ConnectUISignalHandlers();
+	TimerUIManager *uiManager = nullptr;
+	TimerEngine *timerEngine = nullptr;
+	TimerPersistence *timerPersistence = nullptr;
+	HotkeyManager *hotkeyManager = nullptr;
+	WebsocketNotifier *websocketNotifier = nullptr;
+
+	void ConnectSignalHandlers();
 
 	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
 	void StartTimerCounting();
 	void StopTimerCounting();
 	void InitialiseTimerTime(bool setTimeLeftToUI = true);
-	bool IsSetTimeZero();
 
 	void UpdateDateTimeDisplay(long long timeInMillis);
 	void SetSourceText(QString newText);
 	void SetCurrentScene();
-	long long GetMillisFromPeriodUI();
 
 	void SendTimerTickEvent(QString timerId, long long timeLeftInMillis);
 	void SendTimerStateEvent(QString timerId, const char *state);
 
-	void RegisterAllHotkeys(obs_data_t *saved_data);
-	void UnregisterAllHotkeys();
-
 	std::string GetFullHotkeyName(std::string nameString, const char *joinText = "_");
 
-	void UpdateTimeDisplayTooltip();
 	bool AddTime(const char *stringTime, bool isCountingUp);
-	bool SetTime(const char *stringTime, bool isCountingUp);
-	void UpdateTimerPeriod(PeriodData periodData);
+	bool SetTime(const char *stringTime);
 
 signals:
 	void RequestTimerReset(bool restartOnly = false);
@@ -112,29 +104,13 @@ signals:
 	void RequestSendWebsocketEvent(const char *eventName, obs_data_t *eventData);
 	void MoveTimer(QString direction, QString timerId);
 
-public slots:
-	void PlayButtonClicked();
-	void PauseButtonClicked();
-	void ResetButtonClicked();
-
-	void ToTimePlayButtonClicked();
-	void ToTimeStopButtonClicked();
-
 private slots:
-	void SettingsButtonClicked();
-	void DeleteButtonClicked();
 
 	void TimerAdjust();
 	void HandleTimerReset(bool restartOnly = false);
 
-	void DaysChanged(int newValue);
-	void HoursChanged(int newValue);
-	void MinutesChanged(int newValue);
-	void SecondsChanged(int newValue);
-	void DateTimeChanged(QDateTime newDateTime);
 	void EmitMoveTimerDownSignal();
 	void EmitMoveTimerUpSignal();
-	void ToggleTimeType(CountdownType type);
 };
 
 #endif // ASHMANIXTIMER_H

@@ -8,11 +8,12 @@
 #include "countdown-widget.hpp"
 
 TimerUIManager::TimerUIManager(QWidget *parent, Ui::AshmanixTimer *ui, TimerWidgetStruct *countdownTimerData,
-			       CountdownDockWidget *countdownDockWidget)
+			       CountdownDockWidget *countdownDockWidget, const char *zeroString)
 	: parent(parent),
 	  ui(ui),
 	  data(countdownTimerData),
-	  countdownDockWidget(countdownDockWidget)
+	  countdownDockWidget(countdownDockWidget),
+	  zeroString(zeroString)
 {
 	SetupUI();
 	ConnectUISignalHandlers();
@@ -46,7 +47,7 @@ void TimerUIManager::SetupUI()
 	ui->moveDownToolButton->setEnabled(true);
 	ui->moveDownToolButton->setToolTip(obs_module_text("MoveTimerDownButtonTip"));
 
-	ui->timeDisplay->display(ZEROSTRING);
+	ui->timeDisplay->display(zeroString);
 
 	ui->dateTimeEdit->setMinimumDate(QDate::currentDate());
 	ui->dateTimeEdit->setMaximumDate(QDate::currentDate().addDays(999));
@@ -169,7 +170,7 @@ void TimerUIManager::SetTimeUI()
 
 	ToggleTimeType(data->selectedCountdownType);
 
-	UpdateDateTimeDisplay(data->timeLeftInMillis);
+	UpdateDisplay(data->timeLeftInMillis);
 }
 
 bool TimerUIManager::AddTime(const char *stringTime, bool isCountingUp)
@@ -201,7 +202,7 @@ bool TimerUIManager::AddTime(const char *stringTime, bool isCountingUp)
 		if (data->selectedCountdownType == CountdownType::PERIOD && data->smoothenPeriodTimer)
 			data->timeLeftInMillis = newTimeLeftInMillis;
 
-		UpdateDateTimeDisplay(newTimeLeftInMillis);
+		UpdateDisplay(newTimeLeftInMillis);
 	}
 
 	return result;
@@ -357,22 +358,9 @@ void TimerUIManager::UpdateTimeDisplayTooltip()
 	ui->timeDisplay->setToolTip(detailsTooltip);
 }
 
-void TimerUIManager::UpdateDateTimeDisplay(long long timeInMillis)
+void TimerUIManager::UpdateDisplay(long long timeToUpdateInMillis)
 {
-
-	long long timeToUpdateInMillis = std::max(timeInMillis, 0ll);
 	ui->timeDisplay->display(ConvertMillisToDateTimeString(timeToUpdateInMillis));
-	QString formattedDisplayTime =
-		ConvertDateTimeToFormattedDisplayString(timeToUpdateInMillis, data->display.showLeadingZero);
-
-	QString outputString = formattedDisplayTime;
-
-	if (data->display.useFormattedOutput) {
-		outputString = data->display.outputStringFormat;
-		outputString.replace(TIMETEMPLATECODE, formattedDisplayTime);
-	}
-
-	emit UpdateSource(outputString);
 }
 
 bool TimerUIManager::IsSetTimeZero()
@@ -430,13 +418,58 @@ void TimerUIManager::SetIsDownButtonDisabled(bool isDisabled)
 	ui->moveDownToolButton->setDisabled(isDisabled);
 }
 
-QString TimerUIManager::ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero)
+void TimerUIManager::TimerStateChange(TimerCommand command)
 {
-	QString formattedDateTimeString = GetFormattedTimerString(data->display.showDays, data->display.showHours,
-								  data->display.showMinutes, data->display.showSeconds,
-								  showLeadingZero, timeInMillis);
+	if (command == TimerCommand::START) {
+		ui->playButton->setEnabled(false);
+		ui->pauseButton->setEnabled(true);
+		ui->resetButton->setEnabled(false);
 
-	return (formattedDateTimeString == "") ? "Nothing selected!" : formattedDateTimeString;
+		ui->toTimePlayButton->setEnabled(false);
+		ui->toTimeStopButton->setEnabled(true);
+
+		ui->timerDays->setEnabled(false);
+		ui->timerHours->setEnabled(false);
+		ui->timerMinutes->setEnabled(false);
+		ui->timerSeconds->setEnabled(false);
+
+		ui->periodToolButton->setEnabled(false);
+		ui->datetimeToolButton->setEnabled(false);
+		ui->dateTimeEdit->setEnabled(false);
+
+		if (settingsDialogUi)
+			settingsDialogUi->ToggleCounterCheckBoxes(false);
+
+	} else if (command == TimerCommand::STOP) {
+		ui->playButton->setEnabled(true);
+		ui->pauseButton->setEnabled(false);
+		ui->resetButton->setEnabled(true);
+
+		ui->toTimePlayButton->setEnabled(true);
+		ui->toTimeStopButton->setEnabled(false);
+
+		ui->timerDays->setEnabled(true);
+		ui->timerHours->setEnabled(true);
+		ui->timerMinutes->setEnabled(true);
+		ui->timerSeconds->setEnabled(true);
+
+		ui->periodToolButton->setEnabled(true);
+		ui->datetimeToolButton->setEnabled(true);
+		ui->dateTimeEdit->setEnabled(true);
+
+		if (settingsDialogUi)
+			settingsDialogUi->ToggleCounterCheckBoxes(true);
+	}
+}
+
+void TimerUIManager::SetZeroTimeDisplay()
+{
+	ui->timeDisplay->display(zeroString);
+}
+
+QDateTime TimerUIManager::GetToDateTimeValue()
+{
+	return ui->dateTimeEdit->dateTime();
 }
 
 // --------------------------------- Public Slots ----------------------------------
@@ -451,7 +484,7 @@ void TimerUIManager::HandleTimerAction(TimerAction action)
 		if (data->selectedCountdownType == CountdownType::DATETIME) {
 			ToggleTimeType(CountdownType::PERIOD);
 		}
-		UpdateDateTimeDisplay(data->timeLeftInMillis);
+		UpdateDisplay(data->timeLeftInMillis);
 
 		if ((!data->shouldCountUp && IsSetTimeZero()) ||
 		    (data->shouldCountUp && data->timeLeftInMillis >= periodUIInMillis))
@@ -463,24 +496,24 @@ void TimerUIManager::HandleTimerAction(TimerAction action)
 			data->timeAtTimerStart = currentDateTime.addMSecs(data->timeLeftInMillis);
 		}
 
-		TimerStateChange(TimerCommand::START);
+		emit TimerChange(TimerCommand::START);
 		break;
 	case TimerAction::PAUSE:
 		if (data->selectedCountdownType == CountdownType::DATETIME) {
 			ToggleTimeType(CountdownType::PERIOD);
 		}
 
-		TimerStateChange(TimerCommand::STOP);
+		emit TimerChange(TimerCommand::STOP);
 		break;
 	case TimerAction::RESET:
 		if (data->selectedCountdownType == CountdownType::DATETIME) {
 			ToggleTimeType(CountdownType::PERIOD);
 		}
 
-		TimerStateChange(TimerCommand::STOP);
+		emit TimerChange(TimerCommand::STOP);
 		data->shouldCountUp ? data->timeLeftInMillis = 0 : data->timeLeftInMillis = GetMillisFromPeriodUI();
 
-		UpdateDateTimeDisplay(data->timeLeftInMillis);
+		UpdateDisplay(data->timeLeftInMillis);
 		break;
 	case TimerAction::TO_TIME_PLAY:
 		if (data->selectedCountdownType == CountdownType::PERIOD) {
@@ -497,15 +530,15 @@ void TimerUIManager::HandleTimerAction(TimerAction action)
 				data->timeLeftInMillis = 0;
 		}
 
-		UpdateDateTimeDisplay(data->timeLeftInMillis);
-		TimerStateChange(TimerCommand::START);
+		UpdateDisplay(data->timeLeftInMillis);
+		emit TimerChange(TimerCommand::START);
 		break;
 	case TimerAction::TO_TIME_STOP:
 		if (data->selectedCountdownType == CountdownType::PERIOD) {
 			ToggleTimeType(CountdownType::DATETIME);
 		}
 
-		TimerStateChange(TimerCommand::STOP);
+		emit TimerChange(TimerCommand::STOP);
 		break;
 	}
 }
@@ -555,49 +588,3 @@ void TimerUIManager::DateTimeChanged(QDateTime newDateTime)
 }
 
 // ------------------------------ Private Functions ----------------------------------
-
-void TimerUIManager::TimerStateChange(TimerCommand command)
-{
-	if (command == TimerCommand::START) {
-		ui->playButton->setEnabled(false);
-		ui->pauseButton->setEnabled(true);
-		ui->resetButton->setEnabled(false);
-
-		ui->toTimePlayButton->setEnabled(false);
-		ui->toTimeStopButton->setEnabled(true);
-
-		ui->timerDays->setEnabled(false);
-		ui->timerHours->setEnabled(false);
-		ui->timerMinutes->setEnabled(false);
-		ui->timerSeconds->setEnabled(false);
-
-		ui->periodToolButton->setEnabled(false);
-		ui->datetimeToolButton->setEnabled(false);
-		ui->dateTimeEdit->setEnabled(false);
-
-		if (settingsDialogUi)
-			settingsDialogUi->ToggleCounterCheckBoxes(false);
-
-	} else if (command == TimerCommand::STOP) {
-		ui->playButton->setEnabled(true);
-		ui->pauseButton->setEnabled(false);
-		ui->resetButton->setEnabled(true);
-
-		ui->toTimePlayButton->setEnabled(true);
-		ui->toTimeStopButton->setEnabled(false);
-
-		ui->timerDays->setEnabled(true);
-		ui->timerHours->setEnabled(true);
-		ui->timerMinutes->setEnabled(true);
-		ui->timerSeconds->setEnabled(true);
-
-		ui->periodToolButton->setEnabled(true);
-		ui->datetimeToolButton->setEnabled(true);
-		ui->dateTimeEdit->setEnabled(true);
-
-		if (settingsDialogUi)
-			settingsDialogUi->ToggleCounterCheckBoxes(true);
-	}
-
-	emit TimerChange(command);
-}

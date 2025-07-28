@@ -67,7 +67,6 @@ private:
 
 	TimerWidgetStruct countdownTimerData;
 	Ui::AshmanixTimer *ui;
-	// SettingsDialog *settingsDialogUi = nullptr;
 
 	TimerUIManager *uiManager = nullptr;
 	TimerPersistence *timerPersistence = nullptr;
@@ -80,6 +79,8 @@ private:
 	void StopTimerCounting();
 	void InitialiseTimerTime(bool setTimeLeftToUI = true);
 
+	void UpdateDateTimeDisplay(long long millis);
+	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
 	void SetSourceText(QString newText);
 	void SetCurrentScene();
 

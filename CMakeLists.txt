@@ -51,10 +51,8 @@ target_sources(
     src/widgets/ashmanix-timer/timer-ui-manager.hpp
     src/widgets/ashmanix-timer/hotkey-manager.cpp
     src/widgets/ashmanix-timer/hotkey-manager.hpp
-    src/widgets/ashmanix-timer/timer-engine.cpp
-    src/widgets/ashmanix-timer/timer-engine.hpp
-    src/widgets/ashmanix-timer/websocket-notifier.cpp
-    src/widgets/ashmanix-timer/websocket-notifier.hpp
+    src/utils/websocket-notifier.cpp
+    src/utils/websocket-notifier.hpp
     src/widgets/ashmanix-timer/timer-persistence.cpp
     src/widgets/ashmanix-timer/timer-persistence.hpp
     src/utils/timer-utils.cpp

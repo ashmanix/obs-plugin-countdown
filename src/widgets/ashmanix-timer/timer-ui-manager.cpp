@@ -8,12 +8,11 @@
 #include "countdown-widget.hpp"
 
 TimerUIManager::TimerUIManager(QWidget *parent, Ui::AshmanixTimer *ui, TimerWidgetStruct *countdownTimerData,
-			       CountdownDockWidget *countdownDockWidget, SettingsDialog *settingsDialogUi)
+			       CountdownDockWidget *countdownDockWidget)
 	: parent(parent),
 	  ui(ui),
 	  data(countdownTimerData),
-	  countdownDockWidget(countdownDockWidget),
-	  settingsDialogUi(settingsDialogUi)
+	  countdownDockWidget(countdownDockWidget)
 {
 	SetupUI();
 	ConnectUISignalHandlers();
@@ -112,19 +111,19 @@ void TimerUIManager::SetupUI()
 void TimerUIManager::ConnectUISignalHandlers()
 {
 	QObject::connect(ui->playButton, &QPushButton::clicked, this,
-			 [this]() { HandleTimerAction(TimerAction::Play); });
+			 [this]() { HandleTimerAction(TimerAction::PLAY); });
 
 	QObject::connect(ui->pauseButton, &QPushButton::clicked, this,
-			 [this]() { HandleTimerAction(TimerAction::Pause); });
+			 [this]() { HandleTimerAction(TimerAction::PAUSE); });
 
 	QObject::connect(ui->resetButton, &QPushButton::clicked, this,
-			 [this]() { HandleTimerAction(TimerAction::Reset); });
+			 [this]() { HandleTimerAction(TimerAction::RESET); });
 
 	QObject::connect(ui->toTimePlayButton, &QPushButton::clicked, this,
-			 [this]() { HandleTimerAction(TimerAction::ToTimePlay); });
+			 [this]() { HandleTimerAction(TimerAction::TO_TIME_PLAY); });
 
 	QObject::connect(ui->toTimeStopButton, &QPushButton::clicked, this,
-			 [this]() { HandleTimerAction(TimerAction::ToTimeStop); });
+			 [this]() { HandleTimerAction(TimerAction::TO_TIME_STOP); });
 
 	QObject::connect(ui->deleteToolButton, &QPushButton::clicked, this, &TimerUIManager::DeleteButtonClicked);
 
@@ -144,9 +143,11 @@ void TimerUIManager::ConnectUISignalHandlers()
 
 	QObject::connect(ui->dateTimeEdit, &QDateTimeEdit::dateTimeChanged, this, &TimerUIManager::DateTimeChanged);
 
-	QObject::connect(ui->moveUpToolButton, &QPushButton::clicked, this, &TimerUIManager::EmitMoveTimerUpSignal);
+	QObject::connect(ui->moveUpToolButton, &QPushButton::clicked, this,
+			 [this]() { emit MoveTimer(Direction::UP); });
 
-	QObject::connect(ui->moveDownToolButton, &QPushButton::clicked, this, &TimerUIManager::EmitMoveTimerDownSignal);
+	QObject::connect(ui->moveDownToolButton, &QPushButton::clicked, this,
+			 [this]() { emit MoveTimer(Direction::DOWN); });
 
 	QObject::connect(ui->periodToolButton, &QPushButton::clicked, this,
 			 [this]() { ToggleTimeType(CountdownType::PERIOD); });
@@ -446,7 +447,7 @@ void TimerUIManager::HandleTimerAction(TimerAction action)
 	long long periodUIInMillis = GetMillisFromPeriodUI();
 
 	switch (action) {
-	case TimerAction::Play:
+	case TimerAction::PLAY:
 		if (data->selectedCountdownType == CountdownType::DATETIME) {
 			ToggleTimeType(CountdownType::PERIOD);
 		}
@@ -462,26 +463,26 @@ void TimerUIManager::HandleTimerAction(TimerAction action)
 			data->timeAtTimerStart = currentDateTime.addMSecs(data->timeLeftInMillis);
 		}
 
-		StartTimerCounting();
+		TimerStateChange(TimerCommand::START);
 		break;
-	case TimerAction::Pause:
+	case TimerAction::PAUSE:
 		if (data->selectedCountdownType == CountdownType::DATETIME) {
 			ToggleTimeType(CountdownType::PERIOD);
 		}
 
-		StopTimerCounting();
+		TimerStateChange(TimerCommand::STOP);
 		break;
-	case TimerAction::Reset:
+	case TimerAction::RESET:
 		if (data->selectedCountdownType == CountdownType::DATETIME) {
 			ToggleTimeType(CountdownType::PERIOD);
 		}
 
-		StopTimerCounting();
+		TimerStateChange(TimerCommand::STOP);
 		data->shouldCountUp ? data->timeLeftInMillis = 0 : data->timeLeftInMillis = GetMillisFromPeriodUI();
 
 		UpdateDateTimeDisplay(data->timeLeftInMillis);
 		break;
-	case TimerAction::ToTimePlay:
+	case TimerAction::TO_TIME_PLAY:
 		if (data->selectedCountdownType == CountdownType::PERIOD) {
 			ToggleTimeType(CountdownType::DATETIME);
 		}
@@ -497,14 +498,14 @@ void TimerUIManager::HandleTimerAction(TimerAction action)
 		}
 
 		UpdateDateTimeDisplay(data->timeLeftInMillis);
-		StartTimerCounting();
+		TimerStateChange(TimerCommand::START);
 		break;
-	case TimerAction::ToTimeStop:
+	case TimerAction::TO_TIME_STOP:
 		if (data->selectedCountdownType == CountdownType::PERIOD) {
 			ToggleTimeType(CountdownType::DATETIME);
 		}
 
-		StopTimerCounting();
+		TimerStateChange(TimerCommand::STOP);
 		break;
 	}
 }
@@ -514,7 +515,7 @@ void TimerUIManager::HandleTimerAction(TimerAction action)
 void TimerUIManager::SettingsButtonClicked()
 {
 	if (!settingsDialogUi) {
-		settingsDialogUi = new SettingsDialog(parent, data, countdownDockWidget);
+		settingsDialogUi = new SettingsDialog(this, data, countdownDockWidget);
 
 		QObject::connect(settingsDialogUi, &SettingsDialog::SettingsUpdated, this,
 				 [this]() { UpdateTimeDisplayTooltip(); });
@@ -553,64 +554,50 @@ void TimerUIManager::DateTimeChanged(QDateTime newDateTime)
 	data->dateTime = newDateTime;
 }
 
-void TimerUIManager::EmitMoveTimerDownSignal()
-{
-	emit MoveTimer(QString("down"), data->timerId);
-}
-
-void TimerUIManager::EmitMoveTimerUpSignal()
-{
-	emit MoveTimer(QString("up"), data->timerId);
-}
-
 // ------------------------------ Private Functions ----------------------------------
 
-void TimerUIManager::StartTimerCounting()
+void TimerUIManager::TimerStateChange(TimerCommand command)
 {
-	emit StartTimer(data->timerId);
-	data->isPlaying = true;
-	// countdownTimerData.timer->start(TIMERPERIOD);
-	ui->playButton->setEnabled(false);
-	ui->pauseButton->setEnabled(true);
-	ui->resetButton->setEnabled(false);
+	if (command == TimerCommand::START) {
+		ui->playButton->setEnabled(false);
+		ui->pauseButton->setEnabled(true);
+		ui->resetButton->setEnabled(false);
 
-	ui->toTimePlayButton->setEnabled(false);
-	ui->toTimeStopButton->setEnabled(true);
+		ui->toTimePlayButton->setEnabled(false);
+		ui->toTimeStopButton->setEnabled(true);
 
-	ui->timerDays->setEnabled(false);
-	ui->timerHours->setEnabled(false);
-	ui->timerMinutes->setEnabled(false);
-	ui->timerSeconds->setEnabled(false);
+		ui->timerDays->setEnabled(false);
+		ui->timerHours->setEnabled(false);
+		ui->timerMinutes->setEnabled(false);
+		ui->timerSeconds->setEnabled(false);
 
-	ui->periodToolButton->setEnabled(false);
-	ui->datetimeToolButton->setEnabled(false);
-	ui->dateTimeEdit->setEnabled(false);
+		ui->periodToolButton->setEnabled(false);
+		ui->datetimeToolButton->setEnabled(false);
+		ui->dateTimeEdit->setEnabled(false);
 
-	if (settingsDialogUi)
-		settingsDialogUi->ToggleCounterCheckBoxes(false);
-}
+		if (settingsDialogUi)
+			settingsDialogUi->ToggleCounterCheckBoxes(false);
 
-void TimerUIManager::StopTimerCounting()
-{
-	emit StopTimer(data->timerId);
-	data->isPlaying = false;
-	// data->timer->stop();
-	ui->playButton->setEnabled(true);
-	ui->pauseButton->setEnabled(false);
-	ui->resetButton->setEnabled(true);
+	} else if (command == TimerCommand::STOP) {
+		ui->playButton->setEnabled(true);
+		ui->pauseButton->setEnabled(false);
+		ui->resetButton->setEnabled(true);
 
-	ui->toTimePlayButton->setEnabled(true);
-	ui->toTimeStopButton->setEnabled(false);
+		ui->toTimePlayButton->setEnabled(true);
+		ui->toTimeStopButton->setEnabled(false);
 
-	ui->timerDays->setEnabled(true);
-	ui->timerHours->setEnabled(true);
-	ui->timerMinutes->setEnabled(true);
-	ui->timerSeconds->setEnabled(true);
+		ui->timerDays->setEnabled(true);
+		ui->timerHours->setEnabled(true);
+		ui->timerMinutes->setEnabled(true);
+		ui->timerSeconds->setEnabled(true);
 
-	ui->periodToolButton->setEnabled(true);
-	ui->datetimeToolButton->setEnabled(true);
-	ui->dateTimeEdit->setEnabled(true);
+		ui->periodToolButton->setEnabled(true);
+		ui->datetimeToolButton->setEnabled(true);
+		ui->dateTimeEdit->setEnabled(true);
 
-	if (settingsDialogUi)
-		settingsDialogUi->ToggleCounterCheckBoxes(true);
+		if (settingsDialogUi)
+			settingsDialogUi->ToggleCounterCheckBoxes(true);
+	}
+
+	emit TimerChange(command);
 }

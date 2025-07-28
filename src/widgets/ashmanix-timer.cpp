@@ -1,9 +1,10 @@
 #include "ashmanix-timer.hpp"
-#include "settings-dialog.hpp"
+#include "../utils/websocket-notifier.hpp"
 
-AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor, obs_data_t *savedData,
+AshmanixTimer::AshmanixTimer(QWidget *parent, WebsocketNotifier *websocketNotifier, obs_data_t *savedData,
 			     CountdownDockWidget *mDockWidget)
 	: QWidget(parent),
+	  websocketNotifier(websocketNotifier),
 	  ui(new Ui::AshmanixTimer)
 {
 	// Register custom type for signals and slots
@@ -11,26 +12,26 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, obs_websocket_vendor newVendor, ob
 	qRegisterMetaType<obs_data_t *>("CountdownDockWidget*");
 
 	mainDockWidget = mDockWidget;
-	vendor = &newVendor;
 
 	countdownTimerData = TimerWidgetStruct();
 
-	uiManager = new TimerUIManager(this, ui, &countdownTimerData, mDockWidget, settingsDialogUi);
-	timerEngine = new TimerEngine(this, &countdownTimerData);
+	ui->setupUi(this);
+
+	uiManager = new TimerUIManager(this, ui, &countdownTimerData, mDockWidget);
 	timerPersistence = new TimerPersistence();
 	hotkeyManager = new HotkeyManager(this, ui, &countdownTimerData);
-	websocketNotifier = new WebsocketNotifier(vendor);
+
+	if (savedData) {
+		timerPersistence->LoadTimerWidgetDataFromOBSSaveData(&countdownTimerData, savedData);
+		uiManager->SetTimeUI();
+		InitialiseTimerTime(false);
+	} else {
+		InitialiseTimerTime();
+	}
 
 	this->setProperty("id", countdownTimerData.timerId);
 
 	ConnectSignalHandlers();
-
-	if (savedData) {
-		timerPersistence->LoadTimerWidgetDataFromOBSSaveData(&countdownTimerData, savedData);
-		SetTimerData();
-	} else {
-		InitialiseTimerTime();
-	}
 
 	if (countdownTimerData.timerId.size() == 0) {
 		// Create a unique ID for the timer
@@ -80,12 +81,6 @@ void AshmanixTimer::SetIsDownButtonDisabled(bool isDisabled)
 	uiManager->SetIsDownButtonDisabled(isDisabled);
 }
 
-void AshmanixTimer::SetTimerData()
-{
-	uiManager->SetTimeUI();
-	InitialiseTimerTime(false);
-}
-
 bool AshmanixTimer::AlterTime(WebsocketRequestType requestType, const char *stringTime)
 {
 	bool result = false;
@@ -114,13 +109,13 @@ void AshmanixTimer::StartTimer(bool shouldReset)
 	switch (countdownTimerData.selectedCountdownType) {
 	case CountdownType::PERIOD:
 		if (shouldReset)
-			uiManager->HandleTimerAction(TimerAction::Reset);
+			uiManager->HandleTimerAction(TimerAction::RESET);
 
-		uiManager->HandleTimerAction(TimerAction::Play);
+		uiManager->HandleTimerAction(TimerAction::PLAY);
 		break;
 
 	case CountdownType::DATETIME:
-		uiManager->HandleTimerAction(TimerAction::ToTimePlay);
+		uiManager->HandleTimerAction(TimerAction::TO_TIME_PLAY);
 		break;
 	}
 }
@@ -129,11 +124,11 @@ void AshmanixTimer::StopTimer()
 {
 	switch (countdownTimerData.selectedCountdownType) {
 	case CountdownType::PERIOD:
-		uiManager->HandleTimerAction(TimerAction::Reset);
+		uiManager->HandleTimerAction(TimerAction::RESET);
 		break;
 
 	case CountdownType::DATETIME:
-		uiManager->HandleTimerAction(TimerAction::ToTimeStop);
+		uiManager->HandleTimerAction(TimerAction::TO_TIME_STOP);
 		break;
 	}
 }
@@ -152,6 +147,26 @@ void AshmanixTimer::SaveData(obs_data_t *dataObject)
 
 void AshmanixTimer::ConnectSignalHandlers()
 {
+	QObject::connect(uiManager, &TimerUIManager::MoveTimer, this,
+			 [this](Direction direction) { emit MoveTimer(direction, countdownTimerData.timerId); });
+
+	QObject::connect(uiManager, &TimerUIManager::RequestDelete, this,
+			 [this]() { emit RequestDelete(countdownTimerData.timerId); });
+
+	QObject::connect(uiManager, &TimerUIManager::TimerChange, this, [this](TimerCommand timerCommand) {
+		switch (timerCommand) {
+		case TimerCommand::START:
+			StartTimerCounting();
+			break;
+		case TimerCommand::STOP:
+			StopTimerCounting();
+			break;
+
+		default:
+			break;
+		};
+	});
+
 	// 	QObject::connect(ui->playButton, &QPushButton::clicked, this, &AshmanixTimer::PlayButtonClicked);
 
 	// 	QObject::connect(ui->pauseButton, &QPushButton::clicked, this, &AshmanixTimer::PauseButtonClicked);
@@ -191,24 +206,6 @@ void AshmanixTimer::StartTimerCounting()
 {
 	countdownTimerData.isPlaying = true;
 	countdownTimerData.timer->start(TIMERPERIOD);
-	ui->playButton->setEnabled(false);
-	ui->pauseButton->setEnabled(true);
-	ui->resetButton->setEnabled(false);
-
-	ui->toTimePlayButton->setEnabled(false);
-	ui->toTimeStopButton->setEnabled(true);
-
-	ui->timerDays->setEnabled(false);
-	ui->timerHours->setEnabled(false);
-	ui->timerMinutes->setEnabled(false);
-	ui->timerSeconds->setEnabled(false);
-
-	ui->periodToolButton->setEnabled(false);
-	ui->datetimeToolButton->setEnabled(false);
-	ui->dateTimeEdit->setEnabled(false);
-
-	if (settingsDialogUi)
-		settingsDialogUi->ToggleCounterCheckBoxes(false);
 
 	websocketNotifier->SendStateEvent(countdownTimerData.timerId, "started",
 					  countdownTimerData.source.selectedSource);
@@ -218,24 +215,6 @@ void AshmanixTimer::StopTimerCounting()
 {
 	countdownTimerData.isPlaying = false;
 	countdownTimerData.timer->stop();
-	ui->playButton->setEnabled(true);
-	ui->pauseButton->setEnabled(false);
-	ui->resetButton->setEnabled(true);
-
-	ui->toTimePlayButton->setEnabled(true);
-	ui->toTimeStopButton->setEnabled(false);
-
-	ui->timerDays->setEnabled(true);
-	ui->timerHours->setEnabled(true);
-	ui->timerMinutes->setEnabled(true);
-	ui->timerSeconds->setEnabled(true);
-
-	ui->periodToolButton->setEnabled(true);
-	ui->datetimeToolButton->setEnabled(true);
-	ui->dateTimeEdit->setEnabled(true);
-
-	if (settingsDialogUi)
-		settingsDialogUi->ToggleCounterCheckBoxes(true);
 
 	websocketNotifier->SendStateEvent(countdownTimerData.timerId, "stopped",
 					  countdownTimerData.source.selectedSource);
@@ -243,7 +222,8 @@ void AshmanixTimer::StopTimerCounting()
 
 void AshmanixTimer::InitialiseTimerTime(bool setTimeLeftToUI)
 {
-	timerEngine->Initialise();
+	countdownTimerData.timer = new QTimer();
+	QObject::connect(countdownTimerData.timer, SIGNAL(timeout()), SLOT(TimerAdjust()));
 	QObject::connect(this, &AshmanixTimer::RequestTimerReset, this, &AshmanixTimer::HandleTimerReset);
 	if (setTimeLeftToUI)
 		countdownTimerData.timeLeftInMillis = uiManager->GetMillisFromPeriodUI();
@@ -407,16 +387,16 @@ void AshmanixTimer::HandleTimerReset(bool restartOnly)
 {
 	if (countdownTimerData.timer && countdownTimerData.timer->isActive()) {
 		if (restartOnly) {
-			timerEngine->Start();
+			countdownTimerData.timer->start();
 		} else {
 			switch (countdownTimerData.selectedCountdownType) {
 			case CountdownType::PERIOD:
-				uiManager->HandleTimerAction(TimerAction::Reset);
-				uiManager->HandleTimerAction(TimerAction::Play);
+				uiManager->HandleTimerAction(TimerAction::RESET);
+				uiManager->HandleTimerAction(TimerAction::PLAY);
 				break;
 
 			case CountdownType::DATETIME:
-				uiManager->HandleTimerAction(TimerAction::ToTimePlay);
+				uiManager->HandleTimerAction(TimerAction::TO_TIME_PLAY);
 				break;
 
 			default:
@@ -424,14 +404,4 @@ void AshmanixTimer::HandleTimerReset(bool restartOnly)
 			}
 		}
 	}
-}
-
-void AshmanixTimer::EmitMoveTimerDownSignal()
-{
-	emit MoveTimer(QString("down"), countdownTimerData.timerId);
-}
-
-void AshmanixTimer::EmitMoveTimerUpSignal()
-{
-	emit MoveTimer(QString("up"), countdownTimerData.timerId);
 }

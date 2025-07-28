@@ -26,20 +26,19 @@
 #include "../utils/timer-utils.hpp"
 #include "../utils/obs-utils.hpp"
 #include "./ashmanix-timer/timer-ui-manager.hpp"
-#include "./ashmanix-timer/timer-engine.hpp"
 #include "./ashmanix-timer/timer-persistence.hpp"
 #include "./ashmanix-timer/hotkey-manager.hpp"
-#include "./ashmanix-timer/websocket-notifier.hpp"
 
 // Forward declarations
 class SettingsDialog;
 class CountdownDockWidget;
+class WebsocketNotifier;
 
 class AshmanixTimer : public QWidget {
 	Q_OBJECT
 
 public:
-	explicit AshmanixTimer(QWidget *parent = nullptr, obs_websocket_vendor vendor = nullptr,
+	explicit AshmanixTimer(QWidget *parent = nullptr, WebsocketNotifier *websocketNotifier = nullptr,
 			       obs_data_t *savedData = nullptr, CountdownDockWidget *mDockWidget = nullptr);
 	~AshmanixTimer() override;
 
@@ -49,9 +48,7 @@ public:
 	void SetHideMultiTimerUIButtons(bool shouldHide);
 	void SetIsUpButtonDisabled(bool isDisabled);
 	void SetIsDownButtonDisabled(bool isDisabled);
-	void SetTimerData();
 	bool AlterTime(WebsocketRequestType requestType, const char *stringTime);
-
 	void UpdateStyles();
 	void StartTimer(bool shouldReset = false);
 	void StopTimer();
@@ -70,10 +67,9 @@ private:
 
 	TimerWidgetStruct countdownTimerData;
 	Ui::AshmanixTimer *ui;
-	SettingsDialog *settingsDialogUi = nullptr;
+	// SettingsDialog *settingsDialogUi = nullptr;
 
 	TimerUIManager *uiManager = nullptr;
-	TimerEngine *timerEngine = nullptr;
 	TimerPersistence *timerPersistence = nullptr;
 	HotkeyManager *hotkeyManager = nullptr;
 	WebsocketNotifier *websocketNotifier = nullptr;
@@ -96,15 +92,12 @@ signals:
 	void RequestTimerReset(bool restartOnly = false);
 	void RequestDelete(QString id);
 	void RequestSendWebsocketEvent(const char *eventName, obs_data_t *eventData);
-	void MoveTimer(QString direction, QString timerId);
+	void MoveTimer(Direction direction, QString timerId);
 
 private slots:
 
 	void TimerAdjust();
 	void HandleTimerReset(bool restartOnly = false);
-
-	void EmitMoveTimerDownSignal();
-	void EmitMoveTimerUpSignal();
 };
 
 #endif // ASHMANIXTIMER_H

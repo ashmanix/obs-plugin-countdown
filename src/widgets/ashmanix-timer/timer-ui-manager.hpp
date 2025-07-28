@@ -21,7 +21,7 @@ class TimerUIManager : public QWidget {
 
 public:
 	explicit TimerUIManager(QWidget *parent, Ui::AshmanixTimer *ui, TimerWidgetStruct *countdownTimerData,
-				CountdownDockWidget *countdownDockWidget, SettingsDialog *settingsDialogUi);
+				CountdownDockWidget *countdownDockWidget);
 	void SetupUI();
 	void ConnectUISignalHandlers();
 	void SetTimeUI();
@@ -42,10 +42,9 @@ public:
 
 signals:
 	void RequestDelete(QString id);
-	void MoveTimer(QString direction, QString timerId);
+	void MoveTimer(Direction direction);
 	void UpdateSource(QString sourceString);
-	void StartTimer(QString timerId);
-	void StopTimer(QString timerId);
+	void TimerChange(TimerCommand command);
 
 public slots:
 	void HandleTimerAction(TimerAction action);
@@ -55,8 +54,6 @@ private slots:
 	void DeleteButtonClicked();
 	void HandleTimerValueChange(const QString &type, int value);
 	void DateTimeChanged(QDateTime newDateTime);
-	void EmitMoveTimerDownSignal();
-	void EmitMoveTimerUpSignal();
 
 private:
 	static inline const char *ZEROSTRING = "00:00:00:00";
@@ -64,13 +61,12 @@ private:
 
 	QWidget *parent;
 	Ui_AshmanixTimer *ui;
+	SettingsDialog *settingsDialogUi = nullptr;
 	TimerWidgetStruct *data;
 	CountdownDockWidget *countdownDockWidget;
-	SettingsDialog *settingsDialogUi;
 	QSpacerItem *deleteButtonSpacer;
 
-	void StartTimerCounting();
-	void StopTimerCounting();
+	void TimerStateChange(TimerCommand command);
 };
 
 #endif // TIMERUIMANAGER_H

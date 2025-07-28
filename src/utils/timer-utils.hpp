@@ -9,9 +9,13 @@
 
 const int TIMERPERIOD = 1000;
 
-enum class TimerAction { Play, Pause, Reset, ToTimePlay, ToTimeStop };
+enum class TimerAction { PLAY, PAUSE, RESET, TO_TIME_PLAY, TO_TIME_STOP };
 
 enum class CountdownType { PERIOD = 0, DATETIME = 1 };
+
+enum class Direction { UP, DOWN };
+
+enum class TimerCommand { START, STOP };
 
 enum class WebsocketRequestType {
 	ADD_TIME = 1,

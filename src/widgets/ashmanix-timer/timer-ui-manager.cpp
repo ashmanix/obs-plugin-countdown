@@ -191,7 +191,7 @@ bool TimerUIManager::AddTime(const char *stringTime, bool isCountingUp)
 		result = true;
 	} else if (data->selectedCountdownType == CountdownType::DATETIME) {
 		QDateTime updatedDateTime;
-		updatedDateTime = ui->dateTimeEdit->dateTime().addMSecs(timeInMillis + TIMERPERIOD);
+		updatedDateTime = ui->dateTimeEdit->dateTime().addMSecs(timeInMillis);
 		ui->dateTimeEdit->setDateTime(updatedDateTime);
 		result = true;
 	}
@@ -470,6 +470,11 @@ void TimerUIManager::SetZeroTimeDisplay()
 QDateTime TimerUIManager::GetToDateTimeValue()
 {
 	return ui->dateTimeEdit->dateTime();
+}
+
+void TimerUIManager::SetTimerIDLabel(QString newId)
+{
+	ui->timerNameLabel->setText(QString("Timer: %1").arg(newId));
 }
 
 // --------------------------------- Public Slots ----------------------------------

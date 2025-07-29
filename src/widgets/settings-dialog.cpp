@@ -263,10 +263,10 @@ void SettingsDialog::ApplyFormChanges()
 		timerData->display.showEndScene = ui->switchSceneCheckBox->isChecked();
 		timerData->source.selectedScene = ui->sceneSourceDropdownList->currentText();
 
-		timerData->periodDuration.days = ui->daysCheckBox->isChecked();
-		timerData->periodDuration.hours = ui->hoursCheckBox->isChecked();
-		timerData->periodDuration.minutes = ui->minutesCheckBox->isChecked();
-		timerData->periodDuration.seconds = ui->secondsCheckBox->isChecked();
+		timerData->display.showDays = ui->daysCheckBox->isChecked();
+		timerData->display.showHours = ui->hoursCheckBox->isChecked();
+		timerData->display.showMinutes = ui->minutesCheckBox->isChecked();
+		timerData->display.showSeconds = ui->secondsCheckBox->isChecked();
 		timerData->display.showLeadingZero = ui->leadZeroCheckBox->isChecked();
 
 		timerData->display.useFormattedOutput = ui->formatOutputCheckBox->isChecked();

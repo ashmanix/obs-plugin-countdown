@@ -37,8 +37,8 @@ AshmanixTimer::AshmanixTimer(QWidget *parent, WebsocketNotifier *websocketNotifi
 		// Create a unique ID for the timer
 		QUuid uuid = QUuid::createUuid();
 		QByteArray hash = QCryptographicHash::hash(uuid.toByteArray(), QCryptographicHash::Md5);
-		countdownTimerData.timerId =
-			QString(hash.toHex().left(8)); // We take the first 8 characters of the hash
+		QString newTimerId = QString(hash.toHex().left(8)); // We take the first 8 characters of the hash
+		SetTimerID(newTimerId);
 	}
 
 	hotkeyManager->RegisterAllHotkeys(savedData);
@@ -58,7 +58,7 @@ QString AshmanixTimer::GetTimerID()
 void AshmanixTimer::SetTimerID(QString newId)
 {
 	countdownTimerData.timerId = newId;
-	ui->timerNameLabel->setText(QString("Timer: %1").arg(newId));
+	uiManager->SetTimerIDLabel(newId);
 }
 
 TimerWidgetStruct *AshmanixTimer::GetTimerData()
@@ -367,7 +367,7 @@ void AshmanixTimer::TimerAdjust()
 				countdownTimerData.timeLeftInMillis = uiManager->GetMillisFromPeriodUI();
 			} else {
 				countdownTimerData.timeLeftInMillis =
-					countdownTimerData.timeAtTimerStart.msecsTo(ui->dateTimeEdit->dateTime());
+					countdownTimerData.timeAtTimerStart.msecsTo(uiManager->GetToDateTimeValue());
 			}
 			UpdateDateTimeDisplay(countdownTimerData.timeLeftInMillis);
 		}

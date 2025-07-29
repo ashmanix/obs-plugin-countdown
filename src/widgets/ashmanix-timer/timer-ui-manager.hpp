@@ -41,6 +41,7 @@ public:
 	void TimerStateChange(TimerCommand command);
 	void SetZeroTimeDisplay();
 	QDateTime GetToDateTimeValue();
+	void SetTimerIDLabel(QString newId);
 
 signals:
 	void RequestDelete(QString id);

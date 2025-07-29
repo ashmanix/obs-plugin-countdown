@@ -50,7 +50,7 @@
 #include "utils/timer-utils.hpp"
 #include "widgets/obs-dock-wrapper.hpp"
 
-#define CONFIG "config.json"
+inline constexpr const char *CONFIG = "config.json";
 
 class AshmanixTimer; // Forward declaration
 
@@ -58,7 +58,7 @@ class CountdownDockWidget : public OBSDock {
 	Q_OBJECT
 public:
 	explicit CountdownDockWidget(QWidget *parent = nullptr);
-	~CountdownDockWidget();
+	~CountdownDockWidget() override;
 	void ConfigureWebSocketConnection();
 	int GetNumberOfTimers();
 	AshmanixTimer *GetFirstTimerWidget();

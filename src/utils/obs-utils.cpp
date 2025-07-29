@@ -8,7 +8,7 @@ void LoadHotkey(int &id, const char *name, const char *description, std::functio
 					       new RegisterHotkeyCallbackData{function, buttonLogMessage});
 
 	if (savedData) {
-		if ((int)id == -1)
+		if (id == -1)
 			return;
 
 		OBSDataArrayAutoRelease array = obs_data_get_array(savedData, name);
@@ -19,7 +19,6 @@ void LoadHotkey(int &id, const char *name, const char *description, std::functio
 
 void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id, const char *name)
 {
-	// obs_log(LOG_INFO, "Hotkey ID: %i, Value: %s", (int)id, name);
 	if ((int)id == -1)
 		return;
 	OBSDataArrayAutoRelease array = obs_hotkey_save(id);
@@ -31,8 +30,7 @@ void HotkeyCallback(void *incoming_data, obs_hotkey_id id, obs_hotkey_t *hotkey,
 	UNUSED_PARAMETER(id);
 	UNUSED_PARAMETER(hotkey);
 	if (pressed) {
-		RegisterHotkeyCallbackData *hotkey_callback_data =
-			static_cast<RegisterHotkeyCallbackData *>(incoming_data);
+		auto *hotkey_callback_data = static_cast<RegisterHotkeyCallbackData *>(incoming_data);
 		obs_log(LOG_INFO, hotkey_callback_data->hotkeyLogMessage.c_str(), " due to hotkey");
 		hotkey_callback_data->function();
 	}

@@ -5,6 +5,7 @@
 #include <QString>
 #include <QSpacerItem>
 #include <QDateTime>
+#include <QSharedPointer>
 
 #include "../../ui/ui_AshmanixTimer.h"
 #include "../../utils/timer-utils.hpp"
@@ -60,7 +61,7 @@ private slots:
 private:
 	QWidget *parent;
 	Ui_AshmanixTimer *ui;
-	SettingsDialog *settingsDialogUi = nullptr;
+	QSharedPointer<SettingsDialog> settingsDialogUi = nullptr;
 	TimerWidgetStruct *data;
 	CountdownDockWidget *countdownDockWidget;
 	QSpacerItem *deleteButtonSpacer;

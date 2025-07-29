@@ -20,9 +20,9 @@ SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData, Countd
 SettingsDialog::~SettingsDialog()
 {
 	// Disconnect OBS signals before the dialog is destroyed
-	signal_handler_disconnect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui);
-	signal_handler_disconnect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui);
-	signal_handler_disconnect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui);
+	signal_handler_disconnect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui.data());
+	signal_handler_disconnect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui.data());
+	signal_handler_disconnect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui.data());
 
 	this->deleteLater();
 }
@@ -225,11 +225,11 @@ bool SettingsDialog::GetTextSources(void *list_property, obs_source_t *source)
 void SettingsDialog::ConnectObsSignalHandlers()
 {
 	// Source Signals
-	signal_handler_connect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui);
+	signal_handler_connect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui.data());
 
-	signal_handler_connect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui);
+	signal_handler_connect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui.data());
 
-	signal_handler_connect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui);
+	signal_handler_connect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui.data());
 }
 
 void SettingsDialog::ApplyFormChanges()

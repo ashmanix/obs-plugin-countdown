@@ -553,9 +553,9 @@ void TimerUIManager::HandleTimerAction(TimerAction action)
 void TimerUIManager::SettingsButtonClicked()
 {
 	if (!settingsDialogUi) {
-		settingsDialogUi = new SettingsDialog(this, data, countdownDockWidget);
+		settingsDialogUi = QSharedPointer<SettingsDialog>::create(this, data, countdownDockWidget);
 
-		QObject::connect(settingsDialogUi, &SettingsDialog::SettingsUpdated, this,
+		QObject::connect(settingsDialogUi.data(), &SettingsDialog::SettingsUpdated, this,
 				 [this]() { UpdateTimeDisplayTooltip(); });
 	}
 	if (settingsDialogUi->isVisible()) {

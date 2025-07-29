@@ -12,10 +12,10 @@
 
 // Forward declarations
 class Ui_AshmanixTimer;
-class TimerWidgetStruct;
 class AshmanixTimer;
 class SettingsDialog;
 class CountdownDockWidget;
+struct TimerWidgetStruct;
 
 class TimerUIManager : public QWidget {
 	Q_OBJECT

@@ -6,7 +6,7 @@
 #include <obs-data.h>
 
 class Ui_AshmanixTimer;
-class TimerWidgetStruct;
+struct TimerWidgetStruct;
 
 class HotkeyManager {
 public:

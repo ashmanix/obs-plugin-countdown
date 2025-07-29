@@ -5,7 +5,7 @@
 #include "../../utils/timer-utils.hpp"
 
 // Forward declarations
-class TimerWidgetStruct;
+struct TimerWidgetStruct;
 
 class TimerPersistence {
 

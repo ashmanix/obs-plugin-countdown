@@ -5,6 +5,7 @@
 #include <QDialog>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QScopedPointer>
 
 #include <obs-frontend-api.h>
 #include <obs-module.h>
@@ -26,7 +27,7 @@ public:
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
-	Ui::SettingsDialog *ui;
+	QScopedPointer<Ui::SettingsDialog> ui;
 	TimerWidgetStruct *timerData;
 	CountdownDockWidget *mainWidget;
 	bool isError = false;

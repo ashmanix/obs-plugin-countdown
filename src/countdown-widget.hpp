@@ -52,11 +52,15 @@
 
 inline constexpr const char *CONFIG = "config.json";
 
-class AshmanixTimer; // Forward declaration
+// Forward declarations
+class AshmanixTimer;
+class WebsocketNotifier;
 
 class CountdownDockWidget : public OBSDock {
 	Q_OBJECT
 public:
+	WebsocketNotifier *websocketNotifier = nullptr;
+
 	explicit CountdownDockWidget(QWidget *parent = nullptr);
 	~CountdownDockWidget() override;
 	void ConfigureWebSocketConnection();
@@ -64,13 +68,7 @@ public:
 	AshmanixTimer *GetFirstTimerWidget();
 	bool IsDuplicateTimerName(QString name);
 	Result UpdateTimerList(QString oldId, QString newId);
-
-	struct WebsocketCallbackData {
-		CountdownDockWidget *instance;
-		WebsocketRequestType requestType;
-		const char *requestDataKey;
-		const char *requestTimerIdKey;
-	};
+	AshmanixTimer *AttemptToGetTimerWidgetById(const char *websocketTimerID);
 
 private:
 	QMap<QString, AshmanixTimer *> timerWidgetMap;
@@ -106,22 +104,18 @@ private:
 
 	static void OBSFrontendEventHandler(enum obs_frontend_event event, void *private_data);
 	static void LoadSavedSettings(CountdownDockWidget *timerWidgetMap);
-	static AshmanixTimer *AttemptToGetTimerWidgetById(CountdownDockWidget *countdownWidget,
-							  const char *websocketTimerID);
 	static void ChangeTimerTimeViaWebsocket(obs_data_t *request_data, obs_data_t *response_data, void *priv_data);
 	static void GetTimerStateViaWebsocket(obs_data_t *request_data, obs_data_t *response_data, void *priv_data);
-	static void HandleWebsocketButtonPressRequest(obs_data_t *request_data, obs_data_t *response_data,
-						      void *priv_data);
 
-signals:
+public slots:
+	void StartAllTimers();
+	void StopAllTimers();
 
 private slots:
 	void RemoveTimerButtonClicked(QString id);
 	void AddTimerButtonClicked();
 	void HandleWebsocketSendEvent(const char *eventName, obs_data_t *eventData);
-	void MoveTimerInList(QString direction, QString id);
-	void StartAllTimers();
-	void StopAllTimers();
+	void MoveTimerInList(Direction direction, QString id);
 };
 
 #endif // COUNTDOWNWIDGET_H

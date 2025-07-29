@@ -47,6 +47,14 @@ target_sources(
     src/widgets/settings-dialog.hpp
     src/widgets/settings-dialog.cpp
     src/widgets/obs-dock-wrapper.hpp
+    src/widgets/ashmanix-timer/timer-ui-manager.cpp
+    src/widgets/ashmanix-timer/timer-ui-manager.hpp
+    src/widgets/ashmanix-timer/hotkey-manager.cpp
+    src/widgets/ashmanix-timer/hotkey-manager.hpp
+    src/utils/websocket-notifier.cpp
+    src/utils/websocket-notifier.hpp
+    src/widgets/ashmanix-timer/timer-persistence.cpp
+    src/widgets/ashmanix-timer/timer-persistence.hpp
     src/utils/timer-utils.cpp
     src/utils/timer-utils.hpp
     src/utils/obs-utils.cpp

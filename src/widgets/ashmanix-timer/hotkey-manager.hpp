@@ -19,7 +19,7 @@ public:
 	HotkeyManager(QWidget *parentWidget, Ui_AshmanixTimer *ui, TimerWidgetStruct *data);
 	void RegisterAllHotkeys(obs_data_t *saved_data);
 	void UnregisterAllHotkeys();
-	std::string GetFullHotkeyName(std::string nameString, const char *joinText = "_");
+	std::string GetFullHotkeyName(const std::string &nameString, const char *joinText = "_");
 
 private:
 	QWidget *parent;

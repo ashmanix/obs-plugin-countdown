@@ -10,8 +10,6 @@ class TimerWidgetStruct;
 class TimerPersistence {
 
 public:
-	// TimerPersistence();
-
 	void SaveTimerWidgetDataToOBSSaveData(TimerWidgetStruct *timerData, obs_data_t *dataObject);
 	void LoadTimerWidgetDataFromOBSSaveData(TimerWidgetStruct *timerData, obs_data_t *dataObject);
 };

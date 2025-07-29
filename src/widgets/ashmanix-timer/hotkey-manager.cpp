@@ -56,9 +56,7 @@ void HotkeyManager::UnregisterAllHotkeys()
 		obs_hotkey_unregister(data->hotkeys.stopCountdownToTimeHotkeyId);
 }
 
-std::string HotkeyManager::GetFullHotkeyName(std::string name, const char *joinText)
+std::string HotkeyManager::GetFullHotkeyName(const std::string &name, const char *joinText)
 {
-	static std::string fullName;
-	fullName = std::string(name) + std::string(joinText) + data->timerId.toStdString();
-	return fullName;
+	return name + joinText + data->timerId.toStdString();
 }

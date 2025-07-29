@@ -16,32 +16,35 @@ WebsocketNotifier::WebsocketNotifier(CountdownDockWidget *countdownDockWidget)
 
 	obs_websocket_vendor_register_request(
 		vendor, "period_play", WebSocketButtonRequest,
-		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::PERIOD_PLAY, NULL, TIMERIDKEY});
-	obs_websocket_vendor_register_request(
-		vendor, "period_pause", WebSocketButtonRequest,
-		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::PERIOD_PAUSE, NULL, TIMERIDKEY});
+		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::PERIOD_PLAY, nullptr, TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "period_pause", WebSocketButtonRequest,
+					      new WebsocketCallbackData{countdownDockWidget,
+									WebsocketRequestType::PERIOD_PAUSE, nullptr,
+									TIMERIDKEY});
 	obs_websocket_vendor_register_request(
 		vendor, "period_set", WebSocketButtonRequest,
-		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::PERIOD_SET, NULL, TIMERIDKEY});
+		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::PERIOD_SET, nullptr, TIMERIDKEY});
+
+	obs_websocket_vendor_register_request(vendor, "to_time_play", WebSocketButtonRequest,
+					      new WebsocketCallbackData{countdownDockWidget,
+									WebsocketRequestType::TO_TIME_PLAY, nullptr,
+									TIMERIDKEY});
+	obs_websocket_vendor_register_request(vendor, "to_time_stop", WebSocketButtonRequest,
+					      new WebsocketCallbackData{countdownDockWidget,
+									WebsocketRequestType::TO_TIME_STOP, nullptr,
+									TIMERIDKEY});
 
 	obs_websocket_vendor_register_request(
-		vendor, "to_time_play", WebSocketButtonRequest,
-		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::TO_TIME_PLAY, NULL, TIMERIDKEY});
+		vendor, "play_all", WebSocketButtonRequest,
+		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::PLAY_ALL, nullptr, nullptr});
+
 	obs_websocket_vendor_register_request(
-		vendor, "to_time_stop", WebSocketButtonRequest,
-		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::TO_TIME_STOP, NULL, TIMERIDKEY});
-
-	obs_websocket_vendor_register_request(vendor, "play_all", WebSocketButtonRequest,
-					      new WebsocketCallbackData{countdownDockWidget,
-									WebsocketRequestType::PLAY_ALL, NULL, NULL});
-
-	obs_websocket_vendor_register_request(vendor, "stop_all", WebSocketButtonRequest,
-					      new WebsocketCallbackData{countdownDockWidget,
-									WebsocketRequestType::STOP_ALL, NULL, NULL});
+		vendor, "stop_all", WebSocketButtonRequest,
+		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::STOP_ALL, nullptr, nullptr});
 
 	obs_websocket_vendor_register_request(
 		vendor, "get_timer_state", GetTimerStateViaWebsocket,
-		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::GET_TIME, NULL, TIMERIDKEY});
+		new WebsocketCallbackData{countdownDockWidget, WebsocketRequestType::GET_TIME, nullptr, TIMERIDKEY});
 
 	obs_websocket_vendor_register_request(vendor, "add_time", ChangeTimerTimeViaWebsocket,
 					      new WebsocketCallbackData{countdownDockWidget,
@@ -72,7 +75,7 @@ void WebsocketNotifier::SendStateEvent(QString timerId, const char *state, QStri
 	obs_data_set_string(eventData, "timer_id", timerId.toStdString().c_str());
 	obs_data_set_string(eventData, "state", state);
 
-	if (selectedSource.length() > 0) {
+	if (!selectedSource.isEmpty()) {
 		obs_data_set_string(eventData, "text_source", selectedSource.toStdString().c_str());
 	}
 

@@ -179,11 +179,11 @@ bool TimerUIManager::AddTime(const char *stringTime, bool isCountingUp)
 	QDateTime currentDateTime = QDateTime::currentDateTime();
 	long long timeInMillis = ConvertStringPeriodToMillis(stringTime);
 
-	long long newTimeLeftInMillis = std::max((data->timeLeftInMillis + timeInMillis), 0ll);
+	long long newTimeLeftInMillis = std::max((data->timeLeftInMillis + timeInMillis), 0LL);
 
 	if (data->selectedCountdownType == CountdownType::PERIOD) {
 		long long uiPeriodInMillis = GetMillisFromPeriodUI();
-		uiPeriodInMillis = std::max((uiPeriodInMillis + timeInMillis), 0ll);
+		uiPeriodInMillis = std::max((uiPeriodInMillis + timeInMillis), 0LL);
 
 		PeriodData periodData = ConvertMillisToPeriodData(uiPeriodInMillis);
 		UpdateTimerPeriod(periodData);

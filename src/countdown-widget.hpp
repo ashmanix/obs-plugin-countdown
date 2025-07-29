@@ -59,13 +59,6 @@ class WebsocketNotifier;
 class CountdownDockWidget : public OBSDock {
 	Q_OBJECT
 public:
-	// struct WebsocketCallbackData {
-	// 	CountdownDockWidget *instance;
-	// 	WebsocketRequestType requestType;
-	// 	const char *requestDataKey;
-	// 	const char *requestTimerIdKey;
-	// };
-
 	WebsocketNotifier *websocketNotifier = nullptr;
 
 	explicit CountdownDockWidget(QWidget *parent = nullptr);

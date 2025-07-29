@@ -186,7 +186,9 @@ void WebsocketNotifier::ChangeTimerTimeViaWebsocket(obs_data_t *request_data, ob
 
 	const char *websocketDataTime = obs_data_get_string(request_data, requestDataTimeKey);
 
-	if (websocketDataTime == nullptr || strlen(websocketDataTime) == 0) {
+	QString dataStr = websocketDataTime ? QString::fromUtf8(websocketDataTime) : QString();
+
+	if (dataStr.isEmpty()) {
 		obs_data_set_bool(response_data, "success", false);
 		QString error_message = QString("%1 field is missing from request!").arg(requestDataTimeKey);
 		obs_data_set_string(response_data, "message", error_message.toStdString().c_str());

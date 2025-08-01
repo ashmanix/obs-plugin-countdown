@@ -1,4 +1,6 @@
 #include "obs-utils.hpp"
+#include <QUuid>
+#include <QCryptographicHash>
 
 void LoadHotkey(int &id, const char *name, const char *description, std::function<void()> function,
 		std::string buttonLogMessage, obs_data_t *savedData = nullptr)
@@ -34,4 +36,19 @@ void HotkeyCallback(void *incoming_data, obs_hotkey_id id, obs_hotkey_t *hotkey,
 		obs_log(LOG_INFO, hotkey_callback_data->hotkeyLogMessage.c_str(), " due to hotkey");
 		hotkey_callback_data->function();
 	}
+}
+
+QString GetDataFolderPath()
+{
+	char *file = obs_module_file(NULL);
+	QString filePath = QString::fromUtf8(file);
+	bfree(file);
+	return filePath;
+}
+
+QString GenerateUniqueID()
+{
+	QUuid uuid = QUuid::createUuid();
+	QByteArray hash = QCryptographicHash::hash(uuid.toByteArray(), QCryptographicHash::Md5);
+	return QString(hash.toHex().left(8)); // We take the first 8 characters of the hash
 }

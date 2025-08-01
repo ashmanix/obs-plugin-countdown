@@ -63,8 +63,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>428</width>
-           <height>685</height>
+           <width>413</width>
+           <height>696</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -574,6 +574,13 @@
              </item>
             </layout>
            </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="extraWidgetContents">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+           </layout>
           </item>
           <item>
            <layout class="QFormLayout" name="infoFormLayout">

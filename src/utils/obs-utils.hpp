@@ -3,6 +3,7 @@
 
 #include <obs.h>
 #include <obs.hpp>
+#include <obs-module.h>
 #include <obs-frontend-api.h>
 
 #include "./timer-utils.hpp"
@@ -20,5 +21,7 @@ void LoadHotkey(int &id, const char *name, const char *description, std::functio
 
 void SaveHotkey(obs_data_t *sv_data, obs_hotkey_id id, const char *name);
 void HotkeyCallback(void *incoming_data, obs_hotkey_id id, obs_hotkey_t *hotkey, bool pressed);
+QString GetDataFolderPath();
+QString GenerateUniqueID();
 
 #endif // OBSUTILS_H

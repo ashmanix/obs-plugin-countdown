@@ -14,6 +14,7 @@
 #include "../utils/timer-utils.hpp"
 #include "../ui/ui_SettingsDialog.h"
 #include "../countdown-widget.hpp"
+#include "./settings/colour-change-widget.hpp"
 
 class SettingsDialog : public QDialog {
 	Q_OBJECT
@@ -30,6 +31,7 @@ private:
 	QScopedPointer<Ui::SettingsDialog> ui;
 	TimerWidgetStruct *timerData;
 	CountdownDockWidget *mainWidget;
+	ColourChangeWidget *colourChangeWidget = nullptr;
 	bool isError = false;
 
 	void SetupDialogUI(TimerWidgetStruct *settingsDialogData);

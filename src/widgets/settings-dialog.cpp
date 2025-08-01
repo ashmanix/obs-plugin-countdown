@@ -98,6 +98,10 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 	ui->dialogButtonBox->button(QDialogButtonBox::Ok)->setText(obs_module_text("DialogButtonOkLabel"));
 	ui->dialogButtonBox->button(QDialogButtonBox::Cancel)->setText(obs_module_text("DialogButtonCancelLabel"));
 
+	// Add Colour Groupbox to Settings Dialog
+	colourChangeWidget = new ColourChangeWidget(this, settingsDialogData);
+	ui->extraWidgetContents->layout()->addWidget(colourChangeWidget);
+
 	ui->byLabel->setText(obs_module_text("DialogInfoByLabel"));
 	ui->contributorsLabel->setText(obs_module_text("DialogInfoConstributorsLabel"));
 	ui->versionLabel->setText(obs_module_text("DialogInfoVersionLabel"));

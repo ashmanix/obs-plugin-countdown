@@ -144,13 +144,22 @@ long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdo
 	return millisResult;
 }
 
-bool IsTimeWithinPeriod(TimerDuration timeToCompare, TimerDuration minTime, TimerDuration maxTime)
+QColor GetTextColourFromRulesList(QList<ColourRuleData> &colourRuleList, long long compareTimeMilli)
 {
-	qint64 minTimeMilli = ConvertTimerDurationToMilliSeconds(minTime);
-	qint64 maxTimeMilli = ConvertTimerDurationToMilliSeconds(maxTime);
-	qint64 compareTimeMilli = ConvertTimerDurationToMilliSeconds(timeToCompare);
+	// qint64 compareTimeMilli = ConvertTimerDurationToMilliSeconds(timeToCompare);
 
-	return compareTimeMilli >= minTimeMilli && compareTimeMilli <= maxTimeMilli;
+	for (const ColourRuleData &rule : colourRuleList) {
+		qint64 minTimeMilli = ConvertTimerDurationToMilliSeconds(rule.minTime);
+		qint64 maxTimeMilli = ConvertTimerDurationToMilliSeconds(rule.maxTime);
+
+		if (maxTimeMilli < minTimeMilli)
+			continue;
+
+		if (compareTimeMilli >= minTimeMilli && compareTimeMilli <= maxTimeMilli)
+			return rule.colour;
+	}
+
+	return QColor();
 }
 
 qint64 ConvertTimerDurationToMilliSeconds(const TimerDuration &timeToConvert)
@@ -161,4 +170,13 @@ qint64 ConvertTimerDurationToMilliSeconds(const TimerDuration &timeToConvert)
 	const qint64 seconds = static_cast<qint64>(timeToConvert.seconds);
 
 	return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
+}
+
+long long ColourToInt(QColor color)
+{
+	auto shift = [&](unsigned val, int shift) {
+		return ((val & 0xff) << shift);
+	};
+
+	return shift(color.red(), 0) | shift(color.green(), 8) | shift(color.blue(), 16) | shift(color.alpha(), 24);
 }

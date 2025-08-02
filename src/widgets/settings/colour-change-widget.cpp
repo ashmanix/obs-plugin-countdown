@@ -53,7 +53,6 @@ QList<ColourRuleData> ColourChangeWidget::GetColourRuleList()
 	for (const auto &rulePtr : m_colourRules) {
 		if (!rulePtr)
 			continue;
-		obs_log(LOG_INFO, "Here");
 
 		dataToGet.append(ColourRuleData{rulePtr->GetMinTime(), rulePtr->GetMaxTime(), rulePtr->GetColour()});
 	}

@@ -81,7 +81,7 @@ private:
 
 	void UpdateDateTimeDisplay(long long millis);
 	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
-	void SetSourceText(QString newText);
+	void SetSourceText(QString newText, QColor textColour = QColor());
 	void SetCurrentScene();
 
 	std::string GetFullHotkeyName(std::string nameString, const char *joinText = "_");

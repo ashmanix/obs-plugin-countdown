@@ -105,7 +105,6 @@ void SingleColourRuleWidget::SetEnabled(bool isEnabled)
 
 void SingleColourRuleWidget::HandleColourButtonPushed()
 {
-	obs_log(LOG_INFO, "Colour button clicked!");
 	QColor initialColour = m_colourRule->GetColour().isValid() ? m_colourRule->GetColour() : Qt::white;
 
 	QColor newSelectedColour =

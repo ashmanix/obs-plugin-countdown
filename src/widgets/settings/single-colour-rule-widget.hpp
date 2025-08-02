@@ -6,6 +6,10 @@
 #include <QPushButton>
 #include <QSharedPointer>
 #include <QToolButton>
+#include <QFont>
+#include <QString>
+#include <QColor>
+#include <QColorDialog>
 
 #include <obs-frontend-api.h>
 
@@ -23,12 +27,15 @@ public:
 	QString GetID() const;
 	QSharedPointer<ColourRule> GetColourRule() const;
 
-	void SetData(QSharedPointer<ColourRule> in_colourRule);
+	void SetData(ColourRuleData colourRuleData);
+	void SetID(QString newId);
+	void SetLabel(QString labelValue);
 	void UpdateStyledUIComponents();
+	void SetEnabled(bool isEnabled);
 
 signals:
-	void RemoveBlendshapeRule(QString id);
-	void Change();
+	void RemoveColoureRule(QString id);
+	void ChangeDetected();
 
 private slots:
 	void HandleColourButtonPushed();
@@ -42,6 +49,7 @@ private:
 	void SetupWidgetUI();
 	void ToggleBlockAllUISignals(bool shouldBlock);
 	void HandleTimerChange(TimerType type, TimerDuration time);
+	void SetTextColour(QColor colour);
 };
 
 #endif // SINGLECOLOURRULEWIDGET_H

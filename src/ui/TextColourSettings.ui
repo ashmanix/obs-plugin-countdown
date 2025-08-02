@@ -90,6 +90,13 @@
        </layout>
       </item>
       <item>
+       <widget class="QLabel" name="rulesLabel">
+        <property name="text">
+         <string>rules</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <layout class="QVBoxLayout" name="colourRulesVerticalLayout"/>
       </item>
       <item>
@@ -111,13 +118,6 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QToolButton" name="addColourSettingToolButton">
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
          <spacer name="horizontalSpacer_2">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -129,6 +129,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QToolButton" name="addColourSettingToolButton">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

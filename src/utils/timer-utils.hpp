@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QTabWidget>
 #include <QTime>
+#include <QColor>
 
 const int TIMERPERIOD = 1000;
 
@@ -63,6 +64,12 @@ struct HotkeyBindings {
 	int stopCountdownToTimeHotkeyId = -1;
 };
 
+struct ColourRuleData {
+	TimerDuration startTime;
+	TimerDuration endTime;
+	QColor colour;
+};
+
 struct TimerWidgetStruct {
 	QString timerId;
 	bool isPlaying;
@@ -84,6 +91,10 @@ struct TimerWidgetStruct {
 
 	QWidget *periodVLayout;
 	QWidget *datetimeVLayout;
+
+	bool shoutSetTextColour = false;
+	QColor mainTextColour;
+	QList<ColourRuleData> colourRuleList;
 };
 
 struct PeriodData {

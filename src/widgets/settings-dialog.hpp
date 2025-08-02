@@ -29,9 +29,9 @@ public:
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
 	QScopedPointer<Ui::SettingsDialog> ui;
-	TimerWidgetStruct *timerData;
-	CountdownDockWidget *mainWidget;
-	ColourChangeWidget *colourChangeWidget = nullptr;
+	TimerWidgetStruct *m_timerData;
+	CountdownDockWidget *m_mainWidget;
+	ColourChangeWidget *m_colourChangeWidget = nullptr;
 	bool isError = false;
 
 	void SetupDialogUI(TimerWidgetStruct *settingsDialogData);
@@ -64,7 +64,6 @@ private slots:
 #else
 	void StartOnStreamStartCheckBoxSelected(int state);
 	void EndMessageCheckBoxSelected(int state);
-	void SceneSwitchCheckBoxSelected(int state);
 	void FormatOutputCheckBoxSelected(int state);
 #endif
 	void ApplyButtonClicked();

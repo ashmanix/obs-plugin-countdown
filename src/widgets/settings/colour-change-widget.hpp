@@ -6,6 +6,10 @@
 #include <QSpacerItem>
 #include <QDateTime>
 #include <QSharedPointer>
+#include <QHash>
+#include <QColor>
+#include <QColorDialog>
+#include <QList>
 
 #include "../../plugin-support.h"
 #include "../../ui/ui_TextColourSettings.h"
@@ -27,26 +31,36 @@ public:
 	explicit ColourChangeWidget(QWidget *parent, TimerWidgetStruct *countdownTimerData);
 	void SetupWidgetUI();
 	void UpdateStyledUIComponents();
-	void SetData();
+	void SetData(QList<ColourRuleData> colourRuleList);
+	QList<ColourRuleData> GetData();
 	void ClearSelection();
 
 signals:
 	void ColourRuleChanged();
 
 private slots:
-	void HandleEnableClick(bool isEnabled);
 	void HandleAddButtonClicked();
-	void HandleColourRuleDeleteButtonClicked(QString id);
+	void HandleColourRuleDeletion(QString id);
+	void HandleMainColourButtonClick();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	void HandleEnableCheckBoxSelected(Qt::CheckState state);
+#else
+	void HandleEnableCheckBoxSelected(int state);
+#endif
 
 private:
 	Ui::TextColourSettingsWidget *m_ui;
-	QMap<QString, SingleColourRuleWidget *> m_colourRulesWidgetMap;
-	QSharedPointer<TimerWidgetStruct> data;
+	QVector<QSharedPointer<ColourRule>> m_colourRules;
+	QHash<QString, SingleColourRuleWidget *> m_colourRuleWidgetIds;
+	QColor m_mainTextColour;
+	QSharedPointer<TimerWidgetStruct> m_data;
 
 	void ConnectUISignalHandlers();
 	void ConnectColourRuleSignalHandlers(SingleColourRuleWidget *colourRuleWidget);
 	void AddColourRule(QSharedPointer<ColourRule> in_colourRule = nullptr);
 	void SetEnabled(bool isEnabled);
+	void UpdateAllRuleLabels();
+	void SetMainTextColour(QColor color);
 };
 
 #endif // COLOURCHANGEWIDGET_H

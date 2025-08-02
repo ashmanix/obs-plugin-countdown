@@ -6,9 +6,6 @@
 
 #include "../utils/timer-utils.hpp"
 
-// Forward declarations
-struct TimerDuration;
-
 class ColourRule {
 
 public:

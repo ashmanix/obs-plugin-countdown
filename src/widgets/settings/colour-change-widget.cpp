@@ -2,15 +2,20 @@
 #include <obs-module.h>
 #include <QFileInfo>
 #include <QDir>
-#include <QColor>
 #include "../../utils/obs-utils.hpp"
 
 ColourChangeWidget::ColourChangeWidget(QWidget *parent, TimerWidgetStruct *countdownTimerData)
 	: QWidget(parent),
-	  data(countdownTimerData),
+	  m_data(countdownTimerData),
 	  m_ui(new Ui::TextColourSettingsWidget)
 {
 	m_ui->setupUi(this);
+
+	if (countdownTimerData->mainTextColour != nullptr) {
+		m_mainTextColour = countdownTimerData->mainTextColour;
+	} else {
+		m_mainTextColour = Qt::white;
+	}
 	SetupWidgetUI();
 	ConnectUISignalHandlers();
 }
@@ -24,6 +29,8 @@ void ColourChangeWidget::SetupWidgetUI()
 
 	m_ui->mainColourLabel->setText(obs_module_text("DialogTextColourMainColourLabel"));
 	m_ui->mainColourPushButton->setToolTip(obs_module_text("DialogTextColourColourButtonTip"));
+
+	m_ui->rulesLabel->setText(obs_module_text("DialogTextColourRulesLabel"));
 
 	SetEnabled(false);
 
@@ -39,67 +46,116 @@ void ColourChangeWidget::UpdateStyledUIComponents()
 		QIcon addIcon(plusIconUrl);
 		m_ui->addColourSettingToolButton->setIcon(addIcon);
 	}
+	SetMainTextColour(m_mainTextColour);
 }
 
-void ColourChangeWidget::SetData()
+QList<ColourRuleData> ColourChangeWidget::GetData()
 {
+	QList<ColourRuleData> dataToGet;
 
-	// Need to get an input of a map of colour rules and then save them to this widget
+	dataToGet.reserve(m_colourRules.size());
 
-	ClearSelection();
-	// if (!m_pose)
-	// return obs_log(LOG_WARNING, "No pose data found when loading blendshape rules!");
+	for (const auto &rulePtr : m_colourRules) {
+		if (!rulePtr)
+			continue;
 
+		dataToGet.append(ColourRuleData{rulePtr->GetStartTime(), rulePtr->GetEndTime(), rulePtr->GetColour()});
+	}
+	return dataToGet;
+}
+
+void ColourChangeWidget::SetData(QList<ColourRuleData> colourRuleList)
+{
 	blockSignals(true);
-	// QMap<QString, QSharedPointer<BlendshapeRule>> *bsList = m_pose->getBlendshapeList();
-	// // list rules
-	// if (!bsList->isEmpty()) {
-	// 	for (auto i = bsList->begin(), end = bsList->end(); i != end; i++) {
-	// 		auto rule = *i;
-	// 		addBlendshapeRule(rule);
-	// 	}
-	// }
+	ClearSelection();
+
+	if (!colourRuleList.isEmpty()) {
+		for (auto i = colourRuleList.begin(), end = colourRuleList.end(); i != end; i++) {
+			auto rule = *i;
+			auto cRule = QSharedPointer<ColourRule>::create("", rule.startTime, rule.endTime, rule.colour);
+			AddColourRule(cRule);
+		}
+	}
+
 	blockSignals(false);
 }
 
 void ColourChangeWidget::ClearSelection()
 {
 	blockSignals(true);
-	// Clear widget list
-	for (auto i = m_colourRulesWidgetMap.begin(), end = m_colourRulesWidgetMap.end(); i != end; i++) {
-		auto rule = *i;
-		rule->deleteLater();
-	}
-
-	m_colourRulesWidgetMap.clear();
+	// destroy widgets
+	for (auto *w : std::as_const(m_colourRuleWidgetIds))
+		w->deleteLater();
+	m_colourRuleWidgetIds.clear();
+	m_colourRules.clear();
 	blockSignals(false);
 }
 
 //  ----------------------------------------------- Private Slots ---------------------------------------------------
-
-void ColourChangeWidget::HandleEnableClick(bool isEnabled)
-{
-	SetEnabled(isEnabled);
-}
-
 void ColourChangeWidget::HandleAddButtonClicked()
 {
 	AddColourRule();
+	emit ColourRuleChanged();
 }
 
-void ColourChangeWidget::HandleColourRuleDeleteButtonClicked(QString id)
+void ColourChangeWidget::HandleColourRuleDeletion(QString id)
 {
 	obs_log(LOG_INFO, "Trying to delete colour rule: %s", id.toStdString().c_str());
-	SingleColourRuleWidget *itemToBeRemoved = m_colourRulesWidgetMap.value(id, nullptr);
+	if (auto *widgetToRemove = m_colourRuleWidgetIds.value(id, nullptr)) {
+		auto it = std::find_if(m_colourRules.begin(), m_colourRules.end(),
+				       [&](const QSharedPointer<ColourRule> &rule) { return rule->GetID() == id; });
+		if (it != m_colourRules.end())
+			m_colourRules.erase(it);
 
-	if (itemToBeRemoved) {
-		m_colourRulesWidgetMap.remove(id);
-		itemToBeRemoved->deleteLater();
+		// Remove from layout + delete UI
+		m_ui->colourRulesVerticalLayout->removeWidget(widgetToRemove);
+		m_colourRuleWidgetIds.remove(id);
+		widgetToRemove->deleteLater();
+
+		UpdateAllRuleLabels();
 
 		emit ColourRuleChanged();
-		obs_log(LOG_INFO, (QString("Colour rule %1 deleted").arg(id)).toStdString().c_str());
 	}
 }
+
+void ColourChangeWidget::HandleMainColourButtonClick()
+{
+	QColor initialColour = m_mainTextColour.isValid() ? m_mainTextColour : Qt::white;
+
+	QColor newSelectedColour =
+		QColorDialog::getColor(initialColour, this, obs_module_text("DialogTextColourChooseMainColourTitle"));
+
+	if (newSelectedColour.isValid()) {
+		m_mainTextColour = newSelectedColour;
+		SetMainTextColour(m_mainTextColour);
+		emit ColourRuleChanged();
+	}
+}
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+void ColourChangeWidget::HandleEnableCheckBoxSelected(Qt::CheckState state)
+{
+	if (state == Qt::CheckState::Checked) {
+		SetEnabled(true);
+	} else {
+		SetEnabled(false);
+	}
+	emit ColourRuleChanged();
+}
+
+#else
+
+void ColourChangeWidget::HandleEnableCheckBoxSelected(int state)
+{
+	if (state) {
+		SetEnabled(true);
+	} else {
+		SetEnabled(false);
+	}
+	emit ColourRuleChanged();
+}
+
+#endif
 
 //  ----------------------------------------------- Private Functions ------------------------------------------------
 
@@ -108,33 +164,44 @@ void ColourChangeWidget::ConnectUISignalHandlers()
 	QObject::connect(m_ui->addColourSettingToolButton, &QToolButton::clicked, this,
 			 &ColourChangeWidget::HandleAddButtonClicked);
 
-	QObject::connect(m_ui->enableTextColourCheckBox, &QToolButton::clicked, this,
-			 &ColourChangeWidget::HandleEnableClick);
+	QObject::connect(m_ui->mainColourPushButton, &QPushButton::clicked, this,
+			 &ColourChangeWidget::HandleMainColourButtonClick);
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+	QObject::connect(m_ui->enableTextColourCheckBox, &QCheckBox::checkStateChanged, this,
+			 &ColourChangeWidget::HandleEnableCheckBoxSelected);
+#else
+	QObject::connect(m_ui->enableTextColourCheckBox, &QCheckBox::clicked, this,
+			 &ColourChangeWidget::HandleEnableCheckBoxSelected);
+#endif
 }
 
 void ColourChangeWidget::ConnectColourRuleSignalHandlers(SingleColourRuleWidget *colourRuleWidget)
 {
-	QObject::connect(colourRuleWidget, &SingleColourRuleWidget::Change, this,
+	QObject::connect(colourRuleWidget, &SingleColourRuleWidget::ChangeDetected, this,
 			 [this]() { emit ColourRuleChanged(); });
-	QObject::connect(colourRuleWidget, &SingleColourRuleWidget::RemoveBlendshapeRule, this,
-			 &ColourChangeWidget::HandleColourRuleDeleteButtonClicked);
+	QObject::connect(colourRuleWidget, &SingleColourRuleWidget::RemoveColoureRule, this,
+			 &ColourChangeWidget::HandleColourRuleDeletion);
 }
 
 void ColourChangeWidget::AddColourRule(QSharedPointer<ColourRule> in_colourRule)
 {
-	if (in_colourRule == nullptr) {
+	if (!in_colourRule)
 		in_colourRule = QSharedPointer<ColourRule>::create();
-	}
 
-	if (!in_colourRule.isNull()) {
-		obs_log(LOG_INFO, "Adding colour rule to layout");
-		auto newColourRuleWidget = new SingleColourRuleWidget(this, in_colourRule);
-		m_colourRulesWidgetMap.insert(newColourRuleWidget->GetID(), newColourRuleWidget);
-		ConnectColourRuleSignalHandlers(newColourRuleWidget);
+	obs_log(LOG_INFO, "Adding colour rule to layout");
+	m_colourRules.push_back(in_colourRule);
+	auto newColourRuleWidget = new SingleColourRuleWidget(this, in_colourRule);
+	m_colourRuleWidgetIds.insert(newColourRuleWidget->GetID(), newColourRuleWidget);
 
-		m_ui->colourRulesVerticalLayout->addWidget(newColourRuleWidget);
-		emit ColourRuleChanged();
-	}
+	// Set the widget label to index number
+	int index = m_colourRules.indexOf(in_colourRule);
+	newColourRuleWidget->SetLabel(QString::number(index + 1));
+
+	ConnectColourRuleSignalHandlers(newColourRuleWidget);
+
+	m_ui->colourRulesVerticalLayout->addWidget(newColourRuleWidget);
+	emit ColourRuleChanged();
 }
 
 void ColourChangeWidget::SetEnabled(bool isEnabled)
@@ -142,4 +209,40 @@ void ColourChangeWidget::SetEnabled(bool isEnabled)
 	m_ui->addColourSettingToolButton->setEnabled(isEnabled);
 	m_ui->mainColourLabel->setEnabled(isEnabled);
 	m_ui->mainColourPushButton->setEnabled(isEnabled);
+	m_ui->rulesLabel->setEnabled(isEnabled);
+	m_ui->colourRulesVerticalLayout->setEnabled(isEnabled);
+
+	for (auto i = m_colourRuleWidgetIds.begin(), end = m_colourRuleWidgetIds.end(); i != end; ++i) {
+		auto *widget = i.value();
+		widget->SetEnabled(isEnabled);
+	}
+}
+void ColourChangeWidget::UpdateAllRuleLabels()
+{
+	for (auto i = m_colourRuleWidgetIds.begin(), end = m_colourRuleWidgetIds.end(); i != end; ++i) {
+		auto *widget = i.value();
+		int index = m_colourRules.indexOf(widget->GetColourRule());
+		widget->SetLabel(QString::number(index + 1));
+	}
+}
+
+void ColourChangeWidget::SetMainTextColour(QColor colour)
+{
+	QColor hover = colour.lighter(110);   // +10%
+	QColor pressed = colour.darker(110);  // -10%
+	QColor disabled = colour.darker(120); // optional
+
+	auto rgba = [](const QColor &c) {
+		return QString("rgba(%1,%2,%3,%4)").arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alphaF());
+	};
+
+	const QString name = m_ui->mainColourPushButton->objectName();
+
+	const QString style = QString("QPushButton#%1 { background-color: %2; }"
+				      "QPushButton#%1:hover { background-color: %3; }"
+				      "QPushButton#%1:pressed { background-color: %4; }"
+				      "QPushButton#%1:disabled { background-color: %5; }")
+				      .arg(name, colour.name(), rgba(hover), rgba(pressed), rgba(disabled));
+
+	m_ui->mainColourPushButton->setStyleSheet(style);
 }

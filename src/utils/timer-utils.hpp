@@ -38,6 +38,12 @@ struct TimerDuration {
 	int seconds = 0;
 };
 
+struct ColourRuleData {
+	TimerDuration minTime;
+	TimerDuration maxTime;
+	QColor colour;
+};
+
 struct DisplayOptions {
 	bool showDays = true;
 	bool showHours = true;
@@ -49,6 +55,10 @@ struct DisplayOptions {
 	bool useFormattedOutput = false;
 	QString outputStringFormat = "Will be back in %time% see you soon!";
 	QString endMessage;
+
+	bool useTextColour = false;
+	QColor mainTextColour;
+	QList<ColourRuleData> colourRuleList;
 };
 
 struct SourceConfig {
@@ -62,12 +72,6 @@ struct HotkeyBindings {
 	int setCountdownHotkeyId = -1;
 	int startCountdownToTimeHotkeyId = -1;
 	int stopCountdownToTimeHotkeyId = -1;
-};
-
-struct ColourRuleData {
-	TimerDuration startTime;
-	TimerDuration endTime;
-	QColor colour;
 };
 
 struct TimerWidgetStruct {
@@ -91,10 +95,6 @@ struct TimerWidgetStruct {
 
 	QWidget *periodVLayout;
 	QWidget *datetimeVLayout;
-
-	bool shoutSetTextColour = false;
-	QColor mainTextColour;
-	QList<ColourRuleData> colourRuleList;
 };
 
 struct PeriodData {
@@ -117,5 +117,7 @@ QString ConvertMillisToDateTimeString(long long timeInMillis);
 QString GetFormattedTimerString(bool daysState, bool hoursState, bool minutesState, bool secondsState,
 				bool showLeadingZero, long long timeInMillis);
 long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdownPeriod = 1000);
+bool IsTimeWithinPeriod(TimerDuration timeToCompare, TimerDuration minTime, TimerDuration maxTime);
+qint64 ConvertTimerDurationToMilliSeconds(const TimerDuration &timeToConvert);
 
 #endif // TIMERUTILS_H

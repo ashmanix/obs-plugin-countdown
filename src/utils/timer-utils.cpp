@@ -143,3 +143,22 @@ long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdo
 
 	return millisResult;
 }
+
+bool IsTimeWithinPeriod(TimerDuration timeToCompare, TimerDuration minTime, TimerDuration maxTime)
+{
+	qint64 minTimeMilli = ConvertTimerDurationToMilliSeconds(minTime);
+	qint64 maxTimeMilli = ConvertTimerDurationToMilliSeconds(maxTime);
+	qint64 compareTimeMilli = ConvertTimerDurationToMilliSeconds(timeToCompare);
+
+	return compareTimeMilli >= minTimeMilli && compareTimeMilli <= maxTimeMilli;
+}
+
+qint64 ConvertTimerDurationToMilliSeconds(const TimerDuration &timeToConvert)
+{
+	const qint64 days = static_cast<qint64>(timeToConvert.days);
+	const qint64 hours = static_cast<qint64>(timeToConvert.hours);
+	const qint64 minutes = static_cast<qint64>(timeToConvert.minutes);
+	const qint64 seconds = static_cast<qint64>(timeToConvert.seconds);
+
+	return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
+}

@@ -11,11 +11,8 @@ ColourChangeWidget::ColourChangeWidget(QWidget *parent, TimerWidgetStruct *count
 {
 	m_ui->setupUi(this);
 
-	if (countdownTimerData->mainTextColour != nullptr) {
-		m_mainTextColour = countdownTimerData->mainTextColour;
-	} else {
-		m_mainTextColour = Qt::white;
-	}
+	SetData(countdownTimerData);
+
 	SetupWidgetUI();
 	ConnectUISignalHandlers();
 }
@@ -32,8 +29,6 @@ void ColourChangeWidget::SetupWidgetUI()
 
 	m_ui->rulesLabel->setText(obs_module_text("DialogTextColourRulesLabel"));
 
-	SetEnabled(false);
-
 	UpdateStyledUIComponents();
 }
 
@@ -49,7 +44,7 @@ void ColourChangeWidget::UpdateStyledUIComponents()
 	SetMainTextColour(m_mainTextColour);
 }
 
-QList<ColourRuleData> ColourChangeWidget::GetData()
+QList<ColourRuleData> ColourChangeWidget::GetColourRuleList()
 {
 	QList<ColourRuleData> dataToGet;
 
@@ -58,21 +53,46 @@ QList<ColourRuleData> ColourChangeWidget::GetData()
 	for (const auto &rulePtr : m_colourRules) {
 		if (!rulePtr)
 			continue;
+		obs_log(LOG_INFO, "Here");
 
-		dataToGet.append(ColourRuleData{rulePtr->GetStartTime(), rulePtr->GetEndTime(), rulePtr->GetColour()});
+		dataToGet.append(ColourRuleData{rulePtr->GetMinTime(), rulePtr->GetMaxTime(), rulePtr->GetColour()});
 	}
 	return dataToGet;
 }
 
-void ColourChangeWidget::SetData(QList<ColourRuleData> colourRuleList)
+QColor ColourChangeWidget::GetMainTextColour()
 {
+	return m_mainTextColour;
+}
+
+bool ColourChangeWidget::GetShouldUseColourChange()
+{
+	return m_ui->enableTextColourCheckBox->checkState() == Qt::Checked;
+}
+
+void ColourChangeWidget::SetData(TimerWidgetStruct *countdownTimerData)
+{
+	if (!countdownTimerData)
+		return;
+
 	blockSignals(true);
 	ClearSelection();
 
-	if (!colourRuleList.isEmpty()) {
-		for (auto i = colourRuleList.begin(), end = colourRuleList.end(); i != end; i++) {
+	if (countdownTimerData->display.mainTextColour != nullptr) {
+		m_mainTextColour = countdownTimerData->display.mainTextColour;
+	} else {
+		m_mainTextColour = Qt::white;
+	}
+
+	m_ui->enableTextColourCheckBox->setChecked(countdownTimerData->display.useTextColour);
+	SetEnabled(countdownTimerData->display.useTextColour);
+
+	if (!countdownTimerData->display.colourRuleList.isEmpty()) {
+		for (auto i = countdownTimerData->display.colourRuleList.begin(),
+			  end = countdownTimerData->display.colourRuleList.end();
+		     i != end; i++) {
 			auto rule = *i;
-			auto cRule = QSharedPointer<ColourRule>::create("", rule.startTime, rule.endTime, rule.colour);
+			auto cRule = QSharedPointer<ColourRule>::create("", rule.minTime, rule.maxTime, rule.colour);
 			AddColourRule(cRule);
 		}
 	}

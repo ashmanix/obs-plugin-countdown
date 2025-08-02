@@ -9,6 +9,9 @@ SingleColourRuleWidget::SingleColourRuleWidget(QWidget *parent, QSharedPointer<C
 	  m_ui(new Ui::SingleColourRuleWidget)
 {
 	m_ui->setupUi(this);
+
+	SetData(m_colourRule.data());
+
 	SetupWidgetUI();
 	ConnectUISignalHandlers();
 }
@@ -23,31 +26,31 @@ QSharedPointer<ColourRule> SingleColourRuleWidget::GetColourRule() const
 	return m_colourRule;
 }
 
-void SingleColourRuleWidget::SetData(ColourRuleData colourRuleData)
+void SingleColourRuleWidget::SetData(ColourRule *colourRule)
 {
 	ToggleBlockAllUISignals(true);
 
 	if (!m_colourRule) {
-		m_colourRule = QSharedPointer<ColourRule>::create("", colourRuleData.startTime, colourRuleData.endTime,
-								  colourRuleData.colour);
+		m_colourRule = QSharedPointer<ColourRule>::create("", colourRule->GetMinTime(),
+								  colourRule->GetMaxTime(), colourRule->GetColour());
 	} else {
-		m_colourRule->SetStartTime(colourRuleData.startTime);
-		m_colourRule->SetEndTime(colourRuleData.endTime);
-		m_colourRule->SetColour(colourRuleData.colour);
+		m_colourRule->SetTime(ColourRule::TimerType::MIN, colourRule->GetMinTime());
+		m_colourRule->SetTime(ColourRule::TimerType::MAX, colourRule->GetMaxTime());
+		m_colourRule->SetColour(colourRule->GetColour());
 	}
 
 	m_ui->idLabel->setText(m_colourRule->GetID());
-	m_ui->maxTimeDaySpinBox->setValue(colourRuleData.startTime.days);
-	m_ui->maxTimeHourSpinBox->setValue(colourRuleData.startTime.hours);
-	m_ui->maxTimeMinuteSpinBox->setValue(colourRuleData.startTime.minutes);
-	m_ui->maxTimeSecondSpinBox->setValue(colourRuleData.startTime.seconds);
+	m_ui->maxTimeDaySpinBox->setValue(colourRule->GetMaxTime().days);
+	m_ui->maxTimeHourSpinBox->setValue(colourRule->GetMaxTime().hours);
+	m_ui->maxTimeMinuteSpinBox->setValue(colourRule->GetMaxTime().minutes);
+	m_ui->maxTimeSecondSpinBox->setValue(colourRule->GetMaxTime().seconds);
 
-	m_ui->minTimeDaySpinBox->setValue(colourRuleData.endTime.days);
-	m_ui->minTimeHourSpinBox->setValue(colourRuleData.endTime.hours);
-	m_ui->minTimeMinuteSpinBox->setValue(colourRuleData.endTime.minutes);
-	m_ui->minTimeSecondSpinBox->setValue(colourRuleData.endTime.seconds);
+	m_ui->minTimeDaySpinBox->setValue(colourRule->GetMinTime().days);
+	m_ui->minTimeHourSpinBox->setValue(colourRule->GetMinTime().hours);
+	m_ui->minTimeMinuteSpinBox->setValue(colourRule->GetMinTime().minutes);
+	m_ui->minTimeSecondSpinBox->setValue(colourRule->GetMinTime().seconds);
 
-	SetTextColour(colourRuleData.colour);
+	SetTextColour(colourRule->GetColour());
 
 	ToggleBlockAllUISignals(false);
 }
@@ -125,26 +128,35 @@ void SingleColourRuleWidget::ConnectUISignalHandlers()
 	QObject::connect(m_ui->deleteToolButton, &QPushButton::clicked, this,
 			 [this]() { emit RemoveColoureRule(m_colourRule->GetID()); });
 
-	QObject::connect(m_ui->minTimeDaySpinBox, &QSpinBox::valueChanged, this, [this]() { emit ChangeDetected(); });
-	QObject::connect(m_ui->minTimeHourSpinBox, &QSpinBox::valueChanged, this, [this]() { emit ChangeDetected(); });
-	QObject::connect(m_ui->minTimeMinuteSpinBox, &QSpinBox::valueChanged, this,
-			 [this]() { emit ChangeDetected(); });
-	QObject::connect(m_ui->minTimeSecondSpinBox, &QSpinBox::valueChanged, this,
-			 [this]() { emit ChangeDetected(); });
+	QObject::connect(m_ui->minTimeDaySpinBox, &QSpinBox::valueChanged, this, [this](int value) {
+		HandleTimerChange(ColourRule::TimerType::MIN, ColourRule::DurationType::DAYS, value);
+	});
+	QObject::connect(m_ui->minTimeHourSpinBox, &QSpinBox::valueChanged, this, [this](int value) {
+		HandleTimerChange(ColourRule::TimerType::MIN, ColourRule::DurationType::HOURS, value);
+	});
+	QObject::connect(m_ui->minTimeMinuteSpinBox, &QSpinBox::valueChanged, this, [this](int value) {
+		HandleTimerChange(ColourRule::TimerType::MIN, ColourRule::DurationType::MINUTES, value);
+	});
+	QObject::connect(m_ui->minTimeSecondSpinBox, &QSpinBox::valueChanged, this, [this](int value) {
+		HandleTimerChange(ColourRule::TimerType::MIN, ColourRule::DurationType::SECONDS, value);
+	});
 
-	QObject::connect(m_ui->maxTimeDaySpinBox, &QSpinBox::valueChanged, this, [this]() { emit ChangeDetected(); });
-	QObject::connect(m_ui->maxTimeHourSpinBox, &QSpinBox::valueChanged, this, [this]() { emit ChangeDetected(); });
-	QObject::connect(m_ui->maxTimeMinuteSpinBox, &QSpinBox::valueChanged, this,
-			 [this]() { emit ChangeDetected(); });
-	QObject::connect(m_ui->maxTimeSecondSpinBox, &QSpinBox::valueChanged, this,
-			 [this]() { emit ChangeDetected(); });
+	QObject::connect(m_ui->maxTimeDaySpinBox, &QSpinBox::valueChanged, this, [this](int value) {
+		HandleTimerChange(ColourRule::TimerType::MAX, ColourRule::DurationType::DAYS, value);
+	});
+	QObject::connect(m_ui->maxTimeHourSpinBox, &QSpinBox::valueChanged, this, [this](int value) {
+		HandleTimerChange(ColourRule::TimerType::MAX, ColourRule::DurationType::HOURS, value);
+	});
+	QObject::connect(m_ui->maxTimeMinuteSpinBox, &QSpinBox::valueChanged, this, [this](int value) {
+		HandleTimerChange(ColourRule::TimerType::MAX, ColourRule::DurationType::MINUTES, value);
+	});
+	QObject::connect(m_ui->maxTimeSecondSpinBox, &QSpinBox::valueChanged, this, [this](int value) {
+		HandleTimerChange(ColourRule::TimerType::MAX, ColourRule::DurationType::SECONDS, value);
+	});
 }
 
 void SingleColourRuleWidget::SetupWidgetUI()
 {
-	// m_ui->maxTimeEdit->setToolTip(obs_module_text("DialogTextColourMaxTimeEditTip"));
-	// m_ui->minTimeEdit->setToolTip(obs_module_text("DialogTextColourMinTimeEditTip"));
-
 	m_ui->minTimeDaySpinBox->setRange(0, 999);
 	m_ui->minTimeDaySpinBox->setToolTip(obs_module_text("DaysCheckboxLabel"));
 
@@ -189,27 +201,42 @@ void SingleColourRuleWidget::ToggleBlockAllUISignals(bool shouldBlock)
 	m_ui->maxTimeSecondSpinBox->blockSignals(shouldBlock);
 }
 
-void SingleColourRuleWidget::HandleTimerChange(TimerType type, TimerDuration time)
+void SingleColourRuleWidget::HandleTimerChange(ColourRule::TimerType timerType, ColourRule::DurationType durationType,
+					       int value)
 {
 	if (!m_colourRule) {
 		obs_log(LOG_WARNING, "No colour rule detected!");
 		return;
 	}
+	TimerDuration newTime;
 
-	switch (type) {
-	case TimerType::START:
-		m_ui->minTimeDaySpinBox->setValue(time.days);
-		m_ui->minTimeHourSpinBox->setValue(time.hours);
-		m_ui->minTimeMinuteSpinBox->setValue(time.minutes);
-		m_ui->minTimeSecondSpinBox->setValue(time.seconds);
+	switch (timerType) {
+	case ColourRule::TimerType::MIN:
+		newTime = m_colourRule->GetMinTime();
 		break;
-	case TimerType::END:
-		m_ui->maxTimeDaySpinBox->setValue(time.days);
-		m_ui->maxTimeHourSpinBox->setValue(time.hours);
-		m_ui->maxTimeMinuteSpinBox->setValue(time.minutes);
-		m_ui->maxTimeSecondSpinBox->setValue(time.seconds);
+	case ColourRule::TimerType::MAX:
+		newTime = m_colourRule->GetMaxTime();
 		break;
 	}
+
+	switch (durationType) {
+	case ColourRule::DurationType::DAYS:
+		newTime.days = value;
+		break;
+	case ColourRule::DurationType::HOURS:
+		newTime.hours = value;
+		break;
+	case ColourRule::DurationType::MINUTES:
+		newTime.minutes = value;
+		break;
+	case ColourRule::DurationType::SECONDS:
+		newTime.seconds = value;
+		break;
+	}
+
+	m_colourRule->SetTime(timerType, newTime);
+
+	emit ChangeDetected();
 }
 
 void SingleColourRuleWidget::SetTextColour(QColor colour)

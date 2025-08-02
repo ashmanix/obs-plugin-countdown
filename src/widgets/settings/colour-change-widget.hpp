@@ -31,8 +31,10 @@ public:
 	explicit ColourChangeWidget(QWidget *parent, TimerWidgetStruct *countdownTimerData);
 	void SetupWidgetUI();
 	void UpdateStyledUIComponents();
-	void SetData(QList<ColourRuleData> colourRuleList);
-	QList<ColourRuleData> GetData();
+	void SetData(TimerWidgetStruct *countdownTimerData);
+	QList<ColourRuleData> GetColourRuleList();
+	QColor GetMainTextColour();
+	bool GetShouldUseColourChange();
 	void ClearSelection();
 
 signals:

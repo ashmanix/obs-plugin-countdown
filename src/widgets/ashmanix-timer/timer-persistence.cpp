@@ -37,6 +37,16 @@ void TimerPersistence::SaveTimerWidgetDataToOBSSaveData(TimerWidgetStruct *timer
 
 	obs_data_set_int(dataObject, "timeLeftInMillis", timerData->timeLeftInMillis);
 
+	// ------------------------- Text Colour -------------------------
+	obs_data_set_bool(dataObject, "useTextColour", timerData->display.useTextColour);
+	// Save the main text colour as an object
+	obs_data_t *mainColourObject = obs_data_create();
+	SaveColour(mainColourObject, timerData->display.mainTextColour);
+	obs_data_set_obj(dataObject, "mainTextColour", mainColourObject);
+	obs_data_release(mainColourObject);
+	// Save colour rules
+	SaveColourRules(dataObject, timerData->display.colourRuleList);
+
 	// ------------------------- Hotkeys -------------------------
 	SaveHotkey(dataObject, timerData->hotkeys.startCountdownHotkeyId, HotkeyManager::TIMERSTARTHOTKEYNAME);
 
@@ -99,4 +109,105 @@ void TimerPersistence::LoadTimerWidgetDataFromOBSSaveData(TimerWidgetStruct *tim
 		(int)obs_data_get_int(dataObject, "startCountdownToTimeHotkeyId");
 	timerData->hotkeys.stopCountdownToTimeHotkeyId =
 		(int)obs_data_get_int(dataObject, "stopCountdownToTimeHotkeyId");
+
+	// ------------------------- Text Colour -------------------------
+	timerData->display.useTextColour = (bool)obs_data_get_bool(dataObject, "useTextColour");
+	// Save the main text colour as an object
+	obs_data_t *mainColourObject = obs_data_get_obj(dataObject, "mainTextColour");
+	if (mainColourObject) {
+		timerData->display.mainTextColour = LoadColour(mainColourObject);
+		obs_data_release(mainColourObject);
+	}
+
+	timerData->display.colourRuleList = LoadColourRules(dataObject);
+}
+
+TimerDuration TimerPersistence::GetDurationObject(obs_data_t *object, const char *key)
+{
+	TimerDuration timeDuration;
+	obs_data_t *dur = obs_data_get_obj(object, key); // returns a ref you must release (if non-null)
+	if (dur) {
+		timeDuration.days = (int)obs_data_get_int(dur, "days");
+		timeDuration.hours = (int)obs_data_get_int(dur, "hours");
+		timeDuration.minutes = (int)obs_data_get_int(dur, "minutes");
+		timeDuration.seconds = (int)obs_data_get_int(dur, "seconds");
+		obs_data_release(dur);
+	}
+	return timeDuration;
+}
+
+void TimerPersistence::SetDurationObject(obs_data_t *object, const char *key, const TimerDuration &d)
+{
+	obs_data_t *durationObject = obs_data_create();
+	obs_data_set_int(durationObject, "days", d.days);
+	obs_data_set_int(durationObject, "hours", d.hours);
+	obs_data_set_int(durationObject, "minutes", d.minutes);
+	obs_data_set_int(durationObject, "seconds", d.seconds);
+	obs_data_set_obj(object, key, durationObject);
+	obs_data_release(durationObject);
+}
+
+void TimerPersistence::SaveColourRules(obs_data_t *settings, const QList<ColourRuleData> &rules)
+{
+	obs_data_array_t *array = obs_data_array_create();
+
+	for (const ColourRuleData &r : rules) {
+		obs_data_t *object = obs_data_create();
+
+		SetDurationObject(object, "minTime", r.minTime);
+		SetDurationObject(object, "maxTime", r.maxTime);
+
+		SaveColour(object, r.colour);
+
+		obs_data_array_push_back(array, object);
+		obs_data_release(object);
+	}
+
+	obs_data_set_array(settings, "colourRules", array);
+	obs_data_array_release(array);
+}
+
+void TimerPersistence::SaveColour(obs_data_t *object, QColor colour)
+{
+	obs_data_set_int(object, "r", colour.red());
+	obs_data_set_int(object, "g", colour.green());
+	obs_data_set_int(object, "b", colour.blue());
+	obs_data_set_int(object, "a", colour.alpha());
+}
+
+QList<ColourRuleData> TimerPersistence::LoadColourRules(obs_data_t *settings)
+{
+	QList<ColourRuleData> colourRules;
+
+	obs_data_array_t *dataArray = obs_data_get_array(settings, "colourRules"); // gets a ref
+	if (!dataArray)
+		return colourRules;
+
+	const size_t count = obs_data_array_count(dataArray);
+	colourRules.reserve((int)count);
+
+	for (size_t i = 0; i < count; ++i) {
+		obs_data_t *obj = obs_data_array_item(dataArray, i); // returns a ref; must release
+
+		ColourRuleData r;
+		r.minTime = GetDurationObject(obj, "minTime");
+		r.maxTime = GetDurationObject(obj, "maxTime");
+		r.colour = LoadColour(obj);
+
+		colourRules.push_back(r);
+		obs_data_release(obj);
+	}
+
+	obs_data_array_release(dataArray);
+	return colourRules;
+}
+
+QColor TimerPersistence::LoadColour(obs_data_t *object)
+{
+	const int rr = (int)obs_data_get_int(object, "r");
+	const int gg = (int)obs_data_get_int(object, "g");
+	const int bb = (int)obs_data_get_int(object, "b");
+	const int aa = (int)obs_data_get_int(object, "a");
+
+	return QColor(rr, gg, bb, aa);
 }

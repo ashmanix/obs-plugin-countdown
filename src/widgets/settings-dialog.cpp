@@ -278,7 +278,9 @@ void SettingsDialog::ApplyFormChanges()
 
 		m_timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
 
-		m_timerData->colourRuleList = m_colourChangeWidget->GetData();
+		m_timerData->display.useTextColour = m_colourChangeWidget->GetShouldUseColourChange();
+		m_timerData->display.mainTextColour = m_colourChangeWidget->GetMainTextColour();
+		m_timerData->display.colourRuleList = m_colourChangeWidget->GetColourRuleList();
 
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
 		emit SettingsUpdated();
@@ -332,7 +334,7 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
 
 		if (m_colourChangeWidget) {
-			m_colourChangeWidget->SetData(settingsDialogData->colourRuleList);
+			m_colourChangeWidget->SetData(settingsDialogData);
 		}
 	} else {
 		obs_log(LOG_WARNING, "No timer data found!");

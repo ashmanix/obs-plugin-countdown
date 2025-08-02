@@ -22,12 +22,11 @@ class SingleColourRuleWidget : public QWidget {
 
 public:
 	explicit SingleColourRuleWidget(QWidget *parent = nullptr, QSharedPointer<ColourRule> colourRule = nullptr);
-	// ~SingleColourRuleWidget() override;
 
 	QString GetID() const;
 	QSharedPointer<ColourRule> GetColourRule() const;
 
-	void SetData(ColourRuleData colourRuleData);
+	void SetData(ColourRule *colourRule);
 	void SetID(QString newId);
 	void SetLabel(QString labelValue);
 	void UpdateStyledUIComponents();
@@ -43,12 +42,11 @@ private slots:
 private:
 	Ui::SingleColourRuleWidget *m_ui = nullptr;
 	QSharedPointer<ColourRule> m_colourRule;
-	enum TimerType { START = 1, END = 2 };
 
 	void ConnectUISignalHandlers();
 	void SetupWidgetUI();
 	void ToggleBlockAllUISignals(bool shouldBlock);
-	void HandleTimerChange(TimerType type, TimerDuration time);
+	void HandleTimerChange(ColourRule::TimerType timerType, ColourRule::DurationType durationType, int value);
 	void SetTextColour(QColor colour);
 };
 

@@ -9,28 +9,30 @@
 class ColourRule {
 
 public:
-	explicit ColourRule(QString id = {}, TimerDuration startTime = {0, 0, 0, 0},
-			    TimerDuration endTime = {0, 0, 0, 0}, QColor colour = QColor("white"));
+	enum TimerType { MIN = 1, MAX = 2 };
+	enum DurationType { DAYS = 0, HOURS = 1, MINUTES = 2, SECONDS = 3 };
+
+	explicit ColourRule(QString id = {}, TimerDuration minTime = {0, 0, 0, 0}, TimerDuration maxTime = {0, 0, 0, 0},
+			    QColor colour = QColor("white"));
 
 	QString GetID() const;
-	TimerDuration GetStartTime() const;
-	TimerDuration GetEndTime() const;
+	TimerDuration GetMinTime() const;
+	TimerDuration GetMaxTime() const;
 	QColor GetColour() const;
 
 	void SetID(QString newId);
-	void SetStartTime(TimerDuration newTime);
-	void SetEndTime(TimerDuration newTime);
+	void SetTime(TimerType type, TimerDuration newTime);
 	void SetColour(QColor newColour);
 
-	bool IsTimeWithinRule(TimerDuration timetToCompare);
+	// bool IsTimeWithinRule(TimerDuration timetToCompare);
 
 private:
 	QString m_id;
-	TimerDuration m_startTime;
-	TimerDuration m_endTime;
+	TimerDuration m_maxTime;
+	TimerDuration m_minTime;
 	QColor m_colour;
 
-	qint64 ConvertToMilliSeconds(const TimerDuration &timeToConvert);
+	// qint64 ConvertToMilliSeconds(const TimerDuration &timeToConvert);
 };
 
 #endif // COLOURRULE_H

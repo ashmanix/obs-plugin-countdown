@@ -55,24 +55,3 @@ void ColourRule::SetColour(QColor newColour)
 {
 	m_colour = newColour;
 }
-
-// bool ColourRule::IsTimeWithinRule(TimerDuration timeToCompare)
-// {
-// 	qint64 minTime = ConvertToMilliSeconds(m_minTime);
-// 	qint64 maxTime = ConvertToMilliSeconds(m_maxTime);
-// 	qint64 compareTime = ConvertToMilliSeconds(timeToCompare);
-
-// 	return compareTime >= minTime && compareTime <= maxTime;
-// }
-
-// //  ----------------------------------------------- Private Functions ------------------------------------------------
-
-// qint64 ColourRule::ConvertToMilliSeconds(const TimerDuration &timeToConvert)
-// {
-// 	const qint64 days = static_cast<qint64>(timeToConvert.days);
-// 	const qint64 hours = static_cast<qint64>(timeToConvert.hours);
-// 	const qint64 minutes = static_cast<qint64>(timeToConvert.minutes);
-// 	const qint64 seconds = static_cast<qint64>(timeToConvert.seconds);
-
-// 	return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
-// }

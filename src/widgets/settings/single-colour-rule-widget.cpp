@@ -158,27 +158,35 @@ void SingleColourRuleWidget::SetupWidgetUI()
 {
 	m_ui->minTimeDaySpinBox->setRange(0, 999);
 	m_ui->minTimeDaySpinBox->setToolTip(obs_module_text("DaysCheckboxLabel"));
+	m_ui->minTimeDaySpinBox->setSuffix(obs_module_text("DialogTextColourTimeDaySuffix"));
 
 	m_ui->minTimeHourSpinBox->setRange(0, 23);
 	m_ui->minTimeHourSpinBox->setToolTip(obs_module_text("HoursCheckboxLabel"));
+	m_ui->minTimeHourSpinBox->setSuffix(obs_module_text("DialogTextColourTimeHourSuffix"));
 
 	m_ui->minTimeMinuteSpinBox->setRange(0, 59);
 	m_ui->minTimeMinuteSpinBox->setToolTip(obs_module_text("MinutesCheckboxLabel"));
+	m_ui->minTimeMinuteSpinBox->setSuffix(obs_module_text("DialogTextColourTimeMinuteSuffix"));
 
 	m_ui->minTimeSecondSpinBox->setRange(0, 59);
 	m_ui->minTimeSecondSpinBox->setToolTip(obs_module_text("SecondsCheckboxLabel"));
+	m_ui->minTimeSecondSpinBox->setSuffix(obs_module_text("DialogTextColourTimeSecondSuffix"));
 
 	m_ui->maxTimeDaySpinBox->setRange(0, 999);
 	m_ui->maxTimeDaySpinBox->setToolTip(obs_module_text("DaysCheckboxLabel"));
+	m_ui->maxTimeDaySpinBox->setSuffix(obs_module_text("DialogTextColourTimeDaySuffix"));
 
 	m_ui->maxTimeHourSpinBox->setRange(0, 23);
 	m_ui->maxTimeHourSpinBox->setToolTip(obs_module_text("HoursCheckboxLabel"));
+	m_ui->maxTimeHourSpinBox->setSuffix(obs_module_text("DialogTextColourTimeHourSuffix"));
 
 	m_ui->maxTimeMinuteSpinBox->setRange(0, 59);
 	m_ui->maxTimeMinuteSpinBox->setToolTip(obs_module_text("MinutesCheckboxLabel"));
+	m_ui->maxTimeMinuteSpinBox->setSuffix(obs_module_text("DialogTextColourTimeMinuteSuffix"));
 
 	m_ui->maxTimeSecondSpinBox->setRange(0, 59);
 	m_ui->maxTimeSecondSpinBox->setToolTip(obs_module_text("SecondsCheckboxLabel"));
+	m_ui->maxTimeSecondSpinBox->setSuffix(obs_module_text("DialogTextColourTimeSecondSuffix"));
 
 	m_ui->colourPushButton->setToolTip(obs_module_text("DialogTextColourColourButtonTip"));
 	m_ui->deleteToolButton->setToolTip(obs_module_text("DialogTextColourRemoveColourButtonTip"));

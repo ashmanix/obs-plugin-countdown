@@ -24,15 +24,11 @@ public:
 	void SetTime(TimerType type, TimerDuration newTime);
 	void SetColour(QColor newColour);
 
-	// bool IsTimeWithinRule(TimerDuration timetToCompare);
-
 private:
 	QString m_id;
 	TimerDuration m_maxTime;
 	TimerDuration m_minTime;
 	QColor m_colour;
-
-	// qint64 ConvertToMilliSeconds(const TimerDuration &timeToConvert);
 };
 
 #endif // COLOURRULE_H

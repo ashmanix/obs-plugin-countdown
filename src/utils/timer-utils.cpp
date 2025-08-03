@@ -144,9 +144,15 @@ long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdo
 	return millisResult;
 }
 
-QColor GetTextColourFromRulesList(QList<ColourRuleData> &colourRuleList, long long compareTimeMilli)
+QColor GetTextColourFromRulesList(QList<ColourRuleData> &colourRuleList, long long compareMillis)
 {
-	// qint64 compareTimeMilli = ConvertTimerDurationToMilliSeconds(timeToCompare);
+	qint64 compareTimeMilli;
+
+	if (compareMillis >= 0)
+		compareTimeMilli = (compareMillis / 1000) * 1000;
+	else {
+		compareTimeMilli = -(((-compareMillis + 999) / 1000) * 1000);
+	}
 
 	for (const ColourRuleData &rule : colourRuleList) {
 		qint64 minTimeMilli = ConvertTimerDurationToMilliSeconds(rule.minTime);

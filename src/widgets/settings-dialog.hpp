@@ -64,6 +64,7 @@ private slots:
 #else
 	void StartOnStreamStartCheckBoxSelected(int state);
 	void EndMessageCheckBoxSelected(int state);
+	void SceneSwitchCheckBoxSelected(int state);
 	void FormatOutputCheckBoxSelected(int state);
 #endif
 	void ApplyButtonClicked();

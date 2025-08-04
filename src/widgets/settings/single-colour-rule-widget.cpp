@@ -39,7 +39,6 @@ void SingleColourRuleWidget::SetData(ColourRule *colourRule)
 		m_colourRule->SetColour(colourRule->GetColour());
 	}
 
-	m_ui->idLabel->setText(m_colourRule->GetID());
 	m_ui->maxTimeDaySpinBox->setValue(colourRule->GetMaxTime().days);
 	m_ui->maxTimeHourSpinBox->setValue(colourRule->GetMaxTime().hours);
 	m_ui->maxTimeMinuteSpinBox->setValue(colourRule->GetMaxTime().minutes);
@@ -63,6 +62,18 @@ void SingleColourRuleWidget::SetID(QString newId)
 void SingleColourRuleWidget::SetLabel(QString labelValue)
 {
 	m_ui->idLabel->setText(labelValue);
+}
+
+void SingleColourRuleWidget::SetMaxTime(PeriodData newTime)
+{
+	m_colourRule->SetTime(ColourRule::TimerType::MAX, newTime);
+	SetData(m_colourRule.data());
+}
+
+void SingleColourRuleWidget::SetMinTime(PeriodData newTime)
+{
+	m_colourRule->SetTime(ColourRule::TimerType::MIN, newTime);
+	SetData(m_colourRule.data());
 }
 
 void SingleColourRuleWidget::UpdateStyledUIComponents()
@@ -99,6 +110,23 @@ void SingleColourRuleWidget::SetEnabled(bool isEnabled)
 
 	m_ui->deleteToolButton->setEnabled(isEnabled);
 	m_ui->colourPushButton->setEnabled(isEnabled);
+}
+
+void SingleColourRuleWidget::ValidateColourRuleTimes(ColourRule::TimerType changeType, PeriodData timeToValidate)
+{
+	if (changeType == ColourRule::TimerType::MAX) {
+		auto ruleMinTime = m_colourRule->GetMinTime();
+		if (!IsPeriodDataAfter(timeToValidate, ruleMinTime)) {
+			auto newTime = AddSecondsToTimerDuration(timeToValidate, -1);
+			SetMinTime(newTime);
+		}
+	} else if (changeType == ColourRule::TimerType::MIN) {
+		auto ruleMaxTime = m_colourRule->GetMaxTime();
+		if (!IsPeriodDataBefore(timeToValidate, ruleMaxTime)) {
+			auto newTime = AddSecondsToTimerDuration(timeToValidate, 1);
+			SetMaxTime(newTime);
+		}
+	}
 }
 
 //  ------------------------------------------------- Private Slots --------------------------------------------------
@@ -188,10 +216,13 @@ void SingleColourRuleWidget::SetupWidgetUI()
 	m_ui->maxTimeSecondSpinBox->setToolTip(obs_module_text("SecondsCheckboxLabel"));
 	m_ui->maxTimeSecondSpinBox->setSuffix(obs_module_text("DialogTextColourTimeSecondSuffix"));
 
+	m_ui->minTimeLabel->setText(obs_module_text("DialogTextColourRuleMinLabel"));
+	m_ui->maxTimeLabel->setText(obs_module_text("DialogTextColourRuleMaxLabel"));
+
 	m_ui->colourPushButton->setToolTip(obs_module_text("DialogTextColourColourButtonTip"));
 	m_ui->deleteToolButton->setToolTip(obs_module_text("DialogTextColourRemoveColourButtonTip"));
 
-	m_ui->idLabel->setText(m_colourRule->GetID());
+	// m_ui->idLabel->setText(m_colourRule->GetID());
 
 	UpdateStyledUIComponents();
 }
@@ -215,7 +246,7 @@ void SingleColourRuleWidget::HandleTimerChange(ColourRule::TimerType timerType, 
 		obs_log(LOG_WARNING, "No colour rule detected!");
 		return;
 	}
-	TimerDuration newTime;
+	PeriodData newTime;
 
 	switch (timerType) {
 	case ColourRule::TimerType::MIN:
@@ -243,7 +274,9 @@ void SingleColourRuleWidget::HandleTimerChange(ColourRule::TimerType timerType, 
 
 	m_colourRule->SetTime(timerType, newTime);
 
-	emit ChangeDetected();
+	ValidateColourRuleTimes(timerType, newTime);
+
+	emit ChangeTimeDetected(this, timerType, newTime);
 }
 
 void SingleColourRuleWidget::SetTextColour(QColor colour)

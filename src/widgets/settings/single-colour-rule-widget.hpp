@@ -29,12 +29,16 @@ public:
 	void SetData(ColourRule *colourRule);
 	void SetID(QString newId);
 	void SetLabel(QString labelValue);
+	void SetMaxTime(PeriodData newTime);
+	void SetMinTime(PeriodData newTime);
 	void UpdateStyledUIComponents();
 	void SetEnabled(bool isEnabled);
+	void ValidateColourRuleTimes(ColourRule::TimerType changeType, PeriodData newTime);
 
 signals:
 	void RemoveColoureRule(QString id);
 	void ChangeDetected();
+	void ChangeTimeDetected(SingleColourRuleWidget *rule, ColourRule::TimerType type, PeriodData timeDuration);
 
 private slots:
 	void HandleColourButtonPushed();

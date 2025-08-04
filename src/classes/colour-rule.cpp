@@ -2,7 +2,7 @@
 #include <obs-module.h>
 #include "../utils/obs-utils.hpp"
 
-ColourRule::ColourRule(QString id, TimerDuration minTime, TimerDuration maxTime, QColor colour)
+ColourRule::ColourRule(QString id, PeriodData minTime, PeriodData maxTime, QColor colour)
 	: m_id(id),
 	  m_minTime(minTime),
 	  m_maxTime(maxTime),
@@ -19,12 +19,12 @@ QString ColourRule::GetID() const
 	return m_id;
 }
 
-TimerDuration ColourRule::GetMaxTime() const
+PeriodData ColourRule::GetMaxTime() const
 {
 	return m_maxTime;
 }
 
-TimerDuration ColourRule::GetMinTime() const
+PeriodData ColourRule::GetMinTime() const
 {
 	return m_minTime;
 }
@@ -39,7 +39,7 @@ void ColourRule::SetID(QString new_id)
 	m_id = new_id;
 }
 
-void ColourRule::SetTime(TimerType type, TimerDuration newTime)
+void ColourRule::SetTime(TimerType type, PeriodData newTime)
 {
 	switch (type) {
 	case TimerType::MIN:

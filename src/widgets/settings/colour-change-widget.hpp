@@ -44,6 +44,7 @@ private slots:
 	void HandleAddButtonClicked();
 	void HandleColourRuleDeletion(QString id);
 	void HandleMainColourButtonClick();
+	void HandleRuleChange(SingleColourRuleWidget *ruleWidget, ColourRule::TimerType type, PeriodData timeDuration);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 	void HandleEnableCheckBoxSelected(Qt::CheckState state);
 #else

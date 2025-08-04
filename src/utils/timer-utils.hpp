@@ -31,7 +31,20 @@ enum class WebsocketRequestType {
 	STOP_ALL = 10
 };
 
-struct TimerDuration {
+struct SourceConfig {
+	QString selectedSource;
+	QString selectedScene;
+};
+
+struct HotkeyBindings {
+	int startCountdownHotkeyId = -1;
+	int pauseCountdownHotkeyId = -1;
+	int setCountdownHotkeyId = -1;
+	int startCountdownToTimeHotkeyId = -1;
+	int stopCountdownToTimeHotkeyId = -1;
+};
+
+struct PeriodData {
 	int days = 0;
 	int hours = 0;
 	int minutes = 0;
@@ -39,8 +52,8 @@ struct TimerDuration {
 };
 
 struct ColourRuleData {
-	TimerDuration minTime;
-	TimerDuration maxTime;
+	PeriodData minTime;
+	PeriodData maxTime;
 	QColor colour;
 };
 
@@ -61,19 +74,6 @@ struct DisplayOptions {
 	QList<ColourRuleData> colourRuleList;
 };
 
-struct SourceConfig {
-	QString selectedSource;
-	QString selectedScene;
-};
-
-struct HotkeyBindings {
-	int startCountdownHotkeyId = -1;
-	int pauseCountdownHotkeyId = -1;
-	int setCountdownHotkeyId = -1;
-	int startCountdownToTimeHotkeyId = -1;
-	int stopCountdownToTimeHotkeyId = -1;
-};
-
 struct TimerWidgetStruct {
 	QString timerId;
 	bool isPlaying;
@@ -88,20 +88,13 @@ struct TimerWidgetStruct {
 	long long timeLeftInMillis = 0;
 	bool smoothenPeriodTimer = false;
 
-	TimerDuration periodDuration;
+	PeriodData periodDuration;
 	DisplayOptions display;
 	SourceConfig source;
 	HotkeyBindings hotkeys;
 
 	QWidget *periodVLayout;
 	QWidget *datetimeVLayout;
-};
-
-struct PeriodData {
-	int days;
-	int hours;
-	int minutes;
-	int seconds;
 };
 
 struct Result {
@@ -118,7 +111,10 @@ QString GetFormattedTimerString(bool daysState, bool hoursState, bool minutesSta
 				bool showLeadingZero, long long timeInMillis);
 long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdownPeriod = 1000);
 QColor GetTextColourFromRulesList(QList<ColourRuleData> &colourRuleList, long long compareTimeMilli);
-qint64 ConvertTimerDurationToMilliSeconds(const TimerDuration &timeToConvert);
+qint64 ConvertTimerDurationToMilliSeconds(const PeriodData &timeToConvert);
+bool IsPeriodDataBefore(PeriodData time, PeriodData timeToCompareAgainst);
+bool IsPeriodDataAfter(PeriodData time, PeriodData timeToCompareAgainst);
+PeriodData AddSecondsToTimerDuration(PeriodData time, int noOfSeconds);
 long long ColourToInt(QColor color);
 
 #endif // TIMERUTILS_H

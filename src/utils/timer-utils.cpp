@@ -168,7 +168,7 @@ QColor GetTextColourFromRulesList(QList<ColourRuleData> &colourRuleList, long lo
 	return QColor();
 }
 
-qint64 ConvertTimerDurationToMilliSeconds(const TimerDuration &timeToConvert)
+qint64 ConvertTimerDurationToMilliSeconds(const PeriodData &timeToConvert)
 {
 	const qint64 days = static_cast<qint64>(timeToConvert.days);
 	const qint64 hours = static_cast<qint64>(timeToConvert.hours);
@@ -176,6 +176,29 @@ qint64 ConvertTimerDurationToMilliSeconds(const TimerDuration &timeToConvert)
 	const qint64 seconds = static_cast<qint64>(timeToConvert.seconds);
 
 	return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
+}
+
+bool IsPeriodDataBefore(PeriodData time, PeriodData timeToCompareAgainst)
+{
+	qint64 timeMilli = ConvertTimerDurationToMilliSeconds(time);
+	qint64 timeToCompareAgainstMilli = ConvertTimerDurationToMilliSeconds(timeToCompareAgainst);
+
+	return timeMilli < timeToCompareAgainstMilli;
+}
+
+bool IsPeriodDataAfter(PeriodData time, PeriodData timeToCompareAgainst)
+{
+	qint64 timeMilli = ConvertTimerDurationToMilliSeconds(time);
+	qint64 timeToCompareAgainstMilli = ConvertTimerDurationToMilliSeconds(timeToCompareAgainst);
+
+	return timeMilli > timeToCompareAgainstMilli;
+}
+
+PeriodData AddSecondsToTimerDuration(PeriodData time, int noOfSeconds)
+{
+	auto timeMilli = ConvertTimerDurationToMilliSeconds(time);
+	timeMilli = std::max(timeMilli + (noOfSeconds * 1000), 0LL);
+	return ConvertMillisToPeriodData(timeMilli);
 }
 
 long long ColourToInt(QColor color)

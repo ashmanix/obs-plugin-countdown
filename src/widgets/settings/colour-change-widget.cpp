@@ -151,6 +151,64 @@ void ColourChangeWidget::HandleMainColourButtonClick()
 	}
 }
 
+void ColourChangeWidget::HandleRuleChange(SingleColourRuleWidget *ruleWidget, ColourRule::TimerType type,
+					  PeriodData timeDuration)
+{
+	UNUSED_PARAMETER(ruleWidget);
+	UNUSED_PARAMETER(type);
+	UNUSED_PARAMETER(timeDuration);
+
+	int ruleListSize = m_colourRules.size();
+	if (ruleListSize < 2) // Only loop when list is has more than 1 item in it
+		return;
+
+	int ruleIndex = m_colourRules.indexOf(ruleWidget->GetColourRule());
+	if (ruleIndex == -1)
+		return;
+
+	// Update all widget times before this one
+	for (auto i = ruleIndex - 1; i >= 0; --i) {
+		auto cRule = m_colourRules.at(i);
+		auto cRuleAfter = m_colourRules.at(i + 1);
+		if (!cRule || !cRuleAfter)
+			continue;
+
+		auto maxAtIndex = cRule->GetMaxTime();
+		auto minTimeAtIndexAfter = cRuleAfter->GetMinTime();
+
+		if (!IsPeriodDataBefore(maxAtIndex, minTimeAtIndexAfter)) {
+			auto ruleWidget = m_colourRuleWidgetIds.value(cRule->GetID());
+			if (ruleWidget) {
+				auto timeOneSecBeforeMax = AddSecondsToTimerDuration(minTimeAtIndexAfter, -1);
+				ruleWidget->SetMaxTime(timeOneSecBeforeMax);
+				ruleWidget->ValidateColourRuleTimes(ColourRule::TimerType::MAX, timeOneSecBeforeMax);
+			}
+		}
+	}
+
+	// Update all widget times after this one
+	for (auto i = ruleIndex + 1; i < ruleListSize; ++i) {
+		auto cRule = m_colourRules.at(i);
+		auto cRuleBefore = m_colourRules.at(i - 1);
+		if (!cRule || !cRuleBefore)
+			continue;
+
+		auto minAtIndex = cRule->GetMinTime();
+		auto maxTimeAtIndexBefore = cRuleBefore->GetMaxTime();
+
+		if (!IsPeriodDataAfter(minAtIndex, maxTimeAtIndexBefore)) {
+			auto ruleWidget = m_colourRuleWidgetIds.value(cRule->GetID());
+			if (ruleWidget) {
+				auto timeOneSecAfterMin = AddSecondsToTimerDuration(maxTimeAtIndexBefore, +1);
+				ruleWidget->SetMinTime(timeOneSecAfterMin);
+				ruleWidget->ValidateColourRuleTimes(ColourRule::TimerType::MIN, timeOneSecAfterMin);
+			}
+		}
+	}
+
+	emit ColourRuleChanged();
+}
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 void ColourChangeWidget::HandleEnableCheckBoxSelected(Qt::CheckState state)
 {
@@ -199,16 +257,22 @@ void ColourChangeWidget::ConnectColourRuleSignalHandlers(SingleColourRuleWidget 
 {
 	QObject::connect(colourRuleWidget, &SingleColourRuleWidget::ChangeDetected, this,
 			 [this]() { emit ColourRuleChanged(); });
+	QObject::connect(colourRuleWidget, &SingleColourRuleWidget::ChangeTimeDetected, this,
+			 &ColourChangeWidget::HandleRuleChange);
 	QObject::connect(colourRuleWidget, &SingleColourRuleWidget::RemoveColoureRule, this,
 			 &ColourChangeWidget::HandleColourRuleDeletion);
 }
 
 void ColourChangeWidget::AddColourRule(QSharedPointer<ColourRule> in_colourRule)
 {
-	if (!in_colourRule)
-		in_colourRule = QSharedPointer<ColourRule>::create();
+	bool isNew = false;
 
-	obs_log(LOG_INFO, "Adding colour rule to layout");
+	if (!in_colourRule) {
+		isNew = true;
+		in_colourRule = QSharedPointer<ColourRule>::create();
+		in_colourRule->SetTime(ColourRule::TimerType::MAX, {0, 0, 0, 1});
+	}
+
 	m_colourRules.push_back(in_colourRule);
 	auto newColourRuleWidget = new SingleColourRuleWidget(this, in_colourRule);
 	m_colourRuleWidgetIds.insert(newColourRuleWidget->GetID(), newColourRuleWidget);
@@ -216,6 +280,19 @@ void ColourChangeWidget::AddColourRule(QSharedPointer<ColourRule> in_colourRule)
 	// Set the widget label to index number
 	int index = m_colourRules.indexOf(in_colourRule);
 	newColourRuleWidget->SetLabel(QString::number(index + 1));
+
+	// Do this before connecting signal handlers
+	// Set min and max times based on previous rule if there is one
+	if (isNew && index != 0) {
+		auto prevRule = m_colourRules.at(index - 1);
+		if (prevRule) {
+			auto maxTimeFromPrevRule = prevRule->GetMaxTime();
+			auto newMinTime = AddSecondsToTimerDuration(maxTimeFromPrevRule, 1);
+			newColourRuleWidget->SetMinTime(newMinTime);
+			auto newMaxTime = AddSecondsToTimerDuration(newMinTime, 1);
+			newColourRuleWidget->SetMaxTime(newMaxTime);
+		}
+	}
 
 	ConnectColourRuleSignalHandlers(newColourRuleWidget);
 
@@ -236,6 +313,7 @@ void ColourChangeWidget::SetEnabled(bool isEnabled)
 		widget->SetEnabled(isEnabled);
 	}
 }
+
 void ColourChangeWidget::UpdateAllRuleLabels()
 {
 	for (auto i = m_colourRuleWidgetIds.begin(), end = m_colourRuleWidgetIds.end(); i != end; ++i) {

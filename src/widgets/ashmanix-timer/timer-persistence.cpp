@@ -122,9 +122,9 @@ void TimerPersistence::LoadTimerWidgetDataFromOBSSaveData(TimerWidgetStruct *tim
 	timerData->display.colourRuleList = LoadColourRules(dataObject);
 }
 
-TimerDuration TimerPersistence::GetDurationObject(obs_data_t *object, const char *key)
+PeriodData TimerPersistence::GetDurationObject(obs_data_t *object, const char *key)
 {
-	TimerDuration timeDuration;
+	PeriodData timeDuration;
 	obs_data_t *dur = obs_data_get_obj(object, key); // returns a ref you must release (if non-null)
 	if (dur) {
 		timeDuration.days = (int)obs_data_get_int(dur, "days");
@@ -136,7 +136,7 @@ TimerDuration TimerPersistence::GetDurationObject(obs_data_t *object, const char
 	return timeDuration;
 }
 
-void TimerPersistence::SetDurationObject(obs_data_t *object, const char *key, const TimerDuration &d)
+void TimerPersistence::SetDurationObject(obs_data_t *object, const char *key, const PeriodData &d)
 {
 	obs_data_t *durationObject = obs_data_create();
 	obs_data_set_int(durationObject, "days", d.days);

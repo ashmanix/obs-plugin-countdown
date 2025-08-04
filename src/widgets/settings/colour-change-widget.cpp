@@ -119,7 +119,6 @@ void ColourChangeWidget::HandleAddButtonClicked()
 
 void ColourChangeWidget::HandleColourRuleDeletion(QString id)
 {
-	obs_log(LOG_INFO, "Trying to delete colour rule: %s", id.toStdString().c_str());
 	if (auto *widgetToRemove = m_colourRuleWidgetIds.value(id, nullptr)) {
 		auto it = std::find_if(m_colourRules.begin(), m_colourRules.end(),
 				       [&](const QSharedPointer<ColourRule> &rule) { return rule->GetID() == id; });

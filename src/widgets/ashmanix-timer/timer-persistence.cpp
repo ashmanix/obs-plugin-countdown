@@ -204,10 +204,10 @@ QList<ColourRuleData> TimerPersistence::LoadColourRules(obs_data_t *settings)
 
 QColor TimerPersistence::LoadColour(obs_data_t *object)
 {
-	const int rr = (int)obs_data_get_int(object, "r");
-	const int gg = (int)obs_data_get_int(object, "g");
-	const int bb = (int)obs_data_get_int(object, "b");
-	const int aa = (int)obs_data_get_int(object, "a");
+	const auto rr = (int)obs_data_get_int(object, "r");
+	const auto gg = (int)obs_data_get_int(object, "g");
+	const auto bb = (int)obs_data_get_int(object, "b");
+	const auto aa = (int)obs_data_get_int(object, "a");
 
 	return QColor(rr, gg, bb, aa);
 }

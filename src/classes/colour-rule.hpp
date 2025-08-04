@@ -9,8 +9,8 @@
 class ColourRule {
 
 public:
-	enum TimerType { MIN = 1, MAX = 2 };
-	enum DurationType { DAYS = 0, HOURS = 1, MINUTES = 2, SECONDS = 3 };
+	enum class TimerType { MIN = 1, MAX = 2 };
+	enum class DurationType { DAYS = 0, HOURS = 1, MINUTES = 2, SECONDS = 3 };
 
 	explicit ColourRule(QString id = {}, PeriodData minTime = {0, 0, 0, 0}, PeriodData maxTime = {0, 0, 0, 0},
 			    QColor colour = QColor("white"));

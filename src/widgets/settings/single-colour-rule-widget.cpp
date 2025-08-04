@@ -222,8 +222,6 @@ void SingleColourRuleWidget::SetupWidgetUI()
 	m_ui->colourPushButton->setToolTip(obs_module_text("DialogTextColourColourButtonTip"));
 	m_ui->deleteToolButton->setToolTip(obs_module_text("DialogTextColourRemoveColourButtonTip"));
 
-	// m_ui->idLabel->setText(m_colourRule->GetID());
-
 	UpdateStyledUIComponents();
 }
 

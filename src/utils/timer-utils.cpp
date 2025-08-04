@@ -144,7 +144,7 @@ long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdo
 	return millisResult;
 }
 
-QColor GetTextColourFromRulesList(QList<ColourRuleData> &colourRuleList, long long compareMillis)
+QColor GetTextColourFromRulesList(const QList<ColourRuleData> &colourRuleList, long long compareMillis)
 {
 	qint64 compareTimeMilli;
 
@@ -155,8 +155,8 @@ QColor GetTextColourFromRulesList(QList<ColourRuleData> &colourRuleList, long lo
 	}
 
 	for (const ColourRuleData &rule : colourRuleList) {
-		qint64 minTimeMilli = ConvertTimerDurationToMilliSeconds(rule.minTime);
-		qint64 maxTimeMilli = ConvertTimerDurationToMilliSeconds(rule.maxTime);
+		auto minTimeMilli = ConvertTimerDurationToMilliSeconds(rule.minTime);
+		auto maxTimeMilli = ConvertTimerDurationToMilliSeconds(rule.maxTime);
 
 		if (maxTimeMilli < minTimeMilli)
 			continue;
@@ -170,10 +170,10 @@ QColor GetTextColourFromRulesList(QList<ColourRuleData> &colourRuleList, long lo
 
 qint64 ConvertTimerDurationToMilliSeconds(const PeriodData &timeToConvert)
 {
-	const qint64 days = static_cast<qint64>(timeToConvert.days);
-	const qint64 hours = static_cast<qint64>(timeToConvert.hours);
-	const qint64 minutes = static_cast<qint64>(timeToConvert.minutes);
-	const qint64 seconds = static_cast<qint64>(timeToConvert.seconds);
+	const auto days = static_cast<qint64>(timeToConvert.days);
+	const auto hours = static_cast<qint64>(timeToConvert.hours);
+	const auto minutes = static_cast<qint64>(timeToConvert.minutes);
+	const auto seconds = static_cast<qint64>(timeToConvert.seconds);
 
 	return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
 }
@@ -203,8 +203,8 @@ PeriodData AddSecondsToTimerDuration(PeriodData time, int noOfSeconds)
 
 long long ColourToInt(QColor color)
 {
-	auto shift = [&](unsigned val, int shift) {
-		return ((val & 0xff) << shift);
+	auto shift = [&](unsigned val, int shift2) {
+		return ((val & 0xff) << shift2);
 	};
 
 	return shift(color.red(), 0) | shift(color.green(), 8) | shift(color.blue(), 16) | shift(color.alpha(), 24);

@@ -4,8 +4,8 @@
 
 ColourRule::ColourRule(QString id, PeriodData minTime, PeriodData maxTime, QColor colour)
 	: m_id(id),
-	  m_minTime(minTime),
 	  m_maxTime(maxTime),
+	  m_minTime(minTime),
 	  m_colour(colour)
 {
 	if (m_id.isEmpty()) {

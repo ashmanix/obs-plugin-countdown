@@ -110,7 +110,7 @@ QString ConvertMillisToDateTimeString(long long timeInMillis);
 QString GetFormattedTimerString(bool daysState, bool hoursState, bool minutesState, bool secondsState,
 				bool showLeadingZero, long long timeInMillis);
 long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdownPeriod = 1000);
-QColor GetTextColourFromRulesList(QList<ColourRuleData> &colourRuleList, long long compareTimeMilli);
+QColor GetTextColourFromRulesList(const QList<ColourRuleData> &colourRuleList, long long compareTimeMilli);
 qint64 ConvertTimerDurationToMilliSeconds(const PeriodData &timeToConvert);
 bool IsPeriodDataBefore(PeriodData time, PeriodData timeToCompareAgainst);
 bool IsPeriodDataAfter(PeriodData time, PeriodData timeToCompareAgainst);

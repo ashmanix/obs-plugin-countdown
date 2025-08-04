@@ -11,7 +11,6 @@
 #include <QColorDialog>
 #include <QList>
 
-#include "../../plugin-support.h"
 #include "../../ui/ui_TextColourSettings.h"
 #include "../../utils/timer-utils.hpp"
 

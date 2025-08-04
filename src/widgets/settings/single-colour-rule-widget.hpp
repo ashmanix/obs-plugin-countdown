@@ -13,7 +13,6 @@
 
 #include <obs-frontend-api.h>
 
-#include "plugin-support.h"
 #include "../../classes/colour-rule.hpp"
 #include "../../ui/ui_SingleColourRule.h"
 

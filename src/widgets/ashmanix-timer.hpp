@@ -25,21 +25,22 @@
 #include "../ui/ui_AshmanixTimer.h"
 #include "../utils/timer-utils.hpp"
 #include "../utils/obs-utils.hpp"
+#include "./ashmanix-timer/timer-ui-manager.hpp"
+#include "./ashmanix-timer/timer-persistence.hpp"
+#include "./ashmanix-timer/hotkey-manager.hpp"
 
 // Forward declarations
 class SettingsDialog;
 class CountdownDockWidget;
+class WebsocketNotifier;
 
 class AshmanixTimer : public QWidget {
 	Q_OBJECT
 
 public:
-	explicit AshmanixTimer(QWidget *parent = nullptr, obs_websocket_vendor vendor = nullptr,
+	explicit AshmanixTimer(QWidget *parent = nullptr, WebsocketNotifier *websocketNotifier = nullptr,
 			       obs_data_t *savedData = nullptr, CountdownDockWidget *mDockWidget = nullptr);
-	~AshmanixTimer();
-
-	void SaveTimerWidgetDataToOBSSaveData(obs_data_t *dataObject);
-	void LoadTimerWidgetDataFromOBSSaveData(obs_data_t *dataObject);
+	~AshmanixTimer() override;
 
 	QString GetTimerID();
 	void SetTimerID(QString newId);
@@ -47,17 +48,12 @@ public:
 	void SetHideMultiTimerUIButtons(bool shouldHide);
 	void SetIsUpButtonDisabled(bool isDisabled);
 	void SetIsDownButtonDisabled(bool isDisabled);
-	void SetTimerData();
 	bool AlterTime(WebsocketRequestType requestType, const char *stringTime);
-
-	void PressPlayButton();
-	void PressResetButton();
-	void PressStopButton();
-	void PressToTimePlayButton();
-	void PressToTimeStopButton();
 	void UpdateStyles();
 	void StartTimer(bool shouldReset = false);
 	void StopTimer();
+	void ActivateTimerAction(TimerAction action);
+	void SaveData(obs_data_t *dataObject);
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
@@ -69,72 +65,40 @@ private:
 	QSpacerItem *deleteButtonSpacer;
 	CountdownDockWidget *mainDockWidget;
 
-	static inline const char *TIMERSTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_Start";
-	static inline const char *TIMERPAUSEHOTKEYNAME = "Ashmanix_Countdown_Timer_Pause";
-	static inline const char *TIMERSETHOTKEYNAME = "Ashmanix_Countdown_Timer_Set";
-	static inline const char *TIMERTOTIMESTARTHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Start";
-	static inline const char *TIMERTOTIMESTOPHOTKEYNAME = "Ashmanix_Countdown_Timer_To_Time_Stop";
-
 	TimerWidgetStruct countdownTimerData;
 	Ui::AshmanixTimer *ui;
-	SettingsDialog *settingsDialogUi = nullptr;
 
-	void SetupTimerWidgetUI();
-	void ConnectUISignalHandlers();
+	TimerUIManager *uiManager = nullptr;
+	TimerPersistence *timerPersistence = nullptr;
+	HotkeyManager *hotkeyManager = nullptr;
+	WebsocketNotifier *websocketNotifier = nullptr;
 
-	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
+	void ConnectSignalHandlers();
+
 	void StartTimerCounting();
 	void StopTimerCounting();
 	void InitialiseTimerTime(bool setTimeLeftToUI = true);
-	bool IsSetTimeZero();
 
-	void UpdateDateTimeDisplay(long long timeInMillis);
-	void SetSourceText(QString newText);
+	void UpdateDateTimeDisplay(long long millis);
+	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
+	void SetSourceText(QString newText, QColor textColour = QColor());
 	void SetCurrentScene();
-	long long GetMillisFromPeriodUI();
-
-	void SendTimerTickEvent(QString timerId, long long timeLeftInMillis);
-	void SendTimerStateEvent(QString timerId, const char *state);
-
-	void RegisterAllHotkeys(obs_data_t *saved_data);
-	void UnregisterAllHotkeys();
 
 	std::string GetFullHotkeyName(std::string nameString, const char *joinText = "_");
 
-	void UpdateTimeDisplayTooltip();
 	bool AddTime(const char *stringTime, bool isCountingUp);
-	bool SetTime(const char *stringTime, bool isCountingUp);
-	void UpdateTimerPeriod(PeriodData periodData);
+	bool SetTime(const char *stringTime);
 
 signals:
 	void RequestTimerReset(bool restartOnly = false);
 	void RequestDelete(QString id);
 	void RequestSendWebsocketEvent(const char *eventName, obs_data_t *eventData);
-	void MoveTimer(QString direction, QString timerId);
-
-public slots:
-	void PlayButtonClicked();
-	void PauseButtonClicked();
-	void ResetButtonClicked();
-
-	void ToTimePlayButtonClicked();
-	void ToTimeStopButtonClicked();
+	void MoveTimer(Direction direction, QString timerId);
 
 private slots:
-	void SettingsButtonClicked();
-	void DeleteButtonClicked();
 
 	void TimerAdjust();
 	void HandleTimerReset(bool restartOnly = false);
-
-	void DaysChanged(int newValue);
-	void HoursChanged(int newValue);
-	void MinutesChanged(int newValue);
-	void SecondsChanged(int newValue);
-	void DateTimeChanged(QDateTime newDateTime);
-	void EmitMoveTimerDownSignal();
-	void EmitMoveTimerUpSignal();
-	void ToggleTimeType(CountdownType type);
 };
 
 #endif // ASHMANIXTIMER_H

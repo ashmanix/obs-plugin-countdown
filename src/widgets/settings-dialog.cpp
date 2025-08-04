@@ -5,12 +5,12 @@ SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData, Countd
 	  ui(new Ui::SettingsDialog)
 {
 	ui->setupUi(this);
-	timerData = tData;
-	mainWidget = mWidget;
-	QString dialogTitle = QString("Timer %1").arg(timerData->timerId);
+	m_timerData = tData;
+	m_mainWidget = mWidget;
+	QString dialogTitle = QString("Timer %1").arg(m_timerData->timerId);
 	this->setWindowTitle(dialogTitle);
 
-	SetupDialogUI(timerData);
+	SetupDialogUI(m_timerData);
 
 	ConnectUISignalHandlers();
 
@@ -20,9 +20,9 @@ SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData, Countd
 SettingsDialog::~SettingsDialog()
 {
 	// Disconnect OBS signals before the dialog is destroyed
-	signal_handler_disconnect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui);
-	signal_handler_disconnect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui);
-	signal_handler_disconnect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui);
+	signal_handler_disconnect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui.data());
+	signal_handler_disconnect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui.data());
+	signal_handler_disconnect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui.data());
 
 	this->deleteLater();
 }
@@ -98,6 +98,10 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 	ui->dialogButtonBox->button(QDialogButtonBox::Ok)->setText(obs_module_text("DialogButtonOkLabel"));
 	ui->dialogButtonBox->button(QDialogButtonBox::Cancel)->setText(obs_module_text("DialogButtonCancelLabel"));
 
+	// Add Colour Groupbox to Settings Dialog
+	m_colourChangeWidget = new ColourChangeWidget(this, settingsDialogData);
+	ui->extraWidgetContents->layout()->addWidget(m_colourChangeWidget);
+
 	ui->byLabel->setText(obs_module_text("DialogInfoByLabel"));
 	ui->contributorsLabel->setText(obs_module_text("DialogInfoConstributorsLabel"));
 	ui->versionLabel->setText(obs_module_text("DialogInfoVersionLabel"));
@@ -131,16 +135,14 @@ void SettingsDialog::GetOBSSourceList()
 void SettingsDialog::ConnectUISignalHandlers()
 {
 	QObject::connect(ui->timerIdLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
-
 	QObject::connect(ui->textSourceDropdownList, &QComboBox::currentTextChanged, this,
 			 &SettingsDialog::FormChangeDetected);
-
 	QObject::connect(ui->sceneSourceDropdownList, &QComboBox::currentTextChanged, this,
 			 &SettingsDialog::FormChangeDetected);
-
 	QObject::connect(ui->formatOutputLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
-
 	QObject::connect(ui->endMessageLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
+	QObject::connect(m_colourChangeWidget, &ColourChangeWidget::ColourRuleChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 	QObject::connect(ui->startOnStreamStartCheckBox, &QCheckBox::checkStateChanged, this,
@@ -225,21 +227,21 @@ bool SettingsDialog::GetTextSources(void *list_property, obs_source_t *source)
 void SettingsDialog::ConnectObsSignalHandlers()
 {
 	// Source Signals
-	signal_handler_connect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui);
+	signal_handler_connect(obs_get_signal_handler(), "source_create", OBSSourceCreated, ui.data());
 
-	signal_handler_connect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui);
+	signal_handler_connect(obs_get_signal_handler(), "source_destroy", OBSSourceDeleted, ui.data());
 
-	signal_handler_connect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui);
+	signal_handler_connect(obs_get_signal_handler(), "source_rename", OBSSourceRenamed, ui.data());
 }
 
 void SettingsDialog::ApplyFormChanges()
 {
 	isError = false;
-	if (timerData != nullptr) {
+	if (m_timerData != nullptr) {
 		QLineEdit *idLineEdit = ui->timerIdLineEdit;
 		QString setTImerId = idLineEdit->text();
-		if ((setTImerId != timerData->timerId && mainWidget)) {
-			Result updateIdResult = mainWidget->UpdateTimerList(timerData->timerId, setTImerId);
+		if ((setTImerId != m_timerData->timerId && m_mainWidget)) {
+			Result updateIdResult = m_mainWidget->UpdateTimerList(m_timerData->timerId, setTImerId);
 			if (updateIdResult.success == true) {
 				idLineEdit->setStyleSheet("");
 				QString dialogTitle = QString("Timer %1").arg(setTImerId);
@@ -253,28 +255,32 @@ void SettingsDialog::ApplyFormChanges()
 				return;
 			}
 		}
-		timerData->selectedSource = ui->textSourceDropdownList->currentText();
+		m_timerData->source.selectedSource = ui->textSourceDropdownList->currentText();
 
-		timerData->startOnStreamStart = ui->startOnStreamStartCheckBox->isChecked();
-		timerData->resetTimerOnStreamStart = ui->resetTimerOnStreamStartCheckBox->isChecked();
+		m_timerData->startOnStreamStart = ui->startOnStreamStartCheckBox->isChecked();
+		m_timerData->resetTimerOnStreamStart = ui->resetTimerOnStreamStartCheckBox->isChecked();
 
-		timerData->showEndMessage = ui->endMessageCheckBox->isChecked();
-		timerData->endMessage = ui->endMessageLineEdit->text();
-		timerData->showEndScene = ui->switchSceneCheckBox->isChecked();
-		timerData->selectedScene = ui->sceneSourceDropdownList->currentText();
+		m_timerData->display.showEndMessage = ui->endMessageCheckBox->isChecked();
+		m_timerData->display.endMessage = ui->endMessageLineEdit->text();
+		m_timerData->display.showEndScene = ui->switchSceneCheckBox->isChecked();
+		m_timerData->source.selectedScene = ui->sceneSourceDropdownList->currentText();
 
-		timerData->showDays = ui->daysCheckBox->isChecked();
-		timerData->showHours = ui->hoursCheckBox->isChecked();
-		timerData->showMinutes = ui->minutesCheckBox->isChecked();
-		timerData->showSeconds = ui->secondsCheckBox->isChecked();
-		timerData->showLeadingZero = ui->leadZeroCheckBox->isChecked();
+		m_timerData->display.showDays = ui->daysCheckBox->isChecked();
+		m_timerData->display.showHours = ui->hoursCheckBox->isChecked();
+		m_timerData->display.showMinutes = ui->minutesCheckBox->isChecked();
+		m_timerData->display.showSeconds = ui->secondsCheckBox->isChecked();
+		m_timerData->display.showLeadingZero = ui->leadZeroCheckBox->isChecked();
 
-		timerData->useFormattedOutput = ui->formatOutputCheckBox->isChecked();
-		timerData->outputStringFormat = ui->formatOutputLineEdit->text();
+		m_timerData->display.useFormattedOutput = ui->formatOutputCheckBox->isChecked();
+		m_timerData->display.outputStringFormat = ui->formatOutputLineEdit->text();
 
-		timerData->smoothenPeriodTimer = ui->smoothPeriodTimerCheckBox->isChecked();
+		m_timerData->smoothenPeriodTimer = ui->smoothPeriodTimerCheckBox->isChecked();
 
-		timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
+		m_timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
+
+		m_timerData->display.useTextColour = m_colourChangeWidget->GetShouldUseColourChange();
+		m_timerData->display.mainTextColour = m_colourChangeWidget->GetMainTextColour();
+		m_timerData->display.colourRuleList = m_colourChangeWidget->GetColourRuleList();
 
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
 		emit SettingsUpdated();
@@ -288,7 +294,7 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 	if (settingsDialogData != nullptr) {
 		ui->timerIdLineEdit->setText(settingsDialogData->timerId);
 
-		int textSelectIndex = ui->textSourceDropdownList->findText(settingsDialogData->selectedSource);
+		int textSelectIndex = ui->textSourceDropdownList->findText(settingsDialogData->source.selectedSource);
 		if (textSelectIndex != -1)
 			ui->textSourceDropdownList->setCurrentIndex(textSelectIndex);
 
@@ -297,35 +303,39 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 
 		ui->resetTimerOnStreamStartCheckBox->setEnabled(settingsDialogData->startOnStreamStart);
 
-		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(settingsDialogData->selectedScene);
+		int sceneSelectIndex = ui->sceneSourceDropdownList->findText(settingsDialogData->source.selectedScene);
 		if (sceneSelectIndex != -1)
 			ui->sceneSourceDropdownList->setCurrentIndex(sceneSelectIndex);
 
-		ui->daysCheckBox->setChecked(settingsDialogData->showDays);
-		ui->hoursCheckBox->setChecked(settingsDialogData->showHours);
-		ui->minutesCheckBox->setChecked(settingsDialogData->showMinutes);
-		ui->secondsCheckBox->setChecked(settingsDialogData->showSeconds);
-		ui->leadZeroCheckBox->setChecked(settingsDialogData->showLeadingZero);
+		ui->daysCheckBox->setChecked(settingsDialogData->display.showDays);
+		ui->hoursCheckBox->setChecked(settingsDialogData->display.showHours);
+		ui->minutesCheckBox->setChecked(settingsDialogData->display.showMinutes);
+		ui->secondsCheckBox->setChecked(settingsDialogData->display.showSeconds);
+		ui->leadZeroCheckBox->setChecked(settingsDialogData->display.showLeadingZero);
 
 		ui->countUpCheckBox->setChecked(settingsDialogData->shouldCountUp);
 		if (settingsDialogData->isPlaying)
 			ui->countUpCheckBox->setEnabled(false);
 
-		ui->endMessageCheckBox->setChecked(settingsDialogData->showEndMessage);
-		ui->endMessageLineEdit->setEnabled(settingsDialogData->showEndMessage);
-		ui->endMessageLineEdit->setText(settingsDialogData->endMessage);
+		ui->endMessageCheckBox->setChecked(settingsDialogData->display.showEndMessage);
+		ui->endMessageLineEdit->setEnabled(settingsDialogData->display.showEndMessage);
+		ui->endMessageLineEdit->setText(settingsDialogData->display.endMessage);
 
-		ui->formatOutputCheckBox->setChecked(settingsDialogData->useFormattedOutput);
-		ui->formatOutputLineEdit->setText(settingsDialogData->outputStringFormat);
-		if (!settingsDialogData->useFormattedOutput)
+		ui->formatOutputCheckBox->setChecked(settingsDialogData->display.useFormattedOutput);
+		ui->formatOutputLineEdit->setText(settingsDialogData->display.outputStringFormat);
+		if (!settingsDialogData->display.useFormattedOutput)
 			ui->formatOutputLineEdit->setEnabled(false);
 
 		ui->smoothPeriodTimerCheckBox->setChecked(settingsDialogData->smoothenPeriodTimer);
 
-		ui->switchSceneCheckBox->setChecked(settingsDialogData->showEndScene);
-		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->showEndScene);
+		ui->switchSceneCheckBox->setChecked(settingsDialogData->display.showEndScene);
+		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->display.showEndScene);
 
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+
+		if (m_colourChangeWidget) {
+			m_colourChangeWidget->SetData(settingsDialogData);
+		}
 	} else {
 		obs_log(LOG_WARNING, "No timer data found!");
 	}
@@ -527,7 +537,7 @@ void SettingsDialog::ApplyButtonClicked()
 
 void SettingsDialog::CancelButtonClicked()
 {
-	SetFormDetails(timerData);
+	SetFormDetails(m_timerData);
 	this->reject();
 }
 

@@ -5,6 +5,7 @@
 #include <QDialog>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QScopedPointer>
 
 #include <obs-frontend-api.h>
 #include <obs-module.h>
@@ -13,6 +14,7 @@
 #include "../utils/timer-utils.hpp"
 #include "../ui/ui_SettingsDialog.h"
 #include "../countdown-widget.hpp"
+#include "./settings/colour-change-widget.hpp"
 
 class SettingsDialog : public QDialog {
 	Q_OBJECT
@@ -20,15 +22,16 @@ class SettingsDialog : public QDialog {
 public:
 	explicit SettingsDialog(QWidget *parent = nullptr, TimerWidgetStruct *tData = nullptr,
 				CountdownDockWidget *mWidget = nullptr);
-	~SettingsDialog();
+	~SettingsDialog() override;
 
 	void ToggleCounterCheckBoxes(bool isEnabled);
 
 private:
 	enum SourceType { TEXT_SOURCE = 1, SCENE_SOURCE = 2 };
-	Ui::SettingsDialog *ui;
-	TimerWidgetStruct *timerData;
-	CountdownDockWidget *mainWidget;
+	QScopedPointer<Ui::SettingsDialog> ui;
+	TimerWidgetStruct *m_timerData;
+	CountdownDockWidget *m_mainWidget;
+	ColourChangeWidget *m_colourChangeWidget = nullptr;
 	bool isError = false;
 
 	void SetupDialogUI(TimerWidgetStruct *settingsDialogData);

@@ -102,8 +102,6 @@ invoke_formatter() {
 
       if (( ! #source_files )) source_files=(CMakeLists.txt (cmake)/**/(CMakeLists.txt|*.cmake)(.N))
 
-      print -P "%F{yellow}gersemi will check:%f ${source_files}"
-
       check_files() {
         local -i num_failures=0
         local -a source_files=($@)

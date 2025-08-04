@@ -5,12 +5,12 @@ SettingsDialog::SettingsDialog(QWidget *parent, TimerWidgetStruct *tData, Countd
 	  ui(new Ui::SettingsDialog)
 {
 	ui->setupUi(this);
-	timerData = tData;
-	mainWidget = mWidget;
-	QString dialogTitle = QString("Timer %1").arg(timerData->timerId);
+	m_timerData = tData;
+	m_mainWidget = mWidget;
+	QString dialogTitle = QString("Timer %1").arg(m_timerData->timerId);
 	this->setWindowTitle(dialogTitle);
 
-	SetupDialogUI(timerData);
+	SetupDialogUI(m_timerData);
 
 	ConnectUISignalHandlers();
 
@@ -98,6 +98,10 @@ void SettingsDialog::SetupDialogUI(TimerWidgetStruct *settingsDialogData)
 	ui->dialogButtonBox->button(QDialogButtonBox::Ok)->setText(obs_module_text("DialogButtonOkLabel"));
 	ui->dialogButtonBox->button(QDialogButtonBox::Cancel)->setText(obs_module_text("DialogButtonCancelLabel"));
 
+	// Add Colour Groupbox to Settings Dialog
+	m_colourChangeWidget = new ColourChangeWidget(this, settingsDialogData);
+	ui->extraWidgetContents->layout()->addWidget(m_colourChangeWidget);
+
 	ui->byLabel->setText(obs_module_text("DialogInfoByLabel"));
 	ui->contributorsLabel->setText(obs_module_text("DialogInfoConstributorsLabel"));
 	ui->versionLabel->setText(obs_module_text("DialogInfoVersionLabel"));
@@ -131,16 +135,14 @@ void SettingsDialog::GetOBSSourceList()
 void SettingsDialog::ConnectUISignalHandlers()
 {
 	QObject::connect(ui->timerIdLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
-
 	QObject::connect(ui->textSourceDropdownList, &QComboBox::currentTextChanged, this,
 			 &SettingsDialog::FormChangeDetected);
-
 	QObject::connect(ui->sceneSourceDropdownList, &QComboBox::currentTextChanged, this,
 			 &SettingsDialog::FormChangeDetected);
-
 	QObject::connect(ui->formatOutputLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
-
 	QObject::connect(ui->endMessageLineEdit, &QLineEdit::textChanged, this, &SettingsDialog::FormChangeDetected);
+	QObject::connect(m_colourChangeWidget, &ColourChangeWidget::ColourRuleChanged, this,
+			 &SettingsDialog::FormChangeDetected);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
 	QObject::connect(ui->startOnStreamStartCheckBox, &QCheckBox::checkStateChanged, this,
@@ -235,11 +237,11 @@ void SettingsDialog::ConnectObsSignalHandlers()
 void SettingsDialog::ApplyFormChanges()
 {
 	isError = false;
-	if (timerData != nullptr) {
+	if (m_timerData != nullptr) {
 		QLineEdit *idLineEdit = ui->timerIdLineEdit;
 		QString setTImerId = idLineEdit->text();
-		if ((setTImerId != timerData->timerId && mainWidget)) {
-			Result updateIdResult = mainWidget->UpdateTimerList(timerData->timerId, setTImerId);
+		if ((setTImerId != m_timerData->timerId && m_mainWidget)) {
+			Result updateIdResult = m_mainWidget->UpdateTimerList(m_timerData->timerId, setTImerId);
 			if (updateIdResult.success == true) {
 				idLineEdit->setStyleSheet("");
 				QString dialogTitle = QString("Timer %1").arg(setTImerId);
@@ -253,28 +255,32 @@ void SettingsDialog::ApplyFormChanges()
 				return;
 			}
 		}
-		timerData->source.selectedSource = ui->textSourceDropdownList->currentText();
+		m_timerData->source.selectedSource = ui->textSourceDropdownList->currentText();
 
-		timerData->startOnStreamStart = ui->startOnStreamStartCheckBox->isChecked();
-		timerData->resetTimerOnStreamStart = ui->resetTimerOnStreamStartCheckBox->isChecked();
+		m_timerData->startOnStreamStart = ui->startOnStreamStartCheckBox->isChecked();
+		m_timerData->resetTimerOnStreamStart = ui->resetTimerOnStreamStartCheckBox->isChecked();
 
-		timerData->display.showEndMessage = ui->endMessageCheckBox->isChecked();
-		timerData->display.endMessage = ui->endMessageLineEdit->text();
-		timerData->display.showEndScene = ui->switchSceneCheckBox->isChecked();
-		timerData->source.selectedScene = ui->sceneSourceDropdownList->currentText();
+		m_timerData->display.showEndMessage = ui->endMessageCheckBox->isChecked();
+		m_timerData->display.endMessage = ui->endMessageLineEdit->text();
+		m_timerData->display.showEndScene = ui->switchSceneCheckBox->isChecked();
+		m_timerData->source.selectedScene = ui->sceneSourceDropdownList->currentText();
 
-		timerData->display.showDays = ui->daysCheckBox->isChecked();
-		timerData->display.showHours = ui->hoursCheckBox->isChecked();
-		timerData->display.showMinutes = ui->minutesCheckBox->isChecked();
-		timerData->display.showSeconds = ui->secondsCheckBox->isChecked();
-		timerData->display.showLeadingZero = ui->leadZeroCheckBox->isChecked();
+		m_timerData->display.showDays = ui->daysCheckBox->isChecked();
+		m_timerData->display.showHours = ui->hoursCheckBox->isChecked();
+		m_timerData->display.showMinutes = ui->minutesCheckBox->isChecked();
+		m_timerData->display.showSeconds = ui->secondsCheckBox->isChecked();
+		m_timerData->display.showLeadingZero = ui->leadZeroCheckBox->isChecked();
 
-		timerData->display.useFormattedOutput = ui->formatOutputCheckBox->isChecked();
-		timerData->display.outputStringFormat = ui->formatOutputLineEdit->text();
+		m_timerData->display.useFormattedOutput = ui->formatOutputCheckBox->isChecked();
+		m_timerData->display.outputStringFormat = ui->formatOutputLineEdit->text();
 
-		timerData->smoothenPeriodTimer = ui->smoothPeriodTimerCheckBox->isChecked();
+		m_timerData->smoothenPeriodTimer = ui->smoothPeriodTimerCheckBox->isChecked();
 
-		timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
+		m_timerData->shouldCountUp = ui->countUpCheckBox->isChecked();
+
+		m_timerData->display.useTextColour = m_colourChangeWidget->GetShouldUseColourChange();
+		m_timerData->display.mainTextColour = m_colourChangeWidget->GetMainTextColour();
+		m_timerData->display.colourRuleList = m_colourChangeWidget->GetColourRuleList();
 
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
 		emit SettingsUpdated();
@@ -326,6 +332,10 @@ void SettingsDialog::SetFormDetails(TimerWidgetStruct *settingsDialogData)
 		ui->sceneSourceDropdownList->setEnabled(settingsDialogData->display.showEndScene);
 
 		ui->dialogButtonBox->button(QDialogButtonBox::Apply)->setEnabled(false);
+
+		if (m_colourChangeWidget) {
+			m_colourChangeWidget->SetData(settingsDialogData);
+		}
 	} else {
 		obs_log(LOG_WARNING, "No timer data found!");
 	}
@@ -527,7 +537,7 @@ void SettingsDialog::ApplyButtonClicked()
 
 void SettingsDialog::CancelButtonClicked()
 {
-	SetFormDetails(timerData);
+	SetFormDetails(m_timerData);
 	this->reject();
 }
 

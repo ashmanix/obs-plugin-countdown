@@ -55,6 +55,12 @@ target_sources(
     src/utils/websocket-notifier.hpp
     src/widgets/ashmanix-timer/timer-persistence.cpp
     src/widgets/ashmanix-timer/timer-persistence.hpp
+    src/widgets/settings/colour-change-widget.cpp
+    src/widgets/settings/colour-change-widget.hpp
+    src/widgets/settings/single-colour-rule-widget.cpp
+    src/widgets/settings/single-colour-rule-widget.hpp
+    src/classes/colour-rule.cpp
+    src/classes/colour-rule.hpp
     src/utils/timer-utils.cpp
     src/utils/timer-utils.hpp
     src/utils/obs-utils.cpp

@@ -212,7 +212,16 @@ void AshmanixTimer::UpdateDateTimeDisplay(long long timeInMillis)
 		outputString.replace(TIMETEMPLATECODE, formattedDisplayTime);
 	}
 
-	SetSourceText(outputString);
+	if (countdownTimerData.display.useTextColour) {
+		QColor textColour =
+			GetTextColourFromRulesList(countdownTimerData.display.colourRuleList, timeToUpdateInMillis);
+
+		if (!textColour.isValid())
+			textColour = countdownTimerData.display.mainTextColour;
+		SetSourceText(outputString, textColour);
+	} else {
+		SetSourceText(outputString);
+	}
 }
 
 QString AshmanixTimer::ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero)
@@ -225,14 +234,26 @@ QString AshmanixTimer::ConvertDateTimeToFormattedDisplayString(long long timeInM
 	return (formattedDateTimeString == "") ? "Nothing selected!" : formattedDateTimeString;
 }
 
-void AshmanixTimer::SetSourceText(QString newText)
+void AshmanixTimer::SetSourceText(QString newText, QColor textColour)
 {
 	obs_source_t *selectedSource =
 		obs_get_source_by_name(countdownTimerData.source.selectedSource.toStdString().c_str());
 
 	if (selectedSource != NULL) {
 		obs_data_t *sourceSettings = obs_source_get_settings(selectedSource);
+
 		obs_data_set_string(sourceSettings, "text", newText.toStdString().c_str());
+
+		if (textColour.isValid()) {
+			bool freetype = strncmp(obs_source_get_id(selectedSource), "text_ft2_source", 15) == 0;
+			if (freetype) {
+				obs_data_set_int(sourceSettings, "color1", ColourToInt(textColour));
+				obs_data_set_int(sourceSettings, "color2", ColourToInt(textColour));
+			} else {
+				obs_data_set_int(sourceSettings, "color", ColourToInt(textColour));
+			}
+		}
+
 		obs_source_update(selectedSource, sourceSettings);
 		obs_data_release(sourceSettings);
 		obs_source_release(selectedSource);

@@ -582,7 +582,7 @@ void TimerUIManager::HandleTimerValueChange(const QString &type, int value)
 	} else if (type == "seconds") {
 		data->periodDuration.seconds = value;
 	} else {
-		obs_log(LOG_WARNING, "Unknown time type: %s", type.toStdString().c_str());
+		obs_log(LOG_WARNING, QString("Unknown time type: %1").arg(type).toStdString().c_str());
 		return;
 	}
 }

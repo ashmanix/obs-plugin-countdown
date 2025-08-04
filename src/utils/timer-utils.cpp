@@ -143,3 +143,69 @@ long long CalcToCurrentDateTimeInMillis(QDateTime timeToCountdownTo, int countdo
 
 	return millisResult;
 }
+
+QColor GetTextColourFromRulesList(const QList<ColourRuleData> &colourRuleList, long long compareMillis)
+{
+	qint64 compareTimeMilli;
+
+	if (compareMillis >= 0)
+		compareTimeMilli = (compareMillis / 1000) * 1000;
+	else {
+		compareTimeMilli = -(((-compareMillis + 999) / 1000) * 1000);
+	}
+
+	for (const ColourRuleData &rule : colourRuleList) {
+		auto minTimeMilli = ConvertTimerDurationToMilliSeconds(rule.minTime);
+		auto maxTimeMilli = ConvertTimerDurationToMilliSeconds(rule.maxTime);
+
+		if (maxTimeMilli < minTimeMilli)
+			continue;
+
+		if (compareTimeMilli >= minTimeMilli && compareTimeMilli <= maxTimeMilli)
+			return rule.colour;
+	}
+
+	return QColor();
+}
+
+qint64 ConvertTimerDurationToMilliSeconds(const PeriodData &timeToConvert)
+{
+	const auto days = static_cast<qint64>(timeToConvert.days);
+	const auto hours = static_cast<qint64>(timeToConvert.hours);
+	const auto minutes = static_cast<qint64>(timeToConvert.minutes);
+	const auto seconds = static_cast<qint64>(timeToConvert.seconds);
+
+	return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000;
+}
+
+bool IsPeriodDataBefore(PeriodData time, PeriodData timeToCompareAgainst)
+{
+	qint64 timeMilli = ConvertTimerDurationToMilliSeconds(time);
+	qint64 timeToCompareAgainstMilli = ConvertTimerDurationToMilliSeconds(timeToCompareAgainst);
+
+	return timeMilli < timeToCompareAgainstMilli;
+}
+
+bool IsPeriodDataAfter(PeriodData time, PeriodData timeToCompareAgainst)
+{
+	qint64 timeMilli = ConvertTimerDurationToMilliSeconds(time);
+	qint64 timeToCompareAgainstMilli = ConvertTimerDurationToMilliSeconds(timeToCompareAgainst);
+
+	return timeMilli > timeToCompareAgainstMilli;
+}
+
+PeriodData AddSecondsToTimerDuration(PeriodData time, int noOfSeconds)
+{
+	auto timeMilli = ConvertTimerDurationToMilliSeconds(time);
+	timeMilli = std::max(timeMilli + (noOfSeconds * 1000), 0LL);
+	return ConvertMillisToPeriodData(timeMilli);
+}
+
+long long ColourToInt(QColor color)
+{
+	auto shift = [&](unsigned val, int shift2) {
+		return ((val & 0xff) << shift2);
+	};
+
+	return shift(color.red(), 0) | shift(color.green(), 8) | shift(color.blue(), 16) | shift(color.alpha(), 24);
+}

@@ -355,6 +355,10 @@ void TimerUIManager::UpdateTimeDisplayTooltip()
 	detailsTooltip += " : ";
 	detailsTooltip += data->smoothenPeriodTimer ? "✓" : "-";
 
+	detailsTooltip += obs_module_text("DialogTextColourEnableCheckBox");
+	detailsTooltip += " : ";
+	detailsTooltip += data->display.useTextColour ? "✓" : "-";
+
 	ui->timeDisplay->setToolTip(detailsTooltip);
 }
 

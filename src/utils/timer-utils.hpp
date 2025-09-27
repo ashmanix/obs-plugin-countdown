@@ -16,7 +16,7 @@ enum class CountdownType { PERIOD = 0, DATETIME = 1 };
 
 enum class Direction { UP, DOWN };
 
-enum class TimerCommand { START, STOP };
+enum class TimerCommand { START, STOP, RESET };
 
 enum class WebsocketRequestType {
 	ADD_TIME = 1,

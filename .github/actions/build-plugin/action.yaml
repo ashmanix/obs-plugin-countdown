@@ -11,15 +11,15 @@ inputs:
   codesign:
     description: Enable codesigning (macOS only)
     required: false
-    default: 'false'
+    default: "false"
   codesignIdent:
     description: Developer ID for application codesigning (macOS only)
     required: false
-    default: '-'
+    default: "-"
   codesignTeam:
     description: Team ID for application codesigning (macOS only)
     required: false
-    default: ''
+    default: ""
   workingDirectory:
     description: Working directory for packaging
     required: false
@@ -55,6 +55,13 @@ runs:
         echo "/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin" >> $GITHUB_PATH
         brew install --quiet zsh
         echo ::endgroup::
+
+    - name: Install APT deps (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsimde-dev
 
     - name: Run Ubuntu Build
       if: runner.os == 'Linux'

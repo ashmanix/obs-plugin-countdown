@@ -77,9 +77,11 @@ private:
 
 	void StartTimerCounting();
 	void StopTimerCounting();
+	void ResetPeriodTimerSourceText();
 	void InitialiseTimerTime(bool setTimeLeftToUI = true);
 
-	void UpdateDateTimeDisplay(long long millis);
+	void UpdateDateTimeDisplay(long long timeInMillis);
+	void UpdateTimerTextSource(long long timeInMillis);
 	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
 	void SetSourceText(QString newText, QColor textColour = QColor());
 	void SetCurrentScene();

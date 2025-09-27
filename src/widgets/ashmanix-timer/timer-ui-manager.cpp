@@ -354,6 +354,11 @@ void TimerUIManager::UpdateTimeDisplayTooltip()
 	detailsTooltip += obs_module_text("DialogSmoothTimerLabel");
 	detailsTooltip += " : ";
 	detailsTooltip += data->smoothenPeriodTimer ? "✓" : "-";
+	detailsTooltip += "\n";
+
+	detailsTooltip += obs_module_text("DialogTextColourEnableCheckBox");
+	detailsTooltip += " : ";
+	detailsTooltip += data->display.useTextColour ? "✓" : "-";
 
 	ui->timeDisplay->setToolTip(detailsTooltip);
 }
@@ -517,6 +522,7 @@ void TimerUIManager::HandleTimerAction(TimerAction action)
 
 		emit TimerChange(TimerCommand::STOP);
 		data->shouldCountUp ? data->timeLeftInMillis = 0 : data->timeLeftInMillis = GetMillisFromPeriodUI();
+		emit TimerChange(TimerCommand::RESET);
 
 		UpdateDisplay(data->timeLeftInMillis);
 		break;

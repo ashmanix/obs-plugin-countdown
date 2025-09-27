@@ -161,7 +161,9 @@ void AshmanixTimer::ConnectSignalHandlers()
 		case TimerCommand::STOP:
 			StopTimerCounting();
 			break;
-
+		case TimerCommand::RESET:
+			ResetPeriodTimerSourceText();
+			break;
 		default:
 			break;
 		};
@@ -188,6 +190,16 @@ void AshmanixTimer::StopTimerCounting()
 					  countdownTimerData.source.selectedSource);
 }
 
+void AshmanixTimer::ResetPeriodTimerSourceText()
+{
+	if (countdownTimerData.shouldCountUp) {
+		UpdateTimerTextSource(0);
+	} else {
+		long long timeToSet = ConvertTimerDurationToMilliSeconds(countdownTimerData.periodDuration);
+		UpdateTimerTextSource(timeToSet);
+	}
+}
+
 void AshmanixTimer::InitialiseTimerTime(bool setTimeLeftToUI)
 {
 	countdownTimerData.timer = new QTimer();
@@ -199,9 +211,13 @@ void AshmanixTimer::InitialiseTimerTime(bool setTimeLeftToUI)
 
 void AshmanixTimer::UpdateDateTimeDisplay(long long timeInMillis)
 {
-
 	long long timeToUpdateInMillis = std::max(timeInMillis, 0ll);
 	uiManager->UpdateDisplay(timeToUpdateInMillis);
+	UpdateTimerTextSource(timeToUpdateInMillis);
+}
+
+void AshmanixTimer::UpdateTimerTextSource(long long timeToUpdateInMillis)
+{
 	QString formattedDisplayTime = ConvertDateTimeToFormattedDisplayString(
 		timeToUpdateInMillis, countdownTimerData.display.showLeadingZero);
 

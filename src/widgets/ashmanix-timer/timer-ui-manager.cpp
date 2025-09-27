@@ -360,6 +360,7 @@ void TimerUIManager::UpdateTimeDisplayTooltip()
 
 void TimerUIManager::UpdateDisplay(long long timeToUpdateInMillis)
 {
+	obs_log(LOG_INFO, QString("Updating text display: %1").arg(timeToUpdateInMillis).toStdString().c_str());
 	ui->timeDisplay->display(ConvertMillisToDateTimeString(timeToUpdateInMillis));
 }
 

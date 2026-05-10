@@ -81,6 +81,7 @@ private:
 	void InitialiseTimerTime(bool setTimeLeftToUI = true);
 
 	void UpdateDateTimeDisplay(long long timeInMillis);
+	QString ApplyTimeTemplate(QString outputString, long long timeInMillis);
 	void UpdateTimerTextSource(long long timeInMillis);
 	QString ConvertDateTimeToFormattedDisplayString(long long timeInMillis, bool showLeadingZero);
 	void SetSourceText(QString newText, QColor textColour = QColor());

@@ -216,6 +216,38 @@ void AshmanixTimer::UpdateDateTimeDisplay(long long timeInMillis)
 	UpdateTimerTextSource(timeToUpdateInMillis);
 }
 
+QString AshmanixTimer::ApplyTimeTemplate(QString outputString, long long timeInMillis)
+{
+	long long totalSeconds = timeInMillis / 1000;
+
+	long long days = totalSeconds / 86400;
+	long long hours = (totalSeconds % 86400) / 3600;
+	long long minutes = (totalSeconds % 3600) / 60;
+	long long seconds = totalSeconds % 60;
+
+	auto padded = [](long long value) {
+		return QString("%1").arg(value, 2, 10, QChar('0'));
+	};
+
+	QString formattedDisplayTime =
+		ConvertDateTimeToFormattedDisplayString(timeInMillis, countdownTimerData.display.showLeadingZero);
+
+	outputString.replace("%seconds2%", padded(seconds));
+	outputString.replace("%minutes2%", padded(minutes));
+	outputString.replace("%hours2%", padded(hours));
+	outputString.replace("%days2%", padded(days));
+
+	outputString.replace("%seconds%", QString::number(seconds));
+	outputString.replace("%minutes%", QString::number(minutes));
+	// %hours% = hours part, not total hours
+	outputString.replace("%hours%", QString::number(hours));
+	outputString.replace("%days%", QString::number(days));
+
+	outputString.replace(TIMETEMPLATECODE, formattedDisplayTime);
+
+	return outputString;
+}
+
 void AshmanixTimer::UpdateTimerTextSource(long long timeToUpdateInMillis)
 {
 	QString formattedDisplayTime = ConvertDateTimeToFormattedDisplayString(
@@ -224,8 +256,7 @@ void AshmanixTimer::UpdateTimerTextSource(long long timeToUpdateInMillis)
 	QString outputString = formattedDisplayTime;
 
 	if (countdownTimerData.display.useFormattedOutput) {
-		outputString = countdownTimerData.display.outputStringFormat;
-		outputString.replace(TIMETEMPLATECODE, formattedDisplayTime);
+		outputString = ApplyTimeTemplate(countdownTimerData.display.outputStringFormat, timeToUpdateInMillis);
 	}
 
 	if (countdownTimerData.display.useTextColour) {
@@ -387,11 +418,10 @@ void AshmanixTimer::TimerAdjust()
 	if (endTimer == true) {
 		if (countdownTimerData.display.showEndMessage) {
 			QString outputEndMessageString = countdownTimerData.display.endMessage;
-			QString timeString = ConvertDateTimeToFormattedDisplayString(
-				countdownTimerData.timeLeftInMillis, countdownTimerData.display.showLeadingZero);
-			outputEndMessageString.replace(TIMETEMPLATECODE, timeString);
+			outputEndMessageString =
+				ApplyTimeTemplate(outputEndMessageString, countdownTimerData.timeLeftInMillis);
 
-			SetSourceText(outputEndMessageString.toStdString().c_str());
+			SetSourceText(outputEndMessageString);
 		}
 		if (countdownTimerData.display.showEndScene) {
 			SetCurrentScene();

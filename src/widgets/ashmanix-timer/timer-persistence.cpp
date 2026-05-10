@@ -75,11 +75,15 @@ void TimerPersistence::LoadTimerWidgetDataFromOBSSaveData(TimerWidgetStruct *tim
 
 	QDateTime savedTime = QDateTime::fromString((char *)obs_data_get_string(dataObject, "dateTime"));
 	QDateTime currentTime = QDateTime::currentDateTime();
-	if (currentTime > savedTime) {
-		savedTime = savedTime.addDays(1);
-		if (currentTime > savedTime)
+
+	if (savedTime.isValid()) {
+		savedTime.setDate(currentTime.date());
+
+		if (savedTime <= currentTime) {
 			savedTime = savedTime.addDays(1);
+		}
 	}
+
 	timerData->dateTime = savedTime;
 
 	timerData->periodDuration.days = (int)obs_data_get_int(dataObject, "periodDays");

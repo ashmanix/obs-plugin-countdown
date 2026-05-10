@@ -21,6 +21,10 @@ TimerUIManager::TimerUIManager(QWidget *parent, Ui::AshmanixTimer *ui, TimerWidg
 // ------------------------------ Public Functions ----------------------------------
 void TimerUIManager::SetupUI()
 {
+	// Set timme edit format to locale format
+	auto locale = QLocale::system();
+	ui->dateTimeEdit->setDisplayFormat(locale.dateTimeFormat(QLocale::NarrowFormat));
+
 	ui->timerNameLabel->setText(QString("Timer: %1").arg(data->timerId));
 
 	ui->settingsToolButton->setProperty("themeID", "propertiesIconSmall");

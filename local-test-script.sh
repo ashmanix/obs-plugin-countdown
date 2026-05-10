@@ -5,7 +5,7 @@ BUILD_DESTINATION_FOLDER="$HOME/Library/Application Support/obs-studio/plugins/"
 APP_NAME="OBS"
 
 RED="\033[0;31m"
-GREEN="\033[0:32m"
+GREEN="\033[0;32m"
 NC="\033[0m" # No Color
 CLEAR_LINE="\r\033[K"  # Carriage return with clear line
 
@@ -41,19 +41,8 @@ else
     echo "${CLEAR_LINE}${GREEN}✓${NC} Initial build completed successfully!"
 fi
 
-# ./.github/scripts/build-macos >"$temp_build_output" 2>&1
-
-# if [ $? -ne 0 ]; then
-#     echo "${CLEAR_LINE}${RED}X${NC} Build script failed! Ending script. Output:"
-#     cat "$temp_build_output"
-#     exit 1
-# else
-#     echo "${CLEAR_LINE}${GREEN}✓${NC} Build completed successfully!"
-# fi
-
-
 # Copy the plugin to the correct destination folder
-echo -ne "Copying build folder to application folder${CLEAR_LINE}"
+echo -ne "Copying build folder to application folder"
 cp -r "$BUILD_FILE_LOCATION" "$BUILD_DESTINATION_FOLDER"
 if [ $? -ne 0 ]; then
     echo "${CLEAR_LINE}${RED}X${NC} Copying plugin to application folder failed! Ending script."
@@ -68,16 +57,17 @@ if pgrep $APP_NAME >/dev/null; then
     echo -ne "$APP_NAME is currently open. Now closing...."
     # Temporary file to store output
     temp_close_output=$(mktemp)
-    SCRIPT="
-        try
-            tell application \"$APP_NAME\" to quit
-            on error errorMessage number errorNumber 
-            if (errorNumber is -128) or (errorNumber is -1711) then 
-            set tekst to "Stop" 
-            end if 
-        end try
-    "
-    osascript -e $SCRIPT >>"$temp_close_output" 2>&1
+
+    osascript <<EOF >"$temp_close_output" 2>&1
+            try
+                tell application "$APP_NAME" to quit
+            on error errorMessage number errorNumber
+                -- -128 is "User cancelled", -1711 is "Automatic termination"
+                if (errorNumber is not -128) and (errorNumber is not -1711) then
+                    error errorMessage number errorNumber
+                end if
+            end try
+EOF
 
     if [ $? -ne 0 ]; then
         echo "${CLEAR_LINE}${RED}X${NC} Error closing $APP_NAME app! Output:"
@@ -89,8 +79,6 @@ if pgrep $APP_NAME >/dev/null; then
     sleep 1
 fi
 
-
-# Open OBS
 echo -ne "Opening $APP_NAME app"
 open -a $APP_NAME
 if [ $? -ne 0 ]; then

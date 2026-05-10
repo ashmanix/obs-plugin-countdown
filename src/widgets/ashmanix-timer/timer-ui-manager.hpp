@@ -6,6 +6,7 @@
 #include <QSpacerItem>
 #include <QDateTime>
 #include <QSharedPointer>
+#include <QLocale>
 
 #include "../../ui/ui_AshmanixTimer.h"
 #include "../../utils/timer-utils.hpp"

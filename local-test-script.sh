@@ -12,17 +12,20 @@ CLEAR_LINE="\r\033[K"  # Carriage return with clear line
 echo "Starting build and run script..."
 
 
-# Temporary file to store output
+# Temporary files to store output
+temp_close_output=""
 temp_build_output=$(mktemp)
+# Cleanup temp files on script exit
+trap 'rm -f "$temp_build_output" "$temp_close_output"' EXIT
 
 # Initial cmake getting dependencies
 echo -ne "${CLEAR_LINE}Running cmake script..."
 
 cmake --preset macos >"$temp_build_output" 2>&1
 
-if [ $? -ne 0 ]; then
-    echo "${CLEAR_LINE}${RED}X${NC} Initial cmake script failed! Ending script. Output:"
-    cat "$temp_build_output"
+if [[ $? -ne 0 ]]; then
+    echo "${CLEAR_LINE}${RED}X${NC} Initial cmake script failed! Ending script. Output:" >&2
+    cat "$temp_build_output" >&2
     exit 1
 else
     echo "${CLEAR_LINE}${GREEN}✓${NC} Initial cmake completed successfully!"
@@ -33,9 +36,9 @@ echo -ne "${CLEAR_LINE}Running build script..."
 
 cmake --build --preset macos >"$temp_build_output" 2>&1
 
-if [ $? -ne 0 ]; then
-    echo "${CLEAR_LINE}${RED}X${NC} Initial Build script failed! Ending script. Output:"
-    cat "$temp_build_output"
+if [[ $? -ne 0 ]]; then
+    echo "${CLEAR_LINE}${RED}X${NC} Initial Build script failed! Ending script. Output:" >&2
+    cat "$temp_build_output" >&2
     exit 1
 else
     echo "${CLEAR_LINE}${GREEN}✓${NC} Initial build completed successfully!"
@@ -44,8 +47,8 @@ fi
 # Copy the plugin to the correct destination folder
 echo -ne "Copying build folder to application folder"
 cp -r "$BUILD_FILE_LOCATION" "$BUILD_DESTINATION_FOLDER"
-if [ $? -ne 0 ]; then
-    echo "${CLEAR_LINE}${RED}X${NC} Copying plugin to application folder failed! Ending script."
+if [[ $? -ne 0 ]]; then
+    echo "${CLEAR_LINE}${RED}X${NC} Copying plugin to application folder failed! Ending script." >&2
     exit 1
 else
     echo "${CLEAR_LINE}${GREEN}✓${NC} Plugin copied to application folder successfully"
@@ -53,7 +56,7 @@ fi
 
 
 # If OBS is open then close it
-if pgrep $APP_NAME >/dev/null; then
+if pgrep -x "$APP_NAME" >/dev/null; then
     echo -ne "$APP_NAME is currently open. Now closing...."
     # Temporary file to store output
     temp_close_output=$(mktemp)
@@ -69,9 +72,9 @@ if pgrep $APP_NAME >/dev/null; then
             end try
 EOF
 
-    if [ $? -ne 0 ]; then
-        echo "${CLEAR_LINE}${RED}X${NC} Error closing $APP_NAME app! Output:"
-        cat "$temp_close_output"
+    if [[ $? -ne 0 ]]; then
+        echo "${CLEAR_LINE}${RED}X${NC} Error closing $APP_NAME app! Output:" >&2
+        cat "$temp_close_output" >&2
         exit 1
     fi
 
@@ -80,9 +83,9 @@ EOF
 fi
 
 echo -ne "Opening $APP_NAME app"
-open -a $APP_NAME
-if [ $? -ne 0 ]; then
-    echo "${CLEAR_LINE}${RED}X${NC} Error opening $APP_NAME app! Ending script."
+open -a "$APP_NAME"
+if [[ $? -ne 0 ]]; then
+    echo "${CLEAR_LINE}${RED}X${NC} Error opening $APP_NAME app! Ending script." >&2
     exit 1
 else
     echo "${CLEAR_LINE}${GREEN}✓${NC} $APP_NAME opened successfully!"

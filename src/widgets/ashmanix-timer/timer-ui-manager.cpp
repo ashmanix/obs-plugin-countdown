@@ -21,9 +21,12 @@ TimerUIManager::TimerUIManager(QWidget *parent, Ui::AshmanixTimer *ui, TimerWidg
 // ------------------------------ Public Functions ----------------------------------
 void TimerUIManager::SetupUI()
 {
-	// Set timme edit format to locale format
+	// Set time edit format to locale format, ensuring seconds are shown
 	auto locale = QLocale::system();
-	ui->dateTimeEdit->setDisplayFormat(locale.dateTimeFormat(QLocale::NarrowFormat));
+	QString timeFormat = locale.timeFormat(QLocale::ShortFormat);
+	if (!timeFormat.contains("ss"))
+		timeFormat.replace("mm", "mm:ss");
+	ui->dateTimeEdit->setDisplayFormat(locale.dateFormat(QLocale::ShortFormat) + " " + timeFormat);
 
 	ui->timerNameLabel->setText(QString("Timer: %1").arg(data->timerId));
 
